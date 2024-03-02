@@ -24,15 +24,10 @@ import FormProvider, { RHFTextField } from 'src/components/hook-form';
 
 export default function JwtLoginView() {
   const { login } = useAuthContext();
-
   const router = useRouter();
-
   const [errorMsg, setErrorMsg] = useState('');
-
   const searchParams = useSearchParams();
-
   const returnTo = searchParams.get('returnTo');
-
   const password = useBoolean();
 
   const LoginSchema = Yup.object().shape({
@@ -57,9 +52,14 @@ export default function JwtLoginView() {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await login?.(data.username, data.password);
-
-      router.push(returnTo || './');
+      const result = await login?.(data.username, data.password);
+  
+      if (result.success) {
+        router.push(returnTo || './');
+      } else {
+        // Use the detailed error message including attempt information
+        setErrorMsg(result.message);
+      }
     } catch (error) {
       console.error(error);
       reset();

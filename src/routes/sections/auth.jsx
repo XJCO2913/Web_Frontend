@@ -23,10 +23,6 @@ const JwtRegisterPage = lazy(() => import('src/pages/auth/register'));
 // const FirebaseVerifyPage = lazy(() => import('src/pages/auth/firebase/verify'));
 // const FirebaseForgotPasswordPage = lazy(() => import('src/pages/auth/firebase/forgot-password'));
 
-// AUTH0
-// const Auth0LoginPage = lazy(() => import('src/pages/auth/auth0/login'));
-// const Auth0Callback = lazy(() => import('src/pages/auth/auth0/callback'));
-
 // SUPABASE
 // const SupabaseLoginPage = lazy(() => import('src/pages/auth/supabase/login'));
 // const SupabaseVerifyPage = lazy(() => import('src/pages/auth/supabase/verify'));
@@ -48,7 +44,7 @@ const authJwt = {
       path: 'login',
       element: (
 
-          <AuthClassicLayout>
+          <AuthClassicLayout type="login">
             <JwtLoginPage />
           </AuthClassicLayout>
 
@@ -58,7 +54,7 @@ const authJwt = {
       path: 'register',
       element: (
 
-          <AuthClassicLayout title="Manage the job more effectively with XXX">
+          <AuthClassicLayout type="register" title="Manage the job more effectively with XXX">
             <JwtRegisterPage />
           </AuthClassicLayout>
       ),

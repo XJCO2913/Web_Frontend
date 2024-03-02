@@ -104,30 +104,45 @@ export function AuthProvider({ children }) {
       password,
     };
 
+    // Send a POST request to the login endpoint
     const response = await axios.post(endpoints.auth.login, data);
 
-    const { token, user } = response.data;
-
-    setSession(token);
-
-    dispatch({
-      type: 'LOGIN',
-      payload: {
-        user: {
-          ...user,
-          token,
+    // Check the status code to check whether the login is successful
+    if (response.data.status_code === 0) {
+      // Extract token and user information
+      const { token, userInfo } = response.data.Data;
+      // store the token
+      setSession(token);
+      // Update user status
+      dispatch({
+        type: 'LOGIN',
+        payload: {
+          user: {
+            ...userInfo,
+            token,
+          },
         },
-      },
-    });
+      });
+      return { success: true };
+    } else {
+      // Handle login failure, e.g., show error message
+      console.error(response.data.status_msg);
+      // Return additional login attempt information if available
+      const attemptsMsg = response.data.data?.remaining_attempts
+        ? `You have ${response.data.data.remaining_attempts} attempts remaining.`
+        : '';
+      return { success: false, message: `${response.data.status_msg}. ${attemptsMsg}` };
+    }
   }, []);
 
   // REGISTER
-  const register = useCallback(async (email, password, firstName, lastName) => {
+  const register = useCallback(async (username, password, gender, birthday, region) => {
     const data = {
-      email,
+      username,
       password,
-      firstName,
-      lastName,
+      gender,
+      birthday,
+      region
     };
 
     const response = await axios.post(endpoints.auth.register, data);

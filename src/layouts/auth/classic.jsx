@@ -18,7 +18,7 @@ import { useAuthContext } from 'src/auth/hooks';
 const METHODS = [
 ];
 
-export default function AuthClassicLayout({ children, image, title }) {
+export default function AuthClassicLayout({ children, image, title, type }) {
   const { method } = useAuthContext();
   const theme = useTheme();
   const mdUp = useResponsive('up', 'md');
@@ -33,20 +33,46 @@ export default function AuthClassicLayout({ children, image, title }) {
   //   />
   // );
 
-  const renderContent = (
-    <Stack
-      sx={{
-        width: 1,
-        mx: 'auto',
-        maxWidth: 480,
-        px: { xs: 2, md: 8 },
-        pt: { xs: 15, md: 20 },
-        pb: { xs: 15, md: 0 },
-      }}
-    >
-      {children}
-    </Stack>
-  );
+  const renderContent = () => {
+    let sxProps;
+    
+    switch (type) {
+      case 'login':
+        sxProps = {
+          px: { xs: 2, md: 8 },
+          pt: { xs: 15, md: 20 },
+          pb: { xs: 15, md: 0 },
+        };
+        break;
+      case 'register':
+        sxProps = {
+          px: { xs: 3, md: 10 },
+          pt: { xs: 20, md: 15 },
+          pb: { xs: 20, md: 5 },
+        };
+        break;
+      default:
+        sxProps = {
+          px: { xs: 2, md: 8 },
+          pt: { xs: 15, md: 20 },
+          pb: { xs: 15, md: 0 },
+        };
+        break;
+    }
+    
+    return (
+      <Stack
+        sx={{
+          width: 1,
+          mx: 'auto',
+          maxWidth: 480,
+          ...sxProps,
+        }}
+      >
+        {children}
+      </Stack>
+    );
+  };
 
   const renderSection = (
     <Stack
@@ -116,7 +142,7 @@ export default function AuthClassicLayout({ children, image, title }) {
 
       {mdUp && renderSection}
 
-      {renderContent}
+      {renderContent()}
     </Stack>
   );
 }
@@ -125,4 +151,5 @@ AuthClassicLayout.propTypes = {
   children: PropTypes.node,
   image: PropTypes.string,
   title: PropTypes.string,
+  type: PropTypes.oneOf(['login', 'register'])
 };
