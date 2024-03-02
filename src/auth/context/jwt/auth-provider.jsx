@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import { useMemo, useEffect, useReducer, useCallback } from 'react';
+import { useMemo, useReducer, useCallback } from 'react';
 
-import axios, { endpoints } from 'src/utils/axios';
+import axiosInstance, { endpoints } from 'src/utils/axios';
 
 import { AuthContext } from './auth-context';
-import { setSession, isValidToken } from './utils';
+import { setSession } from './utils';
 
 // ----------------------------------------------------------------------
 /**
@@ -54,48 +54,48 @@ const STORAGE_KEY = 'token';
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const initialize = useCallback(async () => {
-    try {
-      const token = sessionStorage.getItem(STORAGE_KEY);
+  // const initialize = useCallback(async () => {
+  //   try {
+  //     const token = sessionStorage.getItem(STORAGE_KEY);
 
-      if (token && isValidToken(token)) {
-        setSession(token);
+  //     if (token && isValidToken(token)) {
+  //       setSession(token);
 
-        const response = await axios.get(endpoints.auth.me);
+  //       const response = await axiosInstance.get(endpoints.auth.me);
 
-        const { user } = response.data;
+  //       const { user } = response.data;
 
-        dispatch({
-          type: 'INITIAL',
-          payload: {
-            user: {
-              ...user,
-              token,
-            },
-          },
-        });
-      } else {
-        dispatch({
-          type: 'INITIAL',
-          payload: {
-            user: null,
-          },
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      dispatch({
-        type: 'INITIAL',
-        payload: {
-          user: null,
-        },
-      });
-    }
-  }, []);
+  //       dispatch({
+  //         type: 'INITIAL',
+  //         payload: {
+  //           user: {
+  //             ...user,
+  //             token,
+  //           },
+  //         },
+  //       });
+  //     } else {
+  //       dispatch({
+  //         type: 'INITIAL',
+  //         payload: {
+  //           user: null,
+  //         },
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     dispatch({
+  //       type: 'INITIAL',
+  //       payload: {
+  //         user: null,
+  //       },
+  //     });
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
+  // useEffect(() => {
+  //   initialize();
+  // }, [initialize]);
 
   // LOGIN
   const login = useCallback(async (username, password) => {
@@ -103,37 +103,37 @@ export function AuthProvider({ children }) {
       username,
       password,
     };
-
-    // Send a POST request to the login endpoint
-    const response = await axios.post(endpoints.auth.login, data);
-
-    // Check the status code to check whether the login is successful
-    if (response.data.status_code === 0) {
-      // Extract token and user information
-      const { token, userInfo } = response.data.Data;
-      // store the token
-      setSession(token);
-      // Update user status
-      dispatch({
-        type: 'LOGIN',
-        payload: {
-          user: {
-            ...userInfo,
-            token,
+  
+    try {
+      // 尝试发送POST请求到登录端点
+      const response = await axiosInstance.post(endpoints.auth.login, data);
+      // 检查状态码以确认登录是否成功
+      if (response.data.status_code === 0) {
+        // 提取令牌和用户信息
+        const { token, userInfo } = response.data.Data;
+        // 存储令牌
+        setSession(token);
+        // 更新用户状态
+        dispatch({
+          type: 'LOGIN',
+          payload: {
+            user: {
+              ...userInfo,
+              token,
+            },
           },
-        },
-      });
-      return { success: true };
-    } else {
-      // Handle login failure, e.g., show error message
-      console.error(response.data.status_msg);
-      // Return additional login attempt information if available
-      const attemptsMsg = response.data.data?.remaining_attempts
-        ? `You have ${response.data.data.remaining_attempts} attempts remaining.`
-        : '';
-      return { success: false, message: `${response.data.status_msg}. ${attemptsMsg}` };
+        });
+        return { success: true };
+      } else {
+        // 如果状态码不是0，处理登录失败，但这种情况应该已经被拦截器捕获
+        return { success: false, message: 'Login failed due to unexpected error.' };
+      }
+    } catch (error) {
+      // 从拦截器返回的自定义错误对象中提取错误信息和其他数据
+      const message = error.status_msg || error.message; 
+      return { success: false, message: `${message}` };
     }
-  }, []);
+  }, []);  
 
   // REGISTER
   const register = useCallback(async (username, password, gender, birthday, region) => {
@@ -145,8 +145,7 @@ export function AuthProvider({ children }) {
       region
     };
 
-    const response = await axios.post(endpoints.auth.register, data);
-
+    const response = await axiosInstance.post(endpoints.auth.register, data);
     const { token, user } = response.data;
 
     sessionStorage.setItem(STORAGE_KEY, token);

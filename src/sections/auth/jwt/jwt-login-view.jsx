@@ -13,21 +13,22 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
-import { useRouter, useSearchParams } from 'src/routes/hooks';
+import { useRouter } from 'src/routes/hooks';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 
 
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
+import { PATH_AFTER_LOGIN } from 'src/config-global'
 // ----------------------------------------------------------------------
 
 export default function JwtLoginView() {
   const { login } = useAuthContext();
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
-  const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo');
+  // const searchParams = useSearchParams();
+  // const returnTo = searchParams.get('returnTo');
   const password = useBoolean();
 
   const LoginSchema = Yup.object().shape({
@@ -35,17 +36,15 @@ export default function JwtLoginView() {
     password: Yup.string().required('Password is required'),
   });
 
-  // const defaultValues = {
-  //   email: 'demo@minimals.cc',
-  //   password: 'demo1234',
-  // };
-
   const methods = useForm({
-    resolver: yupResolver(LoginSchema)
+    resolver: yupResolver(LoginSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+    }
   });
 
   const {
-    reset,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
@@ -53,23 +52,23 @@ export default function JwtLoginView() {
   const onSubmit = handleSubmit(async (data) => {
     try {
       const result = await login?.(data.username, data.password);
-  
+
       if (result.success) {
-        router.push(returnTo || './');
+        console.log('Redirecting to:', PATH_AFTER_LOGIN);
+        router.push(PATH_AFTER_LOGIN);
       } else {
         // Use the detailed error message including attempt information
         setErrorMsg(result.message);
       }
     } catch (error) {
       console.error(error);
-      reset();
       setErrorMsg(typeof error === 'string' ? error : error.message);
     }
   });
 
   const renderHead = (
     <Stack spacing={2} sx={{ mb: 5 }}>
-      <Typography variant="h4">Sign in to Minimal</Typography>
+      <Typography variant="h4">Sign in to XXX</Typography>
 
       <Stack direction="row" spacing={0.5}>
         <Typography variant="body2">New user?</Typography>
@@ -120,10 +119,6 @@ export default function JwtLoginView() {
   return (
     <>
       {renderHead}
-
-      {/* <Alert severity="info" sx={{ mb: 3 }}>
-        Use email : <strong>demo@minimals.cc</strong> / password :<strong> demo1234</strong>
-      </Alert> */}
 
       {!!errorMsg && (
         <Alert severity="error" sx={{ mb: 3 }}>

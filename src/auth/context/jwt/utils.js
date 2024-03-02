@@ -19,12 +19,12 @@ function jwtDecode(token) {
 
 // ----------------------------------------------------------------------
 
-export const isValidToken = (accessToken) => {
-  if (!accessToken) {
+export const isValidToken = (token) => {
+  if (!token) {
     return false;
   }
 
-  const decoded = jwtDecode(accessToken);
+  const decoded = jwtDecode(token);
 
   const currentTime = Date.now() / 1000;
 
@@ -48,7 +48,7 @@ export const tokenExpired = (exp) => {
   expiredTimer = setTimeout(() => {
     alert('Token expired');
 
-    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('token');
 
     window.location.href = paths.auth.jwt.login;
   }, timeLeft);

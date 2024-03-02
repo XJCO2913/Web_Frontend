@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------
 
 // base URL
-export const HOST_API = import.meta.env.VITE_HOST_API;
+export const HOST_API = 'http://43.136.232.116/'
 
 // Gao De API
 export const GAODE_API = {
@@ -12,7 +12,7 @@ export const GAODE_API = {
 };
 
 // ROOT PATH AFTER LOGIN SUCCESSFUL
-export const PATH_AFTER_LOGIN = './';
+export const PATH_AFTER_LOGIN = '/';
 
 // export const FIREBASE_API = {
 //   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
