@@ -2,14 +2,12 @@ import { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import AuthClassicLayout from 'src/layouts/auth/classic';
 import { SplashScreen } from 'src/components/loading-screen';
-// import CompactLayout from 'src/layouts/compact';
 
 // ----------------------------------------------------------------------
 
 // JWT
 const JwtLoginPage = lazy(() => import('src/pages/auth/login'));
 const JwtRegisterPage = lazy(() => import('src/pages/auth/register'));
-
 
 // ----------------------------------------------------------------------
 

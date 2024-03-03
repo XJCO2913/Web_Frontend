@@ -3,8 +3,6 @@ import Layout from "@/pages/Layout"
 import Home from '@/pages/Home';
 import { authRoutes } from './auth';
 
-//import { PATH_AFTER_LOGIN } from 'src/config-global';
-
 // import { authDemoRoutes } from './auth-demo';
 // import { HomePage, mainRoutes } from './main';
 // import { dashboardRoutes } from './dashboard';
@@ -16,7 +14,7 @@ export default function Router() {
   return useRoutes([
     // SET INDEX PAGE WITH HOME PAGE
     {
-      path: '/',
+      path: '/dashboard',
         // element: <AuthRoute><Layout/></AuthRoute>
         element: <Layout />,
         children: [

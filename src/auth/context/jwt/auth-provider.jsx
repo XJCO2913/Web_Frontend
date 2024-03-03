@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
 import { useMemo, useReducer, useCallback } from 'react';
-
-import axiosInstance, { endpoints } from 'src/utils/axios';
-
+import axiosInstance from 'src/utils/axios';
+import { endpoints } from 'src/apis/index'
 import { AuthContext } from './auth-context';
 import { setSession } from './utils';
 
@@ -103,17 +102,15 @@ export function AuthProvider({ children }) {
       username,
       password,
     };
-  
+
     try {
-      // 尝试发送POST请求到登录端点
       const response = await axiosInstance.post(endpoints.auth.login, data);
-      // 检查状态码以确认登录是否成功
+      // Check whether user login successfully
       if (response.data.status_code === 0) {
-        // 提取令牌和用户信息
         const { token, userInfo } = response.data.Data;
-        // 存储令牌
+        // store the token
         setSession(token);
-        // 更新用户状态
+        // Update user status
         dispatch({
           type: 'LOGIN',
           payload: {
@@ -125,15 +122,15 @@ export function AuthProvider({ children }) {
         });
         return { success: true };
       } else {
-        // 如果状态码不是0，处理登录失败，但这种情况应该已经被拦截器捕获
+        // If the status code is not 0, processing of the login fails, but this should already be caught by the interceptor
         return { success: false, message: 'Login failed due to unexpected error.' };
       }
     } catch (error) {
-      // 从拦截器返回的自定义错误对象中提取错误信息和其他数据
-      const message = error.status_msg || error.message; 
+      // Extracting error messages and other data from custom error objects returned by the interceptor
+      const message = error.status_msg || error.message;
       return { success: false, message: `${message}` };
     }
-  }, []);  
+  }, []);
 
   // REGISTER
   const register = useCallback(async (username, password, gender, birthday, region) => {
@@ -145,16 +142,17 @@ export function AuthProvider({ children }) {
       region
     };
 
+    // Get response from backend
     const response = await axiosInstance.post(endpoints.auth.register, data);
-    const { token, user } = response.data;
-
+    const { token, userInfo } = response.data.Data;
+    // Store the token
     sessionStorage.setItem(STORAGE_KEY, token);
-
+    // Update user status
     dispatch({
       type: 'REGISTER',
       payload: {
         user: {
-          ...user,
+          ...userInfo,
           token,
         },
       },

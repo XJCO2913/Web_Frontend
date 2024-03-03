@@ -82,7 +82,7 @@ export default function JwtRegisterView() {
 
     try {
       await register?.(submitData.username, submitData.password, submitData.gender, submitData.birthday, submitData.region);
-      router.push('./login');
+      router.push(paths.auth.jwt.login);
     } catch (error) {
       console.error(error);
       reset();

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Cascader, ConfigProvider } from 'antd';
 import Alert from '@mui/material/Alert';
-import { fetchProvinces, fetchCitiesByProvince, translateName } from '@/apis/cityCascader';
+import { fetchProvinces, fetchCitiesByProvince, translateName } from './utils';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { GAODE_API } from 'src/apis/index';
 
 const StyledCascader = styled(Cascader)`
   width: 100%;
@@ -39,7 +40,7 @@ export const CityCascader = ({ onChange }) => {
 
     const fetchLocation = async () => {
       try {
-        const response = await axios.get(`https://restapi.amap.com/v3/ip?key=03eceb9420e057a98616285039c15367`);
+        const response = await axios.get(`${GAODE_API.apiIP}${GAODE_API.apiKey}`);
         if (
           response.data.status === "1" && 
           response.data.info === "OK" && 
@@ -55,7 +56,7 @@ export const CityCascader = ({ onChange }) => {
             onChange(location);
           }
         } else {
-          // 服务不可用或数据为空
+          // when IP is not in China show the alert
           showAlert('warning', 'This service is only available to users in China.');
         }
       } catch (error) {
