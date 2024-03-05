@@ -10,7 +10,7 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   (error) => {
     // If there is a response and the response contains data
-    if (error.response && error.response.data) {
+    if (error.response && error.response.data.Data !== null) {
       // Constructing a custom error object
       let customError = {
         status_code: error.response.data.status_code,
