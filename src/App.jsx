@@ -1,35 +1,68 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// /* eslint-disable perfectionist/sort-imports */
+// import 'src/global.css';
 
-function App() {
-  const [count, setCount] = useState(0)
+// // i18n
+// import 'src/locales/i18n';
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+// ----------------------------------------------------------------------
+
+import Router from 'src/routes/sections';
+
+import ThemeProvider from 'src/theme';
+
+// import { LocalizationProvider } from 'src/locales';
+
+// import { useScrollToTop } from 'src/hooks/use-scroll-to-top';
+
+// import ProgressBar from 'src/components/progress-bar';
+// import { MotionLazy } from 'src/components/animate/motion-lazy';
+// import SnackbarProvider from 'src/components/snackbar/snackbar-provider';
+import { SettingsProvider } from 'src/components/settings';
+
+// import { CheckoutProvider } from 'src/sections/checkout/context';
+
+import { AuthProvider } from 'src/auth/context/jwt';
+// import { AuthProvider } from 'src/auth/context/auth0';
+// import { AuthProvider } from 'src/auth/context/amplify';
+// import { AuthProvider } from 'src/auth/context/firebase';
+// import { AuthProvider } from 'src/auth/context/supabase';
+
+// ----------------------------------------------------------------------
+
+export default function App() {
+    const charAt = `
+
+  ░░░    ░░░
+  ▒▒▒▒  ▒▒▒▒
+  ▒▒ ▒▒▒▒ ▒▒
+  ▓▓  ▓▓  ▓▓
+  ██      ██
+
+  `;
+
+    console.info(`%c${charAt}`, 'color: #5BE49B');
+
+    //   useScrollToTop();
+
+    return (
+        <AuthProvider>
+            {/* <LocalizationProvider> */}
+            <SettingsProvider
+                defaultSettings={{
+                    themeMode: 'light', // 'light' | 'dark'
+                    themeDirection: 'ltr', //  'rtl' | 'ltr'
+                    themeContrast: 'default', // 'default' | 'bold'
+                    themeLayout: 'vertical', // 'vertical' | 'horizontal' | 'mini'
+                    themeColorPresets: 'default', // 'default' | 'cyan' | 'purple' | 'blue' | 'orange' | 'red'
+                    themeStretch: false,
+                }}
+            >
+                <ThemeProvider>
+                    {/* <SettingsDrawer /> */}
+                    <Router />
+                </ThemeProvider>
+            </SettingsProvider>
+            {/* </LocalizationProvider> */}
+        </AuthProvider>
+    );
 }
-
-export default App
