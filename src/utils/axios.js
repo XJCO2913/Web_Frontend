@@ -25,9 +25,8 @@ axiosInstance.interceptors.response.use(
 
       // If the account is locked, add the lock expiration time
       if (error.response.data.Data.lock_expires !== undefined) {
-        // Convert timestamps to a more readable format, if desired
-        const expires = new Date(parseInt(error.response.data.Data.lock_expires) * 1000);
-        customError.data.lockExpires = expires.toString();
+        // lockExpires is unix timestamp
+        customError.data.lockExpires = error.response.data.Data.lock_expires;
       }
 
       // Returning custom error objects instead of throwing exceptions

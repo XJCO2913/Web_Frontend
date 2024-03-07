@@ -126,9 +126,22 @@ export function AuthProvider({ children }) {
         return { success: false, message: 'Login failed due to unexpected error.' };
       }
     } catch (error) {
-      // Extracting error messages and other data from custom error objects returned by the interceptor
-      const message = error.status_msg || error.message;
-      return { success: false, message: `${message}` };
+      let customErrorData = { success: false, data: {} };
+      if (error.status_code === -1) {
+        // Manifest the remaining attempts to user
+        if (error.data.remainingAttempts) {
+          customErrorData.message = `Login failed. You have ${error.data.remainingAttempts} attempts remaining.`;
+          customErrorData.data.remainingAttempts = error.data.remainingAttempts;
+        }
+        // Manifest the lock time to user
+        if (error.data.lockExpires) {
+          customErrorData.message = `Account is locked.`;
+          customErrorData.data.lockExpires = error.data.lockExpires;
+        }
+      } else {
+        customErrorData.message = 'Login failed due to an unexpected error. Please try again later.';
+      }
+      return customErrorData;
     }
   }, []);
 

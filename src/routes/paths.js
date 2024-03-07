@@ -4,20 +4,15 @@
 export const PATH_AFTER_LOGIN = '/dashboard';
 
 const ROOTS = {
-  AUTH: '/auth',
   DASHBOARD: '/dashboard',
 };
 
 // ----------------------------------------------------------------------
 
 export const paths = {
-  // AUTH
-  auth: {
-    jwt: {
-      login: `${ROOTS.AUTH}/jwt/login`,
-      register: `${ROOTS.AUTH}/jwt/register`,
-    }
-  },
+  login: '/login',
+  register: '/register',
+
   dashboard: {
     root: ROOTS.DASHBOARD,
   },

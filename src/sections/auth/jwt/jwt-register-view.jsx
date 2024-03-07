@@ -33,8 +33,6 @@ export default function JwtRegisterView() {
   const { register } = useAuthContext();
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
-  // const searchParams = useSearchParams();
-  // const returnTo = searchParams.get('returnTo');
   const password = useBoolean();
 
   // validate the form
@@ -82,14 +80,13 @@ export default function JwtRegisterView() {
 
     try {
       await register?.(submitData.username, submitData.password, submitData.gender, submitData.birthday, submitData.region);
-      router.push(paths.auth.jwt.login);
+      router.push(paths.login);
     } catch (error) {
       console.error(error);
       reset();
       setErrorMsg(typeof error === 'string' ? error : error.message);
     }
   });
-
 
   const renderHead = (
     <Stack spacing={1} sx={{ mb: 3, position: 'relative' }}>
@@ -168,19 +165,18 @@ export default function JwtRegisterView() {
             <DesktopDatePicker
               label="Birthday"
               inputFormat="yyyy-MM-dd"
+              maxDate={new Date()}
               renderInput={(params) => <TextField {...params} error={!!error} helperText={error ? error.message : null} />}
               {...field}
               onChange={(date) => {
                 // If the date is not null, format it and log it; otherwise, pass null
                 const formattedDate = date ? format(date, 'yyyy-MM-dd') : null;
-                console.log('Selected date:', formattedDate); // Log the formatted date to the console
                 field.onChange(formattedDate);
               }}
             />
           )}
         />
       </LocalizationProvider>
-
 
       <Controller
         name="region"
