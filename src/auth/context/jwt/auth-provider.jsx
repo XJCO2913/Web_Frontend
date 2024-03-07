@@ -105,6 +105,7 @@ export function AuthProvider({ children }) {
 
     try {
       const response = await axiosInstance.post(endpoints.auth.login, data);
+      console.log(100)
       // Check whether user login successfully
       if (response.data.status_code === 0) {
         const { token, userInfo } = response.data.Data;
@@ -127,13 +128,21 @@ export function AuthProvider({ children }) {
       }
     } catch (error) {
       let customErrorData = { success: false, data: {} };
+
+      // If user not found send the message to upper layer
+      if(error.data.status_code === -1 && error.data.status_msg === 'user not found')
+      {
+        customErrorData.message = "The username does not exist.";
+        return customErrorData;
+      }
+
       if (error.status_code === -1) {
-        // Manifest the remaining attempts to user
+        // Send the remaining attempts to upper layer
         if (error.data.remainingAttempts) {
           customErrorData.message = `Login failed. You have ${error.data.remainingAttempts} attempts remaining.`;
           customErrorData.data.remainingAttempts = error.data.remainingAttempts;
         }
-        // Manifest the lock time to user
+        // Send the lockdown time to upper layer
         if (error.data.lockExpires) {
           customErrorData.message = `Account is locked.`;
           customErrorData.data.lockExpires = error.data.lockExpires;

@@ -41,7 +41,7 @@ export default function JwtRegisterView() {
     password: Yup.string().required('Password is required'),
     gender: Yup.number().nullable().transform((_, originalValue) => originalValue === "" ? null : Number(originalValue)),
     birthday: Yup.date().nullable().transform((value, originalValue) => originalValue === "" ? null : value),
-    region: Yup.string().required('Region is required'),
+    region: Yup.string().required('Region is required').notOneOf([''], 'Region cannot be empty'), // 正确地排除undefined和空字符串
   });
 
   // set the default values
@@ -69,9 +69,6 @@ export default function JwtRegisterView() {
     // Format the birthday to 'YYYY-MM-DD' if it's not null
     const formattedBirthday = data.birthday ? format(new Date(data.birthday), 'yyyy-MM-dd') : null;
 
-    // Log the formatted date
-    console.log('Formatted birthday:', formattedBirthday);
-
     // Prepare the data to be sent to the server
     const submitData = {
       ...data,
@@ -95,7 +92,7 @@ export default function JwtRegisterView() {
       <Stack direction="row" spacing={0.5}>
         <Typography variant="body2"> Already have an account? </Typography>
 
-        <Link href={paths.auth.jwt.login} component={RouterLink} variant="subtitle2">
+        <Link href={paths.login} component={RouterLink} variant="subtitle2">
           Sign in
         </Link>
       </Stack>
@@ -180,15 +177,19 @@ export default function JwtRegisterView() {
 
       <Controller
         name="region"
+        label="Region"
         control={methods.control}
         render={({ field }) => (
           <CityCascader
             onChange={(value) => {
-              console.log(value)
-              // This will create 'Province-City'
-              const formattedValue = value.join('-');
+              console.log(value);
+              // 确保value是一个数组，如果不是或者undefined，则默认为空数组
+              const safeValue = Array.isArray(value) ? value : [];
+              // 先过滤掉数组中的undefined值，然后使用join('-')拼接
+              const filteredValue = safeValue.filter(item => item !== undefined);
+              const formattedValue = filteredValue.join('-');
               field.onChange(formattedValue);
-
+              console.log(formattedValue);
             }}
           />
         )}

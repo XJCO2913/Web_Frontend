@@ -32,9 +32,9 @@ axiosInstance.interceptors.response.use(
       // Returning custom error objects instead of throwing exceptions
       return Promise.reject(customError);
     }
-    
+
     // If there is no response or the response does not contain data, return a generic error message
-    return Promise.reject((error.response && error.response.data)||'Something went wrong');
+    return Promise.reject((error.response)||'Something went wrong');
   }
 );
 
