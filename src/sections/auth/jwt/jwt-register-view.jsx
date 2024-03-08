@@ -69,12 +69,12 @@ export default function JwtRegisterView() {
 
   // submit the form
   const onSubmit = handleSubmit(async (data) => {
-    // Format the birthday to 'YYYY-MM-DD' if it's not null
+    // Format the birthday field to 'YYYY-MM-DD' format if it's not null
     const formattedBirthday = data.birthday ? format(new Date(data.birthday), 'yyyy-MM-dd') : null;
 
-    // Verify region format
+    // Verify if the region format contains '-'
     if (!data.region.includes('-')) {
-      // If the region does not contain '-', it indicates that the format does not conform to the Province-City format
+      // If the region does not contain '-', it indicates the format does not conform to the Province-City format
       triggerError('Please select both province and city.');
       return;
     }
@@ -86,12 +86,18 @@ export default function JwtRegisterView() {
     };
 
     try {
-      await register?.(submitData.username, submitData.password, submitData.gender, submitData.birthday, submitData.region);
-      router.push(paths.login);
+      const result = await register?.(submitData.username, submitData.password, submitData.gender, submitData.birthday, submitData.region);
+
+      if (result.success) {
+        // Registration successful, navigate to the login page or another page
+        router.push(paths.login);
+      } else {
+        triggerError(result.message)
+      }
     } catch (error) {
       console.error(error);
-      reset();
-      triggerError(typeof error === 'string' ? error : error.message);
+      reset(); // Reset form state
+      triggerError('An unexpected error occurred. Please try again later.'); // Catch and handle unexpected errors
     }
   });
 

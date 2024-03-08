@@ -126,12 +126,12 @@ export function AuthProvider({ children }) {
         // If the status code is not 0, processing of the login fails, but this should already be caught by the interceptor
         return { success: false, message: 'Login failed due to unexpected error.' };
       }
-    } catch (error) {
+    }
+    catch (error) {
       let customErrorData = { success: false, data: {} };
 
       // If user not found send the message to upper layer
-      if(error.data.status_code === -1 && error.data.status_msg === 'user not found')
-      {
+      if (error.data.status_code === -1 && error.data.status_msg === 'user not found') {
         customErrorData.message = "The username does not exist.";
         return customErrorData;
       }
@@ -161,24 +161,42 @@ export function AuthProvider({ children }) {
       password,
       gender,
       birthday,
-      region
+      region,
     };
 
-    // Get response from backend
-    const response = await axiosInstance.post(endpoints.auth.register, data);
-    const { token, userInfo } = response.data.Data;
-    // Store the token
-    sessionStorage.setItem(STORAGE_KEY, token);
-    // Update user status
-    dispatch({
-      type: 'REGISTER',
-      payload: {
-        user: {
-          ...userInfo,
-          token,
-        },
-      },
-    });
+    try {
+      const response = await axiosInstance.post(endpoints.auth.register, data);
+      // Assuming the response structure is similar to login
+      if (response.data.status_code === 0) {
+        const { token, userInfo } = response.data.Data;
+        // Store the token
+        sessionStorage.setItem(STORAGE_KEY, token);
+        // Update user status
+        dispatch({
+          type: 'REGISTER',
+          payload: {
+            user: {
+              ...userInfo,
+              token,
+            },
+          },
+        });
+        return { success: true };
+      } else {
+        // If the status code is not 0, the registration process is considered failed
+        return { success: false, message: 'Sign up failed due to unexpected error.' };
+      }
+    } catch (error) {
+      let customErrorData = { success: false, data: {} };
+
+      // If user not found send the message to upper layer
+      if (error.data.status_code === -1 && error.data.status_msg === 'user already exist') {
+        customErrorData.message = "The username already exists.";
+        return customErrorData;
+      }
+
+      return customErrorData;
+    }
   }, []);
 
   // LOGOUT
