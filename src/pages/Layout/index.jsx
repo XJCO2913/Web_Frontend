@@ -7,9 +7,6 @@ import {
 } from '@ant-design/icons'
 import './index.scss'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import React from 'react';
-import useSWR from 'swr';
-import { request } from "@/utils"; // 确保引入了你的请求工具或 axios 实例
 
 
 const { Header, Sider } = Layout

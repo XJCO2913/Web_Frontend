@@ -3,6 +3,7 @@ import axios from 'src/utils/axios';
 
 // ----------------------------------------------------------------------
 
+// Decode the JWT token.
 function jwtDecode(token) {
   const base64Url = token.split('.')[1];
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -19,6 +20,7 @@ function jwtDecode(token) {
 
 // ----------------------------------------------------------------------
 
+// Verify the validity of the JWT token.
 export const isValidToken = (token) => {
   if (!token) {
     return false;
@@ -33,6 +35,7 @@ export const isValidToken = (token) => {
 
 // ----------------------------------------------------------------------
 
+// Set a timer to perform an action when the JWT token expires.
 export const tokenExpired = (exp) => {
   // eslint-disable-next-line prefer-const
   let expiredTimer;
@@ -56,6 +59,8 @@ export const tokenExpired = (exp) => {
 
 // ----------------------------------------------------------------------
 
+// Store the token sent from the backend and then set a time limit 
+// If the token expires it will erase the token and redirect to a new page
 export const setSession = (token) => {
   if (token) {
     sessionStorage.setItem('token', token);
@@ -69,4 +74,3 @@ export const setSession = (token) => {
     delete axios.defaults.headers.common.Authorization;
   }
 };
-

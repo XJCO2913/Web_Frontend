@@ -1,32 +1,19 @@
-// import { paramCase } from 'src/utils/change-case';
-
-// import { _id, _postTitles } from 'src/_mock/assets';
-
 // ----------------------------------------------------------------------
 
-// const MOCK_ID = _id[1];
-// const MOCK_TITLE = _postTitles[2];
+// ROOT PATH AFTER LOGIN SUCCESSFUL
+export const PATH_AFTER_LOGIN = '/dashboard';
 
 const ROOTS = {
-  AUTH: '/auth',
   DASHBOARD: '/dashboard',
 };
 
 // ----------------------------------------------------------------------
 
 export const paths = {
-  //   post: {
-  //     root: `/post`,
-  //     details: (title) => `/post/${paramCase(title)}`,
-  //     demo: {
-  //       details: `/post/${paramCase(MOCK_TITLE)}`,
-  //     },
-  //   },
-  // AUTH
-  auth: {
-    jwt: {
-      login: `${ROOTS.AUTH}/jwt/login`,
-      register: `${ROOTS.AUTH}/jwt/register`,
-    }
+  login: '/login',
+  register: '/register',
+
+  dashboard: {
+    root: ROOTS.DASHBOARD,
   },
 };

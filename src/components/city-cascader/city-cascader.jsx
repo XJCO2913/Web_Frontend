@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
+// import { useState, useEffect } from 'react';
 import { Cascader, ConfigProvider } from 'antd';
 import Alert from '@mui/material/Alert';
-import { fetchProvinces, fetchCitiesByProvince, translateName } from '@/apis/cityCascader';
+import { fetchProvinces, fetchCitiesByProvince, translateName } from './utils';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { GAODE_API } from 'src/apis/index';
 
 const StyledCascader = styled(Cascader)`
   width: 100%;
@@ -12,15 +14,15 @@ const StyledCascader = styled(Cascader)`
 `;
 
 // Define the CityCascader component with a prop `onChange` for handling changes in selection.
-export const CityCascader = ({ onChange }) => {
+export const CityCascader = forwardRef(({ onChange, error, errorMessage }, ref) => {
   // State hook for storing options for the cascader (provinces and cities).
   const [options, setOptions] = useState([]);
   // State hook for storing the currently selected location.
   const [selectedLocation, setSelectedLocation] = useState([]);
-
   const [openAlert, setOpenAlert] = useState(false);
   const [alertType, setAlertType] = useState('info'); // 'error', 'warning', 'info', 'success'
   const [alertMessage, setAlertMessage] = useState('');
+  const [open, setOpen] = useState(true);
 
   // Effect hook to load provinces on component mount and fetch user's location.
   useEffect(() => {
@@ -30,7 +32,7 @@ export const CityCascader = ({ onChange }) => {
       setOptions(provinces);
     };
 
-    // 显示提示信息的函数
+    // A function that displays a prompt message
     const showAlert = (type, message) => {
       setAlertType(type);
       setAlertMessage(message);
@@ -39,10 +41,10 @@ export const CityCascader = ({ onChange }) => {
 
     const fetchLocation = async () => {
       try {
-        const response = await axios.get(`https://restapi.amap.com/v3/ip?key=03eceb9420e057a98616285039c15367`);
+        const response = await axios.get(`${GAODE_API.apiIP}${GAODE_API.apiKey}`);
         if (
-          response.data.status === "1" && 
-          response.data.info === "OK" && 
+          response.data.status === "1" &&
+          response.data.info === "OK" &&
           response.data.province && response.data.province.length > 0 &&
           response.data.city && response.data.city.length > 0
         ) {
@@ -55,7 +57,7 @@ export const CityCascader = ({ onChange }) => {
             onChange(location);
           }
         } else {
-          // 服务不可用或数据为空
+          // when IP is not in China show the alert
           showAlert('warning', 'This service is only available to users in China.');
         }
       } catch (error) {
@@ -101,6 +103,13 @@ export const CityCascader = ({ onChange }) => {
         </Alert>
       )}
 
+      {error && open &&
+        (<Alert
+          severity="error"
+          onClose={() => setOpen(false)}>
+          {errorMessage}
+        </Alert>)}
+
       <ConfigProvider
         theme={{
           token: {
@@ -118,6 +127,7 @@ export const CityCascader = ({ onChange }) => {
         }}
       >
         <StyledCascader
+          ref={ref}
           size='large'
           options={options} // The options for provinces and their cities.
           loadData={loadData} // Function to call for dynamically loading city options.
@@ -128,11 +138,14 @@ export const CityCascader = ({ onChange }) => {
         />
       </ConfigProvider></>
   );
-};
+});
+CityCascader.displayName = 'CityCascader';
 
 // Type-checking for the `onChange` prop to ensure it's a function if provided.
 CityCascader.propTypes = {
   onChange: PropTypes.func,
+  error: PropTypes.bool,
+  errorMessage: PropTypes.string,
 };
 
 export default CityCascader;

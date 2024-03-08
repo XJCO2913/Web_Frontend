@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { TextField } from '@mui/material';
@@ -28,14 +28,14 @@ import { CityCascader } from 'src/components/city-cascader'
 
 
 // ----------------------------------------------------------------------
-
 export default function JwtRegisterView() {
   const { register } = useAuthContext();
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
-  // const searchParams = useSearchParams();
-  // const returnTo = searchParams.get('returnTo');
+  const [open, setOpen] = useState(true);
   const password = useBoolean();
+  const [errorKey, setErrorKey] = useState(0);
+  const [lastError, setLastError] = useState({ message: '', key: 0 });
 
   // validate the form
   const RegisterSchema = Yup.object().shape({
@@ -43,7 +43,8 @@ export default function JwtRegisterView() {
     password: Yup.string().required('Password is required'),
     gender: Yup.number().nullable().transform((_, originalValue) => originalValue === "" ? null : Number(originalValue)),
     birthday: Yup.date().nullable().transform((value, originalValue) => originalValue === "" ? null : value),
-    region: Yup.string().required('Region is required'),
+    // Correctly exclude undefined and empty strings
+    region: Yup.string().required('Region is required').notOneOf([''], 'Region cannot be empty.'),
   });
 
   // set the default values
@@ -71,8 +72,12 @@ export default function JwtRegisterView() {
     // Format the birthday to 'YYYY-MM-DD' if it's not null
     const formattedBirthday = data.birthday ? format(new Date(data.birthday), 'yyyy-MM-dd') : null;
 
-    // Log the formatted date
-    console.log('Formatted birthday:', formattedBirthday);
+    // Verify region format
+    if (!data.region.includes('-')) {
+      // If the region does not contain '-', it indicates that the format does not conform to the Province-City format
+      triggerError('Please select both province and city.');
+      return;
+    }
 
     // Prepare the data to be sent to the server
     const submitData = {
@@ -82,14 +87,37 @@ export default function JwtRegisterView() {
 
     try {
       await register?.(submitData.username, submitData.password, submitData.gender, submitData.birthday, submitData.region);
-      router.push('./login');
+      router.push(paths.login);
     } catch (error) {
       console.error(error);
       reset();
-      setErrorMsg(typeof error === 'string' ? error : error.message);
+      triggerError(typeof error === 'string' ? error : error.message);
     }
   });
 
+  const triggerError = (msg) => {
+    setErrorMsg(msg);
+    // Increments the errorKey or sets it to the current timestamp 
+    // to force an update of alert to be triggered
+    setErrorKey(prevKey => prevKey + 1);
+  };
+
+  // Monitor the error message occur
+  useEffect(() => {
+    if (errorMsg) {
+      setOpen(true);
+    }
+  }, [errorMsg, errorKey]);
+
+  // Listen for error changes in react-hook-form and update lastError status
+  useEffect(() => {
+    const error = methods.formState.errors.region;
+    if (error && error.message) {
+      // Use a timestamp as a unique identifier
+      setLastError({ message: error.message, key: Date.now() });
+    }
+    // Note the errors object that relies on reacting-hook-form 
+  }, [methods.formState.errors]);
 
   const renderHead = (
     <Stack spacing={1} sx={{ mb: 3, position: 'relative' }}>
@@ -98,7 +126,7 @@ export default function JwtRegisterView() {
       <Stack direction="row" spacing={0.5}>
         <Typography variant="body2"> Already have an account? </Typography>
 
-        <Link href={paths.auth.jwt.login} component={RouterLink} variant="subtitle2">
+        <Link href={paths.login} component={RouterLink} variant="subtitle2">
           Sign in
         </Link>
       </Stack>
@@ -168,12 +196,12 @@ export default function JwtRegisterView() {
             <DesktopDatePicker
               label="Birthday"
               inputFormat="yyyy-MM-dd"
+              maxDate={new Date()}
               renderInput={(params) => <TextField {...params} error={!!error} helperText={error ? error.message : null} />}
               {...field}
               onChange={(date) => {
                 // If the date is not null, format it and log it; otherwise, pass null
                 const formattedDate = date ? format(date, 'yyyy-MM-dd') : null;
-                console.log('Selected date:', formattedDate); // Log the formatted date to the console
                 field.onChange(formattedDate);
               }}
             />
@@ -184,16 +212,25 @@ export default function JwtRegisterView() {
 
       <Controller
         name="region"
+        label="Region"
         control={methods.control}
-        render={({ field }) => (
+        rules={{ required: 'Region is required' }}
+        render={({ field, fieldState: { error } }) => (
           <CityCascader
+            {...field}
             onChange={(value) => {
-              console.log(value)
-              // This will create 'Province-City'
-              const formattedValue = value.join('-');
+              // console.log(value);
+              // Ensure that value is an array, if it is not or undefined, it defaults to an empty array
+              const safeValue = Array.isArray(value) ? value : [];
+              // Filter out the undefined value in the array and concatenate it with join('-')
+              const filteredValue = safeValue.filter(item => item !== undefined);
+              const formattedValue = filteredValue.join('-');
               field.onChange(formattedValue);
-
+              console.log(formattedValue);
             }}
+            error={!!error}
+            errorMessage={error ? error.message : ''}
+            key={lastError.key}
           />
         )}
       />
@@ -215,8 +252,11 @@ export default function JwtRegisterView() {
     <>
       {renderHead}
 
-      {!!errorMsg && (
-        <Alert severity="error" sx={{ m: 3 }}>
+      {!!errorMsg && open && (
+        <Alert
+          severity="error"
+          sx={{ width: '100%', mb: 3 }}
+          onClose={() => setOpen(false)}>
           {errorMsg}
         </Alert>
       )}
