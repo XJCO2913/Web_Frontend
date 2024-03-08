@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { TextField } from '@mui/material';
@@ -28,12 +28,14 @@ import { CityCascader } from 'src/components/city-cascader'
 
 
 // ----------------------------------------------------------------------
-
 export default function JwtRegisterView() {
   const { register } = useAuthContext();
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
+  const [open, setOpen] = useState(true);
   const password = useBoolean();
+  const [errorKey, setErrorKey] = useState(0);
+  const [lastError, setLastError] = useState({ message: '', key: 0 });
 
   // validate the form
   const RegisterSchema = Yup.object().shape({
@@ -41,7 +43,8 @@ export default function JwtRegisterView() {
     password: Yup.string().required('Password is required'),
     gender: Yup.number().nullable().transform((_, originalValue) => originalValue === "" ? null : Number(originalValue)),
     birthday: Yup.date().nullable().transform((value, originalValue) => originalValue === "" ? null : value),
-    region: Yup.string().required('Region is required').notOneOf([''], 'Region cannot be empty'), // 正确地排除undefined和空字符串
+    // Correctly exclude undefined and empty strings
+    region: Yup.string().required('Region is required').notOneOf([''], 'Region cannot be empty.'),
   });
 
   // set the default values
@@ -69,6 +72,13 @@ export default function JwtRegisterView() {
     // Format the birthday to 'YYYY-MM-DD' if it's not null
     const formattedBirthday = data.birthday ? format(new Date(data.birthday), 'yyyy-MM-dd') : null;
 
+    // Verify region format
+    if (!data.region.includes('-')) {
+      // If the region does not contain '-', it indicates that the format does not conform to the Province-City format
+      triggerError('Please select both province and city.');
+      return;
+    }
+
     // Prepare the data to be sent to the server
     const submitData = {
       ...data,
@@ -81,9 +91,33 @@ export default function JwtRegisterView() {
     } catch (error) {
       console.error(error);
       reset();
-      setErrorMsg(typeof error === 'string' ? error : error.message);
+      triggerError(typeof error === 'string' ? error : error.message);
     }
   });
+
+  const triggerError = (msg) => {
+    setErrorMsg(msg);
+    // Increments the errorKey or sets it to the current timestamp 
+    // to force an update of alert to be triggered
+    setErrorKey(prevKey => prevKey + 1);
+  };
+
+  // Monitor the error message occur
+  useEffect(() => {
+    if (errorMsg) {
+      setOpen(true);
+    }
+  }, [errorMsg, errorKey]);
+
+  // Listen for error changes in react-hook-form and update lastError status
+  useEffect(() => {
+    const error = methods.formState.errors.region;
+    if (error && error.message) {
+      // Use a timestamp as a unique identifier
+      setLastError({ message: error.message, key: Date.now() });
+    }
+    // Note the errors object that relies on reacting-hook-form 
+  }, [methods.formState.errors]);
 
   const renderHead = (
     <Stack spacing={1} sx={{ mb: 3, position: 'relative' }}>
@@ -175,22 +209,28 @@ export default function JwtRegisterView() {
         />
       </LocalizationProvider>
 
+
       <Controller
         name="region"
         label="Region"
         control={methods.control}
-        render={({ field }) => (
+        rules={{ required: 'Region is required' }}
+        render={({ field, fieldState: { error } }) => (
           <CityCascader
+            {...field}
             onChange={(value) => {
-              console.log(value);
-              // 确保value是一个数组，如果不是或者undefined，则默认为空数组
+              // console.log(value);
+              // Ensure that value is an array, if it is not or undefined, it defaults to an empty array
               const safeValue = Array.isArray(value) ? value : [];
-              // 先过滤掉数组中的undefined值，然后使用join('-')拼接
+              // Filter out the undefined value in the array and concatenate it with join('-')
               const filteredValue = safeValue.filter(item => item !== undefined);
               const formattedValue = filteredValue.join('-');
               field.onChange(formattedValue);
               console.log(formattedValue);
             }}
+            error={!!error}
+            errorMessage={error ? error.message : ''}
+            key={lastError.key}
           />
         )}
       />
@@ -212,8 +252,11 @@ export default function JwtRegisterView() {
     <>
       {renderHead}
 
-      {!!errorMsg && (
-        <Alert severity="error" sx={{ m: 3 }}>
+      {!!errorMsg && open && (
+        <Alert
+          severity="error"
+          sx={{ width: '100%', mb: 3 }}
+          onClose={() => setOpen(false)}>
           {errorMsg}
         </Alert>
       )}

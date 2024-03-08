@@ -46,7 +46,7 @@ export default function AuthClassicLayout({ children, image, title, type }) {
         break;
       case 'register':
         sxProps = {
-          px: { xs: 3, md: 10 },
+          px: { xs: 3, md: 9 },
           pt: { xs: 20, md: 15 },
           pb: { xs: 20, md: 5 },
         };
