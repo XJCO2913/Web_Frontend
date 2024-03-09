@@ -139,7 +139,7 @@ export function AuthProvider({ children }) {
       if (error.status_code === -1) {
         // Send the remaining attempts to upper layer
         if (error.data.remainingAttempts) {
-          customErrorData.message = `Login failed. You have ${error.data.remainingAttempts} attempts remaining.`;
+          customErrorData.message = `Wrong password. You have ${error.data.remainingAttempts} attempts remaining.`;
           customErrorData.data.remainingAttempts = error.data.remainingAttempts;
         }
         // Send the lockdown time to upper layer

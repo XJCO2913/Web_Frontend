@@ -2,7 +2,7 @@ import * as Yup from 'yup';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TextField } from '@mui/material';
+// import { TextField } from '@mui/material';
 
 import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
@@ -11,10 +11,12 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import InputAdornment from '@mui/material/InputAdornment';
+import AlertTitle from '@mui/material/AlertTitle'
+import Snackbar from '@mui/material/Snackbar';
 import { MenuItem } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3'
-import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { format } from 'date-fns';
 
 import { paths } from 'src/routes/paths';
@@ -32,26 +34,48 @@ export default function JwtRegisterView() {
   const { register } = useAuthContext();
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
+  // control the error alert
   const [open, setOpen] = useState(true);
+  // control the success
+  const [successMsgOpen, setSuccessMsgOpen] = useState(false);
   const password = useBoolean();
   const [errorKey, setErrorKey] = useState(0);
   const [lastError, setLastError] = useState({ message: '', key: 0 });
+  const [shouldFetchData, setShouldFetchData] = useState(true);
 
+  // ----------------------------------------------------------------------
+  // Function to control snackbar
+  const handleSuccess = () => {
+    setSuccessMsgOpen(true);
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSuccessMsgOpen(false);
+  };
+
+  // ----------------------------------------------------------------------
   // validate the form
   const RegisterSchema = Yup.object().shape({
     username: Yup.string().required('Username is required'),
     password: Yup.string().required('Password is required'),
-    gender: Yup.number().nullable().transform((_, originalValue) => originalValue === "" ? null : Number(originalValue)),
-    birthday: Yup.date().nullable().transform((value, originalValue) => originalValue === "" ? null : value),
+    gender: Yup.number().required('Gender is required'),
+    birthday: Yup.date()
+      .nullable()
+      .transform((value, originalValue) => originalValue === "" ? null : value)
+      .max(new Date(), 'Birthday cannot be in the future')
+      .typeError('Invalid date'),
     // Correctly exclude undefined and empty strings
-    region: Yup.string().required('Region is required').notOneOf([''], 'Region cannot be empty.'),
+    region: Yup.string().required('Region is required').notOneOf(['', undefined], 'Region cannot be empty.'),
   });
 
   // set the default values
   const defaultValues = {
     username: '',
     password: '',
-    gender: '',
+    gender: 2,
     birthday: null,
     region: ''
   };
@@ -66,6 +90,14 @@ export default function JwtRegisterView() {
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
+
+  const onError = (errors) => {
+    console.log(errors);
+    // If there is an error (that is, a commit failure), update shouldFetchData to prevent data refetching
+    setShouldFetchData(false);
+  };
+
+  // ----------------------------------------------------------------------
 
   // submit the form
   const onSubmit = handleSubmit(async (data) => {
@@ -87,10 +119,14 @@ export default function JwtRegisterView() {
 
     try {
       const result = await register?.(submitData.username, submitData.password, submitData.gender, submitData.birthday, submitData.region);
-
       if (result.success) {
         // Registration successful, navigate to the login page or another page
-        router.push(paths.login);
+        // Show the success alert
+        handleSuccess()
+        setTimeout(() => {
+          // Automatically navigate to the login page after 5 seconds
+          router.push(paths.login);
+        }, 4000);
       } else {
         triggerError(result.message)
       }
@@ -100,6 +136,8 @@ export default function JwtRegisterView() {
       triggerError('An unexpected error occurred. Please try again later.'); // Catch and handle unexpected errors
     }
   });
+
+  // ----------------------------------------------------------------------
 
   const triggerError = (msg) => {
     setErrorMsg(msg);
@@ -125,9 +163,11 @@ export default function JwtRegisterView() {
     // Note the errors object that relies on reacting-hook-form 
   }, [methods.formState.errors]);
 
+  // ----------------------------------------------------------------------
+
   const renderHead = (
     <Stack spacing={1} sx={{ mb: 3, position: 'relative' }}>
-      <Typography variant="h4">Get started absolutely free</Typography>
+      <Typography variant="h4">Get started for free</Typography>
 
       <Stack direction="row" spacing={0.5}>
         <Typography variant="body2"> Already have an account? </Typography>
@@ -139,6 +179,7 @@ export default function JwtRegisterView() {
     </Stack>
   );
 
+  // ----------------------------------------------------------------------
   const renderTerms = (
     <Typography
       component="div"
@@ -165,6 +206,7 @@ export default function JwtRegisterView() {
   const genderOptions = [
     { label: "Male", value: 0 },
     { label: "Female", value: 1 },
+    { label: "Prefer not to say", value: 2 },
   ];
 
   const renderForm = (
@@ -199,33 +241,28 @@ export default function JwtRegisterView() {
           name="birthday"
           control={methods.control}
           render={({ field, fieldState: { error } }) => (
-            <DesktopDatePicker
-              label="Birthday"
+            <DatePicker
+              label={error ? error.message : "Birthday"}
               inputFormat="yyyy-MM-dd"
               maxDate={new Date()}
-              renderInput={(params) => <TextField {...params} error={!!error} helperText={error ? error.message : null} />}
-              {...field}
-              onChange={(date) => {
-                // If the date is not null, format it and log it; otherwise, pass null
-                const formattedDate = date ? format(date, 'yyyy-MM-dd') : null;
-                field.onChange(formattedDate);
+              value={field.value || null}
+              onChange={(newValue) => {
+                field.onChange(newValue);
               }}
             />
           )}
         />
       </LocalizationProvider>
 
-
       <Controller
         name="region"
         label="Region"
         control={methods.control}
-        rules={{ required: 'Region is required' }}
         render={({ field, fieldState: { error } }) => (
           <CityCascader
             {...field}
             onChange={(value) => {
-              // console.log(value);
+              console.log(value);
               // Ensure that value is an array, if it is not or undefined, it defaults to an empty array
               const safeValue = Array.isArray(value) ? value : [];
               // Filter out the undefined value in the array and concatenate it with join('-')
@@ -237,6 +274,7 @@ export default function JwtRegisterView() {
             error={!!error}
             errorMessage={error ? error.message : ''}
             key={lastError.key}
+            shouldFetchData={shouldFetchData}
           />
         )}
       />
@@ -256,6 +294,18 @@ export default function JwtRegisterView() {
 
   return (
     <>
+      <Snackbar
+        open={successMsgOpen}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+          <AlertTitle>Success</AlertTitle>
+          Registration successful! Redirecting to login.
+        </Alert>
+      </Snackbar>
+
       {renderHead}
 
       {!!errorMsg && open && (
@@ -267,7 +317,7 @@ export default function JwtRegisterView() {
         </Alert>
       )}
 
-      <FormProvider methods={methods} onSubmit={onSubmit}>
+      <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit, onError)}>
         {renderForm}
       </FormProvider>
 

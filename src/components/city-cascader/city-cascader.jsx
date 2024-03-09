@@ -1,5 +1,4 @@
 import { useState, useEffect, forwardRef } from 'react';
-// import { useState, useEffect } from 'react';
 import { Cascader, ConfigProvider } from 'antd';
 import Alert from '@mui/material/Alert';
 import { fetchProvinces, fetchCitiesByProvince, translateName } from './utils';
@@ -8,13 +7,14 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { GAODE_API } from 'src/apis/index';
 
+// ----------------------------------------------------------------------
 const StyledCascader = styled(Cascader)`
   width: 100%;
   height: 100%;
 `;
 
-// Define the CityCascader component with a prop `onChange` for handling changes in selection.
-export const CityCascader = forwardRef(({ onChange, error, errorMessage }, ref) => {
+// ----------------------------------------------------------------------
+export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldFetchData }, ref) => {
   // State hook for storing options for the cascader (provinces and cities).
   const [options, setOptions] = useState([]);
   // State hook for storing the currently selected location.
@@ -24,14 +24,20 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage }, ref) 
   const [alertMessage, setAlertMessage] = useState('');
   const [open, setOpen] = useState(true);
 
-  // Effect hook to load provinces on component mount and fetch user's location.
+  // ----------------------------------------------------------------------
+  // Async function to load province options from an API.
   useEffect(() => {
-    // Async function to load province options from an API.
     const loadProvinces = async () => {
       const provinces = await fetchProvinces();
       setOptions(provinces);
     };
 
+    loadProvinces();
+  }, [shouldFetchData]);
+
+  // ----------------------------------------------------------------------
+  // Effect hook to load provinces on component mount and fetch user's location.
+  useEffect(() => {
     // A function that displays a prompt message
     const showAlert = (type, message) => {
       setAlertType(type);
@@ -39,6 +45,7 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage }, ref) 
       setOpenAlert(true);
     };
 
+    // ----------------------------------------------------------------------
     const fetchLocation = async () => {
       try {
         const response = await axios.get(`${GAODE_API.apiIP}${GAODE_API.apiKey}`);
@@ -65,11 +72,13 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage }, ref) 
         showAlert('error', 'An error occurred when trying to get user location.');
       }
     };
-    // Call the functions to load initial data.
-    loadProvinces();
-    fetchLocation();
-  }, []); // Empty dependency array means this effect runs only once on mount.
 
+    if (shouldFetchData) {
+      fetchLocation();
+    }
+  }, [shouldFetchData]);
+
+  // ----------------------------------------------------------------------
   // Function to load city options dynamically when a province is selected.
   const loadData = async (selectedOptions) => {
     const targetOption = selectedOptions[selectedOptions.length - 1];
@@ -120,7 +129,8 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage }, ref) 
           },
           components: {
             Cascader: {
-              controlItemWidth: 55,
+              controlItemWidth: 1,
+              controlWidth: 1,
               optionSelectedBg: '#e6f4ff'
             },
           }
@@ -135,6 +145,7 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage }, ref) 
           onChange={onLocationChange} // Handler for when the selection changes.
           changeOnSelect // Allow changing selection on each level of the cascader.
           placeholder='select your reigon'
+          dropdownMenuColumnStyle={{ width: "100%", maxWidth: "250px" }}
         />
       </ConfigProvider></>
   );
@@ -146,6 +157,7 @@ CityCascader.propTypes = {
   onChange: PropTypes.func,
   error: PropTypes.bool,
   errorMessage: PropTypes.string,
+  shouldFetchData: PropTypes.bool,
 };
 
 export default CityCascader;

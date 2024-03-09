@@ -24,7 +24,7 @@ const registerRoute = {
   path: 'register',
   element: (
     <Suspense fallback={<SplashScreen />}>
-      <AuthClassicLayout type="register" title="Manage the job more effectively with XXX">
+      <AuthClassicLayout type="register" title="Map Your Moves, Chat Your Paths!">
         <JwtRegisterPage />
       </AuthClassicLayout>
     </Suspense>
