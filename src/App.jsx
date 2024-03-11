@@ -1,7 +1,6 @@
-// /* eslint-disable perfectionist/sort-imports */
-// import 'src/global.css';
+import 'src/global.css';
 
-// // i18n
+// i18n
 // import 'src/locales/i18n';
 
 // ----------------------------------------------------------------------
@@ -12,12 +11,12 @@ import ThemeProvider from 'src/theme';
 
 // import { LocalizationProvider } from 'src/locales';
 
-// import { useScrollToTop } from 'src/hooks/use-scroll-to-top';
+import { useScrollToTop } from 'src/hooks/use-scroll-to-top';
 
-// import ProgressBar from 'src/components/progress-bar';
-// import { MotionLazy } from 'src/components/animate/motion-lazy';
+import ProgressBar from 'src/components/progress-bar';
+import { MotionLazy } from 'src/components/animate/motion-lazy';
 // import SnackbarProvider from 'src/components/snackbar/snackbar-provider';
-import { SettingsProvider } from 'src/components/settings';
+import { SettingsDrawer, SettingsProvider } from 'src/components/settings';
 
 // import { CheckoutProvider } from 'src/sections/checkout/context';
 
@@ -42,11 +41,11 @@ export default function App() {
 
     console.info(`%c${charAt}`, 'color: #5BE49B');
 
-    //   useScrollToTop();
+    useScrollToTop();
 
     return (
         <AuthProvider>
-            {/* <LocalizationProvider> */}
+
             <SettingsProvider
                 defaultSettings={{
                     themeMode: 'light', // 'light' | 'dark'
@@ -58,11 +57,17 @@ export default function App() {
                 }}
             >
                 <ThemeProvider>
-                    {/* <SettingsDrawer /> */}
-                    <Router />
+                    <MotionLazy>
+
+
+                        <SettingsDrawer />
+                        <ProgressBar />
+                        <Router />
+
+                    </MotionLazy>
                 </ThemeProvider>
             </SettingsProvider>
-            {/* </LocalizationProvider> */}
+
         </AuthProvider>
     );
 }

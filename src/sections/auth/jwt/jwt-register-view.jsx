@@ -2,7 +2,6 @@ import * as Yup from 'yup';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-// import { TextField } from '@mui/material';
 
 import Link from '@mui/material/Link';
 import Alert from '@mui/material/Alert';
@@ -15,9 +14,9 @@ import AlertTitle from '@mui/material/AlertTitle'
 import Snackbar from '@mui/material/Snackbar';
 import { MenuItem } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { format } from 'date-fns';
+import dayjs from 'dayjs';
 
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
@@ -27,7 +26,6 @@ import { useAuthContext } from 'src/auth/hooks';
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField, RHFSelect } from 'src/components/hook-form';
 import { CityCascader } from 'src/components/city-cascader'
-
 
 // ----------------------------------------------------------------------
 export default function JwtRegisterView() {
@@ -102,7 +100,7 @@ export default function JwtRegisterView() {
   // submit the form
   const onSubmit = handleSubmit(async (data) => {
     // Format the birthday field to 'YYYY-MM-DD' format if it's not null
-    const formattedBirthday = data.birthday ? format(new Date(data.birthday), 'yyyy-MM-dd') : null;
+    const formattedBirthday = data.birthday ? dayjs(data.birthday).format('YYYY-MM-DD') : null;
 
     // Verify if the region format contains '-'
     if (!data.region.includes('-')) {
@@ -236,7 +234,7 @@ export default function JwtRegisterView() {
         ))}
       </RHFSelect>
 
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Controller
           name="birthday"
           control={methods.control}
