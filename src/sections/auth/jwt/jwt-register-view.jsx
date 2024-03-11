@@ -14,7 +14,7 @@ import AlertTitle from '@mui/material/AlertTitle'
 import Snackbar from '@mui/material/Snackbar';
 import { MenuItem } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 
@@ -234,7 +234,7 @@ export default function JwtRegisterView() {
         ))}
       </RHFSelect>
 
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
         <Controller
           name="birthday"
           control={methods.control}
