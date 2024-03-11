@@ -5,7 +5,7 @@ import Iconify from 'src/components/iconify';
 
 export const navConfig = [
   {
-    title: 'Home',
+    title: 'HeroPage',
     icon: <Iconify icon="solar:home-2-bold-duotone" />,
     path: '/',
   },

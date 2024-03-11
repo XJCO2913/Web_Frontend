@@ -2,7 +2,7 @@ import { m, useScroll } from 'framer-motion';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
+// import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Rating from '@mui/material/Rating';
 import Button from '@mui/material/Button';
@@ -39,14 +39,14 @@ const StyledRoot = styled('div')(({ theme }) => ({
   },
 }));
 
-const StyledWrapper = styled('div')(({ theme }) => ({
-  height: '100%',
-  overflow: 'hidden',
-  position: 'relative',
-  [theme.breakpoints.up('md')]: {
-    marginTop: HEADER.H_DESKTOP_OFFSET,
-  },
-}));
+// const StyledWrapper = styled('div')(({ theme }) => ({
+//   height: '100%',
+//   overflow: 'hidden',
+//   position: 'relative',
+//   [theme.breakpoints.up('md')]: {
+//     marginTop: HEADER.H_DESKTOP_OFFSET,
+//   },
+// }));
 
 const StyledTextGradient = styled(m.h1)(({ theme }) => ({
   ...textGradient(
@@ -57,7 +57,7 @@ const StyledTextGradient = styled(m.h1)(({ theme }) => ({
   lineHeight: 1,
   fontWeight: 900,
   marginBottom: 24,
-  letterSpacing: 8,
+  letterSpacing: 3,
   textAlign: 'center',
   backgroundSize: '400%',
   fontSize: `${64 / 16}rem`,
@@ -180,10 +180,16 @@ export default function HomeHero() {
           variant="h2"
           sx={{
             textAlign: 'center',
+            mt: {
+              xs: 0,
+              sm: 0,
+              md: 10,
+              lg: 10,
+            },
           }}
         >
-          Start a <br />
-          New Project with
+          Start an <br />
+         Outdoor Activity with
         </Typography>
       </m.div>
 
@@ -197,14 +203,13 @@ export default function HomeHero() {
             repeat: Infinity,
           }}
         >
-          Minimal
+          PathPals
         </StyledTextGradient>
       </m.div>
 
       <m.div variants={varFade().in}>
         <Typography variant="body2" sx={{ textAlign: 'center' }}>
-          The starting point for your next project is based on MUI.Easy customization Helps you
-          build apps faster and better.
+          Discover Paths, Share Moments, Connect Your Outdoors With The World.
         </Typography>
       </m.div>
 
@@ -227,34 +232,18 @@ export default function HomeHero() {
       </m.div>
 
       <m.div variants={varFade().in}>
-        <Stack spacing={1.5} direction={{ xs: 'column-reverse', sm: 'row' }} sx={{ mb: 5 }}>
+        <Stack spacing={1.5} direction={{ xs: 'column-reverse', sm: 'row' }} sx={{ mb: 3 }}>
           <Stack alignItems="center" spacing={2}>
             <Button
               component={RouterLink}
-              href={"#"}
+              href={paths.login}
               color="inherit"
               size="large"
               variant="contained"
               startIcon={<Iconify icon="eva:flash-fill" width={24} />}
             >
-              Live Preview
+              Log In
             </Button>
-
-            <Link
-              color="inherit"
-              variant="caption"
-              target="_blank"
-              rel="noopener"
-              href={paths.freeUI}
-              sx={{
-                textDecoration: 'underline',
-                display: 'inline-flex',
-                alignItems: 'center',
-              }}
-            >
-              <Iconify icon="eva:external-link-fill" width={16} sx={{ mr: 0.5 }} />
-              Get Free Version
-            </Link>
           </Stack>
 
           <Button
@@ -264,15 +253,15 @@ export default function HomeHero() {
             startIcon={<Iconify icon="eva:external-link-fill" width={24} />}
             target="_blank"
             rel="noopener"
-            href={paths.figma}
+            href={paths.register}
             sx={{ borderColor: 'text.primary' }}
           >
-            Design Preview
+            Sign Up
           </Button>
         </Stack>
       </m.div>
 
-      <Stack spacing={3} sx={{ textAlign: 'center' }}>
+      <Stack spacing={2} sx={{ textAlign: 'center' }}>
         <m.div variants={varFade().in}>
           <Typography variant="overline" sx={{ opacity: 0.48 }}>
             Available For
@@ -280,7 +269,7 @@ export default function HomeHero() {
         </m.div>
 
         <Stack spacing={2} direction="row" justifyContent="center">
-          {['js', 'ts', 'figma', 'nextjs', 'vite'].map((icon) => (
+          {['computer', 'phone'].map((icon) => (
             <m.div key={icon} variants={varFade().in}>
               <Box
                 component="img"
@@ -402,19 +391,19 @@ export default function HomeHero() {
           }),
         }}
       >
-        <StyledWrapper>
-          <Container component={MotionContainer} sx={{ height: 1 }}>
-            <Grid container columnSpacing={{ md: 10 }} sx={{ height: 1 }}>
-              <Grid xs={12} md={6}>
-                {renderDescription}
-              </Grid>
 
-              {mdUp && <Grid md={6}>{renderSlides}</Grid>}
+        <Container component={MotionContainer} sx={{ height: 1 }}>
+          <Grid container columnSpacing={{ md: 10 }} sx={{ height: 1 }}>
+            <Grid xs={12} md={6}>
+              {renderDescription}
             </Grid>
-          </Container>
 
-          {renderEllipses}
-        </StyledWrapper>
+            {mdUp && <Grid md={6}>{renderSlides}</Grid>}
+          </Grid>
+        </Container>
+
+        {renderEllipses}
+
       </StyledRoot>
 
       {mdUp && renderPolygons}
