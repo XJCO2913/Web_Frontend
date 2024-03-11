@@ -25,7 +25,7 @@ export default function HomeCleanInterfaces() {
     >
       <m.div variants={varFade().inUp}>
         <Typography component="div" variant="overline" sx={{ color: 'text.disabled' }}>
-          clean & clear
+          UI Design
         </Typography>
       </m.div>
 
@@ -39,7 +39,7 @@ export default function HomeCleanInterfaces() {
                 : `4px 4px 16px ${alpha(theme.palette.grey[800], 0.48)}`,
           }}
         >
-          Beautiful, modern and clean user interfaces
+          Beautiful, modern and clean <span style={{ color: '#00A76F' }}>user interface</span>
         </Typography>
       </m.div>
     </Stack>

@@ -13,20 +13,20 @@ import { varFade, MotionViewport } from 'src/components/animate';
 
 const CARDS = [
   {
-    icon: ' /assets/icons/home/ic_make_brand.svg',
-    title: 'Branding',
-    description: 'Consistent design makes it easy to brand your own.',
+    icon: ' /assets/icons/home/ic_path.svg',
+    title: 'Paths',
+    description: 'Upload the paths that you have go through, and helight them in map!',
   },
   {
-    icon: ' /assets/icons/home/ic_design.svg',
-    title: 'UI & UX Design',
+    icon: ' /assets/icons/home/ic_contact.svg',
+    title: 'Contacts',
     description:
-      'The kit is built on the principles of the atomic design system. It helps you to create projects fastest and easily customized packages for your projects.',
+      'Feel free to share paths, activities, moments with your friends!',
   },
   {
-    icon: ' /assets/icons/home/ic_development.svg',
-    title: 'Development',
-    description: 'Easy to customize and extend, saving you time and money.',
+    icon: ' /assets/icons/home/ic_activity.svg',
+    title: ' Activities',
+    description: 'Jion or orgnise any outdoor activies in which you are intrested!',
   },
 ];
 
@@ -49,13 +49,13 @@ export default function HomeMinimal() {
       >
         <m.div variants={varFade().inUp}>
           <Typography component="div" variant="overline" sx={{ color: 'text.disabled' }}>
-            Minimal UI
+            PathPals APP
           </Typography>
         </m.div>
 
         <m.div variants={varFade().inDown}>
           <Typography variant="h2">
-            What Minimal <br /> helps you?
+            What <span style={{ color: '#00A76F' }}>PathPals</span> <br /> can offer?
           </Typography>
         </m.div>
       </Stack>
@@ -79,11 +79,10 @@ export default function HomeMinimal() {
                 p: (theme) => theme.spacing(10, 5),
                 ...(index === 1 && {
                   boxShadow: (theme) => ({
-                    md: `-40px 40px 80px ${
-                      theme.palette.mode === 'light'
+                    md: `-40px 40px 80px ${theme.palette.mode === 'light'
                         ? alpha(theme.palette.grey[500], 0.16)
                         : alpha(theme.palette.common.black, 0.4)
-                    }`,
+                      }`,
                   }),
                 }),
               }}

@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
 import Container from '@mui/material/Container';
-
+import { RouterLink } from 'src/routes/components';
 import { paths } from 'src/routes/paths';
 
 import { bgGradient } from 'src/theme/css';
@@ -33,7 +33,7 @@ export default function HomeAdvertisement() {
         sx={{ color: 'common.white', mb: 5, typography: 'h2' }}
       >
         Get started with
-        <br /> Minimal kit today
+        <br /> PathPals today
       </Box>
 
       <Stack
@@ -41,6 +41,17 @@ export default function HomeAdvertisement() {
         justifyContent={{ xs: 'center', md: 'flex-start' }}
         spacing={2}
       >
+       <Button
+              component={RouterLink}
+              href={paths.login}
+              color="inherit"
+              size="large"
+              variant="contained"
+              startIcon={<Iconify icon="eva:flash-fill" width={24} />}
+            >
+              Log In
+            </Button>
+
         <m.div variants={varFade().inRight}>
           <Button
             color="inherit"
@@ -48,31 +59,14 @@ export default function HomeAdvertisement() {
             variant="contained"
             target="_blank"
             rel="noopener"
-            href={paths.minimalUI}
+            startIcon={<Iconify icon="eva:external-link-fill" width={20} sx={{ mr: 0.5 }} />}
+            href={paths.register}
             sx={{
               color: 'grey.800',
               bgcolor: 'common.white',
             }}
           >
-            Purchase Now
-          </Button>
-        </m.div>
-
-        <m.div variants={varFade().inRight}>
-          <Button
-            color="inherit"
-            size="large"
-            variant="outlined"
-            target="_blank"
-            rel="noopener"
-            href={paths.freeUI}
-            endIcon={<Iconify icon="eva:external-link-fill" width={16} sx={{ mr: 0.5 }} />}
-            sx={{
-              color: 'common.white',
-              '&:hover': { borderColor: 'currentColor' },
-            }}
-          >
-            Get Free Version
+            Register Now
           </Button>
         </m.div>
       </Stack>

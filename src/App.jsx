@@ -45,7 +45,6 @@ export default function App() {
 
     return (
         <AuthProvider>
-
             <SettingsProvider
                 defaultSettings={{
                     themeMode: 'light', // 'light' | 'dark'
@@ -58,16 +57,12 @@ export default function App() {
             >
                 <ThemeProvider>
                     <MotionLazy>
-
-
                         <SettingsDrawer />
                         <ProgressBar />
                         <Router />
-
                     </MotionLazy>
                 </ThemeProvider>
             </SettingsProvider>
-
         </AuthProvider>
     );
 }
