@@ -5,13 +5,15 @@ import Stack from '@mui/material/Stack';
 import { alpha } from '@mui/material/styles';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
+import Switch from '@mui/material/Switch';
 
 import Image from 'src/components/image';
 import { varFade, MotionViewport } from 'src/components/animate';
+import { useSettingsContext } from 'src/components/settings';
 
 // ----------------------------------------------------------------------
-
 export default function HomeCleanInterfaces() {
+  const settings = useSettingsContext();
   const renderDescription = (
     <Stack
       spacing={3}
@@ -41,6 +43,23 @@ export default function HomeCleanInterfaces() {
         >
           Beautiful, modern and clean <span style={{ color: '#00A76F' }}>user interface</span>
         </Typography>
+      </m.div>
+
+      <m.div variants={varFade().inUp}>
+        <Typography sx={{ color: 'grey.500' }}>
+          With a dark theme that feels easier on the eyes.
+        </Typography>
+      </m.div>
+
+      <m.div variants={varFade().inUp}>
+        <Switch
+          sx={{ mt: -4, ml: -1.5 }}
+          size="large"
+          checked={settings.themeMode === 'dark'}
+          onClick={() =>
+            settings.onUpdate('themeMode', settings.themeMode === 'light' ? 'dark' : 'light')
+          }
+        />
       </m.div>
     </Stack>
   );

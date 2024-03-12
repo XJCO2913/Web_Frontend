@@ -8,31 +8,35 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
 import { varFade, MotionViewport } from 'src/components/animate';
+import { useSettingsContext } from 'src/components/settings';
 
 // ----------------------------------------------------------------------
 
 const CARDS = [
   {
-    icon: ' /assets/icons/home/ic_path.svg',
+    iconLight: '/assets/icons/home/ic_path.svg',
+    iconDark: '/assets/icons/home/ic_path-dark.svg',
     title: 'Paths',
-    description: 'Upload the paths that you have go through, and helight them in map!',
+    description: 'Upload the paths that you have gone through, and highlight them in map!',
   },
   {
-    icon: ' /assets/icons/home/ic_contact.svg',
+    iconLight: '/assets/icons/home/ic_contact.svg',
+    iconDark: '/assets/icons/home/ic_contact-dark.svg',
     title: 'Contacts',
-    description:
-      'Feel free to share paths, activities, moments with your friends!',
+    description: 'Feel free to share paths, activities, moments with your friends!',
   },
   {
-    icon: ' /assets/icons/home/ic_activity.svg',
-    title: ' Activities',
-    description: 'Jion or orgnise any outdoor activies in which you are intrested!',
+    iconLight: '/assets/icons/home/ic_activity.svg',
+    iconDark: '/assets/icons/home/ic_activity-dark.svg',
+    title: 'Activities',
+    description: 'Join or organise any outdoor activities in which you are interested!',
   },
 ];
 
 // ----------------------------------------------------------------------
 
 export default function HomeMinimal() {
+  const settings = useSettingsContext();
   return (
     <Container
       component={MotionViewport}
@@ -89,7 +93,7 @@ export default function HomeMinimal() {
             >
               <Box
                 component="img"
-                src={card.icon}
+                src={settings.themeMode === 'dark' ? card.iconDark : card.iconLight}
                 alt={card.title}
                 sx={{ mx: 'auto', width: 48, height: 48 }}
               />

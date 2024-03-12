@@ -18,9 +18,8 @@ import { useResponsive } from 'src/hooks/use-responsive';
 
 import { HEADER } from 'src/layouts/config-layout';
 import { bgBlur, bgGradient, textGradient } from 'src/theme/css';
-
-import Iconify from 'src/components/iconify';
 import { varFade, MotionContainer } from 'src/components/animate';
+import { useSettingsContext } from 'src/components/settings';
 
 // ----------------------------------------------------------------------
 
@@ -131,6 +130,7 @@ export default function HomeHero() {
   const [percent, setPercent] = useState(0);
 
   const lightMode = theme.palette.mode === 'light';
+  const settings = useSettingsContext();
 
   const getScroll = useCallback(() => {
     let heroHeight = 0;
@@ -189,7 +189,7 @@ export default function HomeHero() {
           }}
         >
           Start an <br />
-         Outdoor Activity with
+          Outdoor Activity with
         </Typography>
       </m.div>
 
@@ -240,7 +240,13 @@ export default function HomeHero() {
               color="inherit"
               size="large"
               variant="contained"
-              startIcon={<Iconify icon="eva:flash-fill" width={24} />}
+              startIcon={
+                <img 
+                  src={`/assets/icons/home/ic_login${settings.themeMode === 'dark' ? '-dark' : ''}.svg`} 
+                  alt="Log in" 
+                  style={{ width: 24, height: 24 }}
+                />
+              }
             >
               Log In
             </Button>
@@ -250,7 +256,13 @@ export default function HomeHero() {
             color="inherit"
             size="large"
             variant="outlined"
-            startIcon={<Iconify icon="eva:external-link-fill" width={24} />}
+            startIcon={
+              <img 
+                src={`/assets/icons/home/ic_registration${settings.themeMode === 'dark' ? '-dark' : ''}.svg`} 
+                alt="Sign Up" 
+                style={{ width: 24, height: 24 }}
+              />
+            }
             target="_blank"
             rel="noopener"
             href={paths.register}
@@ -274,12 +286,13 @@ export default function HomeHero() {
               <Box
                 component="img"
                 alt={icon}
-                src={`/assets/icons/platforms/ic_${icon}.svg`}
+                src={`/assets/icons/platforms/ic_${icon}${settings.themeMode === 'dark' ? '-dark' : ''}.svg`}
                 sx={{ width: 24, height: 24 }}
               />
             </m.div>
           ))}
         </Stack>
+
       </Stack>
     </Stack>
   );

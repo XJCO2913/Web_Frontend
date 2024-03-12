@@ -42,7 +42,7 @@ export default function HomePricing() {
 
       <m.div variants={varFade().inDown}>
         <Typography variant="h2">
-          The right plan for <br /> your business
+          The right plan for <br /> your fitness
         </Typography>
       </m.div>
 
