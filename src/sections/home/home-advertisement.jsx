@@ -10,13 +10,14 @@ import { paths } from 'src/routes/paths';
 
 import { bgGradient } from 'src/theme/css';
 
-import Iconify from 'src/components/iconify';
 import { varFade, MotionViewport } from 'src/components/animate';
+import { useSettingsContext } from 'src/components/settings';
 
 // ----------------------------------------------------------------------
 
 export default function HomeAdvertisement() {
   const theme = useTheme();
+  const settings = useSettingsContext();
 
   const renderDescription = (
     <Box
@@ -41,36 +42,47 @@ export default function HomeAdvertisement() {
         justifyContent={{ xs: 'center', md: 'flex-start' }}
         spacing={2}
       >
-       <Button
-              component={RouterLink}
-              href={paths.login}
-              color="inherit"
-              size="large"
-              variant="contained"
-              startIcon={<Iconify icon="eva:flash-fill" width={24} />}
-            >
-              Log In
-            </Button>
+        <m.div variants={varFade().inRight}>
+          <Button
+            component={RouterLink}
+            href={paths.login}
+            color="inherit"
+            size="large"
+            variant="contained"
+            startIcon={
+              <img
+                src={`/assets/icons/home/ic_login${settings.themeMode === 'dark' ? '-dark' : ''}.svg`}
+                alt="Log in"
+                style={{ width: 24, height: 24 }}
+              />
+            }
+          >
+            Log In
+          </Button>
+        </m.div>
 
         <m.div variants={varFade().inRight}>
           <Button
             color="inherit"
             size="large"
-            variant="contained"
+            variant="outlined"
+            startIcon={
+              <img
+                src={`/assets/icons/home/ic_registration${settings.themeMode === 'dark' ? '-dark' : ''}.svg`}
+                alt="Sign Up"
+                style={{ width: 24, height: 24 }}
+              />
+            }
             target="_blank"
             rel="noopener"
-            startIcon={<Iconify icon="eva:external-link-fill" width={20} sx={{ mr: 0.5 }} />}
             href={paths.register}
-            sx={{
-              color: 'grey.800',
-              bgcolor: 'common.white',
-            }}
+            sx={{ borderColor: 'text.primary' }}
           >
-            Register Now
+            Sign Up
           </Button>
         </m.div>
       </Stack>
-    </Box>
+    </Box >
   );
 
   const renderImg = (
