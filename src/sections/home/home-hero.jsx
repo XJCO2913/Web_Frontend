@@ -56,7 +56,7 @@ const StyledTextGradient = styled(m.h1)(({ theme }) => ({
   lineHeight: 1,
   fontWeight: 900,
   marginBottom: 24,
-  letterSpacing: 3,
+  letterSpacing: 1,
   textAlign: 'center',
   backgroundSize: '400%',
   fontSize: `${64 / 16}rem`,
@@ -177,9 +177,11 @@ export default function HomeHero() {
     >
       <m.div variants={varFade().in}>
         <Typography
-          variant="h2"
           sx={{
+            fontWeight: 1000,
+            fontSize: 60,
             textAlign: 'center',
+            lineHeight: '0.99',
             mt: {
               xs: 0,
               sm: 0,
@@ -201,6 +203,9 @@ export default function HomeHero() {
             ease: 'linear',
             duration: 20,
             repeat: Infinity,
+          }}
+          sx={{
+            fontWeight: 1000,
           }}
         >
           PathPals
@@ -233,7 +238,7 @@ export default function HomeHero() {
 
       <m.div variants={varFade().in}>
         <Stack spacing={1.5} direction={{ xs: 'column-reverse', sm: 'row' }} sx={{ mb: 3 }}>
-          <Stack alignItems="center" spacing={2}>
+          <Stack alignItems="center" spacing={2} >
             <Button
               component={RouterLink}
               href={paths.login}
@@ -241,12 +246,13 @@ export default function HomeHero() {
               size="large"
               variant="contained"
               startIcon={
-                <img 
-                  src={`/assets/icons/home/ic_login${settings.themeMode === 'dark' ? '-dark' : ''}.svg`} 
-                  alt="Log in" 
+                <img
+                  src={`/assets/icons/home/ic_login${settings.themeMode === 'dark' ? '-dark' : ''}.svg`}
+                  alt="Log in"
                   style={{ width: 24, height: 24 }}
                 />
               }
+              sx={{ fontSize: 20, fontWeight: 700 }}
             >
               Log In
             </Button>
@@ -257,16 +263,16 @@ export default function HomeHero() {
             size="large"
             variant="outlined"
             startIcon={
-              <img 
-                src={`/assets/icons/home/ic_registration${settings.themeMode === 'dark' ? '-dark' : ''}.svg`} 
-                alt="Sign Up" 
+              <img
+                src={`/assets/icons/home/ic_registration${settings.themeMode === 'dark' ? '-dark' : ''}.svg`}
+                alt="Sign Up"
                 style={{ width: 24, height: 24 }}
               />
             }
             target="_blank"
             rel="noopener"
             href={paths.register}
-            sx={{ borderColor: 'text.primary' }}
+            sx={{ borderColor: 'text.primary', fontSize: 20, fontWeight: 800}}
           >
             Sign Up
           </Button>

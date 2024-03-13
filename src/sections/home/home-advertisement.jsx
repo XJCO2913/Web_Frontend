@@ -56,6 +56,7 @@ export default function HomeAdvertisement() {
                 style={{ width: 24, height: 24 }}
               />
             }
+            sx={{ fontSize: 20, fontWeight: 700 }}
           >
             Log In
           </Button>
@@ -76,7 +77,7 @@ export default function HomeAdvertisement() {
             target="_blank"
             rel="noopener"
             href={paths.register}
-            sx={{ borderColor: 'text.primary' }}
+            sx={{ borderColor: 'text.primary', fontSize: 20, fontWeight: 800 }}
           >
             Sign Up
           </Button>
