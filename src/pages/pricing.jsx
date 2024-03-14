@@ -1,17 +1,17 @@
 import { Helmet } from 'react-helmet-async';
 
-import { HeroView } from 'src/sections/hero/view';
+import PricingView from 'src/sections/pricing/view';
 
 // ----------------------------------------------------------------------
 
-export default function HeroPage() {
+export default function PricingPage() {
   return (
     <>
       <Helmet>
-        <title> PathPals </title>
+        <title> Pricing </title>
       </Helmet>
 
-      <HeroView />
+      <PricingView />
     </>
   );
 }

@@ -35,7 +35,7 @@ const CARDS = [
 
 // ----------------------------------------------------------------------
 
-export default function HomeMinimal() {
+export default function HeroInfo() {
   const settings = useSettingsContext();
   return (
     <Container

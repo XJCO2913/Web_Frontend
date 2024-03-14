@@ -2,7 +2,6 @@ import { m, useScroll } from 'framer-motion';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-// import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Rating from '@mui/material/Rating';
 import Button from '@mui/material/Button';
@@ -37,15 +36,6 @@ const StyledRoot = styled('div')(({ theme }) => ({
     position: 'fixed',
   },
 }));
-
-// const StyledWrapper = styled('div')(({ theme }) => ({
-//   height: '100%',
-//   overflow: 'hidden',
-//   position: 'relative',
-//   [theme.breakpoints.up('md')]: {
-//     marginTop: HEADER.H_DESKTOP_OFFSET,
-//   },
-// }));
 
 const StyledTextGradient = styled(m.h1)(({ theme }) => ({
   ...textGradient(
@@ -118,7 +108,7 @@ const StyledPolygon = styled('div')(({ opacity = 1, anchor = 'left', theme }) =>
 
 // ----------------------------------------------------------------------
 
-export default function HomeHero() {
+export default function Hero() {
   const mdUp = useResponsive('up', 'md');
 
   const theme = useTheme();

@@ -32,7 +32,7 @@ const plans = [...Array(2)].map((_, index) => ({
 
 // ----------------------------------------------------------------------
 
-export default function HomePricing() {
+export default function HeroPricing() {
   const mdUp = useResponsive('up', 'md');
 
   const [currentTab, setCurrentTab] = useState('Standard');
@@ -50,8 +50,8 @@ export default function HomePricing() {
       </m.div>
 
       <m.div variants={varFade().inDown}>
-        <Typography variant="h2">
-          The right plan for <br /> your fitness
+        <Typography variant="h1" sx={{ fontSize: 20, fontWeight: 900 }}>
+          The <span style={{ color: '#00A76F' }}>right plan</span> for <br /> your fitness
         </Typography>
       </m.div>
 
@@ -76,7 +76,7 @@ export default function HomePricing() {
         >
           {plans.map((plan) => (
             <m.div key={plan.license} variants={varFade().in}>
-              <PlanCard key={plan.license} plan={plan} />
+              <PlanCard key={plan.license} plan={plan} isMiddle={true} />
             </m.div>
           ))}
         </Box>
@@ -132,7 +132,7 @@ export default function HomePricing() {
 
 // ----------------------------------------------------------------------
 
-function PlanCard({ plan, sx, ...other }) {
+function PlanCard({ plan, sx, isMiddle, ...other }) {
   const { license, commons, options } = plan;
 
   const standardLicense = license === 'Standard';
@@ -145,7 +145,7 @@ function PlanCard({ plan, sx, ...other }) {
       sx={{
         p: 5,
         pt: 10,
-        ...(plusLicense && {
+        ...(isMiddle && {
           borderLeft: (theme) => `dashed 1px ${theme.palette.divider}`,
           borderRight: (theme) => `dashed 1px ${theme.palette.divider}`,
           ...sx,
@@ -211,9 +211,8 @@ function PlanCard({ plan, sx, ...other }) {
         <Button
           color="inherit"
           size="small"
-          target="_blank"
           rel="noopener"
-          href={paths.minimalUI}
+          href={paths.pricing}
           endIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}
         >
           Learn more
@@ -226,4 +225,5 @@ function PlanCard({ plan, sx, ...other }) {
 PlanCard.propTypes = {
   plan: PropTypes.object,
   sx: PropTypes.object,
+  isMiddle: PropTypes.bool
 };

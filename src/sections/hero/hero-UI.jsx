@@ -12,7 +12,7 @@ import { varFade, MotionViewport } from 'src/components/animate';
 import { useSettingsContext } from 'src/components/settings';
 
 // ----------------------------------------------------------------------
-export default function HomeCleanInterfaces() {
+export default function HeroUI() {
   const settings = useSettingsContext();
   const renderDescription = (
     <Stack
