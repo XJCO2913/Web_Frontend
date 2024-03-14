@@ -14,7 +14,6 @@ import AlertTitle from '@mui/material/AlertTitle'
 import Snackbar from '@mui/material/Snackbar';
 import { MenuItem } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-// If you are using date-fns v2.x, please import `AdapterDateFns`
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
