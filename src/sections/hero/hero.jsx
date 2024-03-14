@@ -2,7 +2,6 @@ import { m, useScroll } from 'framer-motion';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-// import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Rating from '@mui/material/Rating';
 import Button from '@mui/material/Button';
@@ -18,9 +17,8 @@ import { useResponsive } from 'src/hooks/use-responsive';
 
 import { HEADER } from 'src/layouts/config-layout';
 import { bgBlur, bgGradient, textGradient } from 'src/theme/css';
-
-import Iconify from 'src/components/iconify';
 import { varFade, MotionContainer } from 'src/components/animate';
+import { useSettingsContext } from 'src/components/settings';
 
 // ----------------------------------------------------------------------
 
@@ -39,15 +37,6 @@ const StyledRoot = styled('div')(({ theme }) => ({
   },
 }));
 
-// const StyledWrapper = styled('div')(({ theme }) => ({
-//   height: '100%',
-//   overflow: 'hidden',
-//   position: 'relative',
-//   [theme.breakpoints.up('md')]: {
-//     marginTop: HEADER.H_DESKTOP_OFFSET,
-//   },
-// }));
-
 const StyledTextGradient = styled(m.h1)(({ theme }) => ({
   ...textGradient(
     `300deg, ${theme.palette.primary.main} 0%, ${theme.palette.warning.main} 25%, ${theme.palette.primary.main} 50%, ${theme.palette.warning.main} 75%, ${theme.palette.primary.main} 100%`
@@ -57,7 +46,7 @@ const StyledTextGradient = styled(m.h1)(({ theme }) => ({
   lineHeight: 1,
   fontWeight: 900,
   marginBottom: 24,
-  letterSpacing: 3,
+  letterSpacing: 1,
   textAlign: 'center',
   backgroundSize: '400%',
   fontSize: `${64 / 16}rem`,
@@ -119,7 +108,7 @@ const StyledPolygon = styled('div')(({ opacity = 1, anchor = 'left', theme }) =>
 
 // ----------------------------------------------------------------------
 
-export default function HomeHero() {
+export default function Hero() {
   const mdUp = useResponsive('up', 'md');
 
   const theme = useTheme();
@@ -131,6 +120,7 @@ export default function HomeHero() {
   const [percent, setPercent] = useState(0);
 
   const lightMode = theme.palette.mode === 'light';
+  const settings = useSettingsContext();
 
   const getScroll = useCallback(() => {
     let heroHeight = 0;
@@ -177,9 +167,11 @@ export default function HomeHero() {
     >
       <m.div variants={varFade().in}>
         <Typography
-          variant="h2"
           sx={{
+            fontWeight: 1000,
+            fontSize: 60,
             textAlign: 'center',
+            lineHeight: '0.99',
             mt: {
               xs: 0,
               sm: 0,
@@ -189,7 +181,7 @@ export default function HomeHero() {
           }}
         >
           Start an <br />
-         Outdoor Activity with
+          Outdoor Activity with
         </Typography>
       </m.div>
 
@@ -201,6 +193,9 @@ export default function HomeHero() {
             ease: 'linear',
             duration: 20,
             repeat: Infinity,
+          }}
+          sx={{
+            fontWeight: 1000,
           }}
         >
           PathPals
@@ -233,14 +228,21 @@ export default function HomeHero() {
 
       <m.div variants={varFade().in}>
         <Stack spacing={1.5} direction={{ xs: 'column-reverse', sm: 'row' }} sx={{ mb: 3 }}>
-          <Stack alignItems="center" spacing={2}>
+          <Stack alignItems="center" spacing={2} >
             <Button
               component={RouterLink}
               href={paths.login}
               color="inherit"
               size="large"
               variant="contained"
-              startIcon={<Iconify icon="eva:flash-fill" width={24} />}
+              startIcon={
+                <img
+                  src={`/assets/icons/home/ic_login${settings.themeMode === 'dark' ? '-dark' : ''}.svg`}
+                  alt="Log in"
+                  style={{ width: 24, height: 24 }}
+                />
+              }
+              sx={{ fontSize: 20, fontWeight: 700 }}
             >
               Log In
             </Button>
@@ -250,11 +252,17 @@ export default function HomeHero() {
             color="inherit"
             size="large"
             variant="outlined"
-            startIcon={<Iconify icon="eva:external-link-fill" width={24} />}
+            startIcon={
+              <img
+                src={`/assets/icons/home/ic_registration${settings.themeMode === 'dark' ? '-dark' : ''}.svg`}
+                alt="Sign Up"
+                style={{ width: 24, height: 24 }}
+              />
+            }
             target="_blank"
             rel="noopener"
             href={paths.register}
-            sx={{ borderColor: 'text.primary' }}
+            sx={{ borderColor: 'text.primary', fontSize: 20, fontWeight: 800}}
           >
             Sign Up
           </Button>
@@ -274,12 +282,13 @@ export default function HomeHero() {
               <Box
                 component="img"
                 alt={icon}
-                src={`/assets/icons/platforms/ic_${icon}.svg`}
+                src={`/assets/icons/platforms/ic_${icon}${settings.themeMode === 'dark' ? '-dark' : ''}.svg`}
                 sx={{ width: 24, height: 24 }}
               />
             </m.div>
           ))}
         </Stack>
+
       </Stack>
     </Stack>
   );

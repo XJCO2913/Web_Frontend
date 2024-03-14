@@ -16,14 +16,23 @@ import { paths } from 'src/routes/paths';
 
 import { useResponsive } from 'src/hooks/use-responsive';
 
-import { _homePlans } from 'src/_mock';
-
 import Iconify from 'src/components/iconify';
 import { varFade, MotionViewport } from 'src/components/animate';
 
 // ----------------------------------------------------------------------
 
-export default function HomePricing() {
+const plans = [...Array(2)].map((_, index) => ({
+  license: ['Standard', 'Extended'][index],
+  commons: ['Visualize Your Sport Data', 'Chat With Your Frineds', 'Post Your Moment'],
+  options: [
+    'Join Outdoor Activities',
+    'Apply For Organizer',
+  ],
+}));
+
+// ----------------------------------------------------------------------
+
+export default function HeroPricing() {
   const mdUp = useResponsive('up', 'md');
 
   const [currentTab, setCurrentTab] = useState('Standard');
@@ -41,14 +50,14 @@ export default function HomePricing() {
       </m.div>
 
       <m.div variants={varFade().inDown}>
-        <Typography variant="h2">
-          The right plan for <br /> your business
+        <Typography variant="h1" sx={{ fontSize: 20, fontWeight: 900 }}>
+          The <span style={{ color: '#00A76F' }}>right plan</span> for <br /> your fitness
         </Typography>
       </m.div>
 
       <m.div variants={varFade().inDown}>
         <Typography sx={{ color: 'text.secondary' }}>
-          Choose the perfect plan for your needs. Always flexible to grow
+          Choose the perfect plan for your needs. Always flexible to grow.
         </Typography>
       </m.div>
     </Stack>
@@ -59,15 +68,15 @@ export default function HomePricing() {
       {mdUp ? (
         <Box
           display="grid"
-          gridTemplateColumns="repeat(3, 1fr)"
+          gridTemplateColumns="repeat(2, 1fr)"
           sx={{
             borderRadius: 2,
             border: (theme) => `dashed 1px ${theme.palette.divider}`,
           }}
         >
-          {_homePlans.map((plan) => (
+          {plans.map((plan) => (
             <m.div key={plan.license} variants={varFade().in}>
-              <PlanCard key={plan.license} plan={plan} />
+              <PlanCard key={plan.license} plan={plan} isMiddle={true} />
             </m.div>
           ))}
         </Box>
@@ -75,7 +84,7 @@ export default function HomePricing() {
         <>
           <Stack alignItems="center" sx={{ mb: 5 }}>
             <Tabs value={currentTab} onChange={handleChangeTab}>
-              {_homePlans.map((tab) => (
+              {plans.map((tab) => (
                 <Tab key={tab.license} value={tab.license} label={tab.license} />
               ))}
             </Tabs>
@@ -87,7 +96,7 @@ export default function HomePricing() {
               border: (theme) => `dashed 1px ${theme.palette.divider}`,
             }}
           >
-            {_homePlans.map(
+            {plans.map(
               (tab) =>
                 tab.license === currentTab && (
                   <PlanCard
@@ -102,39 +111,6 @@ export default function HomePricing() {
           </Box>
         </>
       )}
-
-      <m.div variants={varFade().in}>
-        <Box
-          sx={{
-            textAlign: 'center',
-            mt: {
-              xs: 5,
-              md: 10,
-            },
-          }}
-        >
-          <m.div variants={varFade().inDown}>
-            <Typography variant="h4">Still have questions?</Typography>
-          </m.div>
-
-          <m.div variants={varFade().inDown}>
-            <Typography sx={{ mt: 2, mb: 5, color: 'text.secondary' }}>
-              Please describe your case to receive the most accurate advice.
-            </Typography>
-          </m.div>
-
-          <m.div variants={varFade().inUp}>
-            <Button
-              color="inherit"
-              size="large"
-              variant="contained"
-              href="mailto:support@minimals.cc?subject=[Feedback] from Customer"
-            >
-              Contact us
-            </Button>
-          </m.div>
-        </Box>
-      </m.div>
     </>
   );
 
@@ -156,8 +132,8 @@ export default function HomePricing() {
 
 // ----------------------------------------------------------------------
 
-function PlanCard({ plan, sx, ...other }) {
-  const { license, commons, options, icons } = plan;
+function PlanCard({ plan, sx, isMiddle, ...other }) {
+  const { license, commons, options } = plan;
 
   const standardLicense = license === 'Standard';
 
@@ -169,7 +145,7 @@ function PlanCard({ plan, sx, ...other }) {
       sx={{
         p: 5,
         pt: 10,
-        ...(plusLicense && {
+        ...(isMiddle && {
           borderLeft: (theme) => `dashed 1px ${theme.palette.divider}`,
           borderRight: (theme) => `dashed 1px ${theme.palette.divider}`,
           ...sx,
@@ -200,16 +176,6 @@ function PlanCard({ plan, sx, ...other }) {
         </Box>
       </Stack>
 
-      {standardLicense ? (
-        <Box component="img" alt={icons[1]} src={icons[1]} sx={{ width: 20, height: 20 }} />
-      ) : (
-        <Stack direction="row" spacing={2}>
-          {icons.map((icon) => (
-            <Box component="img" key={icon} alt={icon} src={icon} sx={{ width: 20, height: 20 }} />
-          ))}
-        </Stack>
-      )}
-
       <Stack spacing={2.5}>
         {commons.map((option) => (
           <Stack key={option} spacing={1} direction="row" alignItems="center">
@@ -222,11 +188,8 @@ function PlanCard({ plan, sx, ...other }) {
 
         {options.map((option, optionIndex) => {
           const disabled =
-            (standardLicense && optionIndex === 1) ||
-            (standardLicense && optionIndex === 2) ||
-            (standardLicense && optionIndex === 3) ||
-            (plusLicense && optionIndex === 3);
-
+            (standardLicense && optionIndex === 0) ||
+            (standardLicense && optionIndex === 1)
           return (
             <Stack
               spacing={1}
@@ -248,9 +211,8 @@ function PlanCard({ plan, sx, ...other }) {
         <Button
           color="inherit"
           size="small"
-          target="_blank"
           rel="noopener"
-          href={paths.minimalUI}
+          href={paths.pricing}
           endIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}
         >
           Learn more
@@ -263,4 +225,5 @@ function PlanCard({ plan, sx, ...other }) {
 PlanCard.propTypes = {
   plan: PropTypes.object,
   sx: PropTypes.object,
+  isMiddle: PropTypes.bool
 };
