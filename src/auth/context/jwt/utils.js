@@ -53,7 +53,7 @@ export const tokenExpired = (exp) => {
 
     sessionStorage.removeItem('token');
 
-    window.location.href = paths.auth.jwt.login;
+    window.location.href = paths.login;
   }, timeLeft);
 };
 
