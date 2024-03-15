@@ -19,7 +19,7 @@ export default function AppFeatured({ list, ...other }) {
     autoplay: true,
     ...CarouselDots({
       sx: {
-        top: 16,
+        top: 10,
         left: 16,
         position: 'absolute',
         color: 'primary.light',
@@ -65,8 +65,8 @@ function CarouselItem({ item, active }) {
       sx={{
         width: 1,
         height: {
-          xs: 280,
-          xl: 320,
+          xs: 550,
+          xl: 200,
         },
       }}
     />
@@ -116,3 +116,4 @@ CarouselItem.propTypes = {
   active: PropTypes.bool,
   item: PropTypes.object,
 };
+

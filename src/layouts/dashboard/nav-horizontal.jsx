@@ -52,6 +52,7 @@ function NavHorizontal() {
             }}
             sx={{
               ...theme.mixins.toolbar,
+              outerWidth: 40,
             }}
           />
         </Scrollbar>
