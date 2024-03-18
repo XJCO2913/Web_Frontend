@@ -6,7 +6,7 @@ import DashboardLayout from 'src/layouts/dashboard';
 
 import { LoadingScreen } from 'src/components/loading-screen';
 
-// ----------------------------------------------------------------------\
+// ----------------------------------------------------------------------
 const IndexPage = lazy(() => import('src/pages/dashboard/app'));
 // USER
 const UserProfilePage = lazy(() => import('src/pages/dashboard/user/profile'));
@@ -22,8 +22,8 @@ const TourListPage = lazy(() => import('src/pages/dashboard/tour/list'));
 const TourCreatePage = lazy(() => import('src/pages/dashboard/tour/new'));
 const TourEditPage = lazy(() => import('src/pages/dashboard/tour/edit'));
 // FILE MANAGER
-// const FileManagerPage = lazy(() => import('src/pages/dashboard/file-manager'));
-// APP
+
+// Chat
 const ChatPage = lazy(() => import('src/pages/dashboard/chat'));
 
 
