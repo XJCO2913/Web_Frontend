@@ -24,7 +24,7 @@ import { countries } from 'src/assets/data';
 import Label from 'src/components/label';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
-  RHFSwitch,
+
   RHFTextField,
   RHFUploadAvatar,
   RHFAutocomplete,

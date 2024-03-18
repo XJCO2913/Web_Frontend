@@ -19,7 +19,7 @@ import { _socials } from 'src/_mock';
 
 import Iconify from 'src/components/iconify';
 
-import ProfilePostItem from './profile-post-item';
+import ProfilePostItem from '../overview/app/view/profile-post-item';
 
 // ----------------------------------------------------------------------
 
