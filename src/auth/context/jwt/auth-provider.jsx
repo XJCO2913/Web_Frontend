@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useMemo, useReducer, useCallback } from 'react';
 import axiosInstance from 'src/utils/axios';
-import { endpoints } from 'src/apis/index'
+import { endpoints } from 'src/api/index'
 import { AuthContext } from './auth-context';
 import { setSession } from './utils';
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import provinceCityMapping from 'src/utils/zh-en';
-import { GAODE_API } from 'src/apis/index';
+import { GAODE_API } from 'src/api/index';
 
 // ----------------------------------------------------------------------
 // translate function

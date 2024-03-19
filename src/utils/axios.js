@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { HOST_API } from 'src/apis/index';
+import { HOST_API } from 'src/api/index';
 
 // ----------------------------------------------------------------------
 
