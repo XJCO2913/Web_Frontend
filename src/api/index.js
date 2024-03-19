@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------
 
 // Base URL
-export const HOST_API = 'http://43.136.232.116/'
+export const HOST_API = 'http://43.136.232.116:5000/api'
 
 // ----------------------------------------------------------------------
 
@@ -17,8 +17,8 @@ export const GAODE_API = {
 // request for the backend
 export const endpoints = {
     auth: {
-        login: '/api/user/login',
-        register: '/api/user/register',
+        login: '/user/login',
+        register: '/user/register',
     },
-    chat: '/api/chat'
+    chat: '/chat'
 };
