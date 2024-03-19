@@ -35,9 +35,9 @@ export function useNavData() {
           icon: ICONS.user,
           children: [
             { title: t('profile'), path: paths.home.user.root },
-            { title: t('cards'), path: paths.home.user.cards },
+            
             { title: t('list'), path: paths.home.user.list },
-            { title: t('create'), path: paths.home.user.new },
+           
             { title: t('edit'), path: paths.home.user.demo.edit },
             { title: t('account'), path: paths.home.user.account },
           ],

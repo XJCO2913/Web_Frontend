@@ -8,7 +8,7 @@ export default function ChatPage() {
   return (
     <>
       <Helmet>
-        <title> Home: Chat</title>
+        <title> Chat</title>
       </Helmet>
 
       <ChatView />

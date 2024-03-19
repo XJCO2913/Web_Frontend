@@ -10,8 +10,8 @@ const MOCK_TITLE = _postTitles[2];
 export const PATH_AFTER_LOGIN = '/home';
 
 const ROOTS = {
-    HOME: '/home',
-  };
+  HOME: '/home',
+};
 
 // ----------------------------------------------------------------------
 
@@ -50,8 +50,8 @@ export const paths = {
     tour: {
       root: `${ROOTS.HOME}/tour`,
       new: `${ROOTS.HOME}/tour/new`,
-      details: (id) => `${ROOTS.HOME}/tour/${id}`,
-      edit: (id) => `${ROOTS.HOME}/tour/${id}/edit`,
+      details: `${ROOTS.HOME}/tour/${MOCK_ID}`,
+      edit: `${ROOTS.HOME}/tour/${MOCK_ID}/edit`,
       demo: {
         details: `${ROOTS.HOME}/tour/${MOCK_ID}`,
         edit: `${ROOTS.HOME}/tour/${MOCK_ID}/edit`,

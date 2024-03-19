@@ -11,10 +11,8 @@ const HomePage = lazy(() => import('src/pages/home/app'));
 
 // USER
 const UserProfilePage = lazy(() => import('src/pages/home/user/profile'));
-const UserCardsPage = lazy(() => import('src/pages/home/user/cards'));
 const UserListPage = lazy(() => import('src/pages/home/user/list'));
 const UserAccountPage = lazy(() => import('src/pages/home/user/account'));
-const UserCreatePage = lazy(() => import('src/pages/home/user/new'));
 const UserEditPage = lazy(() => import('src/pages/home/user/edit'));
 
 // TOUR
@@ -32,13 +30,13 @@ export const homeRoutes = [
   {
     path: 'home',
     element: (
-      
-        <HomeLayout>
-          <Suspense fallback={<LoadingScreen />}>
-            <Outlet />
-          </Suspense>
-        </HomeLayout>
-     
+
+      <HomeLayout>
+        <Suspense fallback={<LoadingScreen />}>
+          <Outlet />
+        </Suspense>
+      </HomeLayout>
+
     ),
     children: [
       { element: <HomePage />, index: true },
@@ -47,9 +45,7 @@ export const homeRoutes = [
         children: [
           { element: <UserProfilePage />, index: true },
           { path: 'profile', element: <UserProfilePage /> },
-          { path: 'cards', element: <UserCardsPage /> },
           { path: 'list', element: <UserListPage /> },
-          { path: 'new', element: <UserCreatePage /> },
           { path: ':id/edit', element: <UserEditPage /> },
           { path: 'account', element: <UserAccountPage /> },
         ],

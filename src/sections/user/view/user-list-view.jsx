@@ -139,7 +139,7 @@ export default function UserListView() {
 
   const handleEditRow = useCallback(
     (id) => {
-      router.push(paths.dashboard.user.edit(id));
+      router.push(paths.home.user.edit(id));
     },
     [router]
   );
@@ -157,14 +157,14 @@ export default function UserListView() {
         <CustomBreadcrumbs
           heading="List"
           links={[
-            { name: 'Dashboard', href: paths.dashboard.root },
-            { name: 'User', href: paths.dashboard.user.root },
+            { name: 'Home', href: paths.home.root },
+            { name: 'User', href: paths.home.user.root },
             { name: 'List' },
           ]}
           action={
             <Button
               component={RouterLink}
-              href={paths.dashboard.user.new}
+              href={paths.home.user.new}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
             >

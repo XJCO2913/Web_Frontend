@@ -48,7 +48,7 @@ export default function ChatView() {
 
   useEffect(() => {
     if (conversationError || !selectedConversationId) {
-      router.push(paths.dashboard.chat);
+      router.push(paths.home.chat);
     }
   }, [conversationError, router, selectedConversationId]);
 
@@ -108,12 +108,16 @@ export default function ChatView() {
         variant="h4"
         sx={{
           mb: { xs: 3, md: 5 },
+          mt: { lg: -6 },
         }}
       >
-        Chat
       </Typography>
 
-      <Stack component={Card} direction="row" sx={{ height: '72vh' }}>
+      <Stack component={Card} direction="row" sx={{
+        height: { xs: '84vh', md: '84vh', lg: '76vh' },
+        mb: -12,
+        mt: { md: -5, xs: -5 }
+      }}>
         {renderNav}
 
         <Stack

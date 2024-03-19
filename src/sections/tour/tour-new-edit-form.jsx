@@ -15,6 +15,8 @@ import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
@@ -110,7 +112,7 @@ export default function TourNewEditForm({ currentTour }) {
       await new Promise((resolve) => setTimeout(resolve, 500));
       reset();
       enqueueSnackbar(currentTour ? 'Update success!' : 'Create success!');
-      router.push(paths.dashboard.tour.root);
+      router.push(paths.home.tour.root);
       console.info('DATA', data);
     } catch (error) {
       console.error(error);
@@ -251,42 +253,46 @@ export default function TourNewEditForm({ currentTour }) {
 
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Available</Typography>
-              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                <Controller
-                  name="available.startDate"
-                  control={control}
-                  render={({ field, fieldState: { error } }) => (
-                    <DatePicker
-                      {...field}
-                      format="dd/MM/yyyy"
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          error: !!error,
-                          helperText: error?.message,
-                        },
-                      }}
-                    />
-                  )}
-                />
-                <Controller
-                  name="available.endDate"
-                  control={control}
-                  render={({ field, fieldState: { error } }) => (
-                    <DatePicker
-                      {...field}
-                      format="dd/MM/yyyy"
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          error: !!error,
-                          helperText: error?.message,
-                        },
-                      }}
-                    />
-                  )}
-                />
-              </Stack>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                  <Controller
+                    name="available.startDate"
+                    control={control}
+                    render={({ field, fieldState: { error } }) => (
+                      <DatePicker
+                        {...field}
+                        format="dd/MM/yyyy"
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            error: !!error,
+                            helperText: error?.message,
+                          },
+                        }}
+                      />
+                    )}
+                  />
+
+                  <Controller
+                    name="available.endDate"
+                    control={control}
+                    render={({ field, fieldState: { error } }) => (
+                      <DatePicker
+                        {...field}
+                        format="yyyy-MM-dd"
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            error: !!error,
+                            helperText: error?.message,
+                          },
+                        }}
+                      />
+                    )}
+                  />
+
+                </Stack>
+              </LocalizationProvider>
             </Stack>
 
             <Stack spacing={1.5}>

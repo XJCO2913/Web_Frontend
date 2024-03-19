@@ -5,7 +5,7 @@ import { fetchProvinces, fetchCitiesByProvince, translateName } from './utils';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { GAODE_API } from 'src/apis/index';
+import { GAODE_API } from 'src/api/index';
 
 // ----------------------------------------------------------------------
 const StyledCascader = styled(Cascader)`

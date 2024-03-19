@@ -64,8 +64,8 @@ export default function TourDetailsView({ id }) {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <TourDetailsToolbar
-        backLink={paths.dashboard.tour.root}
-        editLink={paths.dashboard.tour.edit(`${currentTour?.id}`)}
+        backLink={paths.home.tour.root}
+        editLink={paths.home.tour.edit}
         liveLink="#"
         publish={publish || ''}
         onChangePublish={handleChangePublish}

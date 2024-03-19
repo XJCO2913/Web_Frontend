@@ -70,8 +70,8 @@ export default function UserProfileView() {
       <CustomBreadcrumbs
         heading="Profile"
         links={[
-          { name: 'Dashboard', href: paths.dashboard.root },
-          { name: 'User', href: paths.dashboard.user.root },
+          { name: 'Home', href: paths.home.root },
+          { name: 'User', href: paths.home.user.root },
           { name: user?.displayName },
         ]}
         sx={{

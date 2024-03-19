@@ -18,12 +18,12 @@ export default function TourCreateView() {
         heading="Create a new tour"
         links={[
           {
-            name: 'Dashboard',
-            href: paths.dashboard.root,
+            name: 'Home',
+            href: paths.home.root,
           },
           {
             name: 'Tour',
-            href: paths.dashboard.tour.root,
+            href: paths.home.tour.root,
           },
           { name: 'New tour' },
         ]}

@@ -110,7 +110,7 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
       }}
       primary={`Posted date: ${fDateTime(createdAt)}`}
       secondary={
-        <Link component={RouterLink} href={paths.dashboard.tour.details(id)} color="inherit">
+        <Link component={RouterLink} href={paths.home.tour.details} color="inherit">
           {name}
         </Link>
       }

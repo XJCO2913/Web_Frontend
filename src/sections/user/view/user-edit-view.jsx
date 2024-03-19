@@ -24,12 +24,12 @@ export default function UserEditView({ id }) {
         heading="Edit"
         links={[
           {
-            name: 'Dashboard',
-            href: paths.dashboard.root,
+            name: 'Home',
+            href: paths.home.root,
           },
           {
             name: 'User',
-            href: paths.dashboard.user.root,
+            href: paths.home.user.root,
           },
           { name: currentUser?.name },
         ]}

@@ -20,4 +20,5 @@ export const endpoints = {
         login: '/api/user/login',
         register: '/api/user/register',
     },
+    chat: '/api/chat'
 };

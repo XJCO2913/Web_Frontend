@@ -116,7 +116,7 @@ export default function TourListView() {
         query={search.query}
         results={search.results}
         onSearch={handleSearch}
-        hrefItem={(id) => paths.dashboard.tour.details(id)}
+        hrefItem={(id) => paths.home.tour.details(id)}
       />
 
       <Stack direction="row" spacing={1} flexShrink={0}>
@@ -160,17 +160,17 @@ export default function TourListView() {
       <CustomBreadcrumbs
         heading="List"
         links={[
-          { name: 'Dashboard', href: paths.dashboard.root },
+          { name: 'Home', href: paths.home.root },
           {
             name: 'Tour',
-            href: paths.dashboard.tour.root,
+            href: paths.home.tour.root,
           },
           { name: 'List' },
         ]}
         action={
           <Button
             component={RouterLink}
-            href={paths.dashboard.tour.new}
+            href={paths.home.tour.new}
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
           >
