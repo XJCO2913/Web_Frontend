@@ -19,6 +19,7 @@ export const endpoints = {
     auth: {
         login: '/user/login',
         register: '/user/register',
+        me: '/user',
     },
     chat: '/chat'
 };

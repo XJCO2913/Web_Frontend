@@ -12,7 +12,6 @@ import NavItem from './nav-item';
 // ----------------------------------------------------------------------
 
 export default function NavList({ data, depth, slotProps }) {
-  console.log(data)
   const navRef = useRef(null);
 
   const pathname = usePathname();

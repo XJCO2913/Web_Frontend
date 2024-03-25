@@ -1,18 +1,12 @@
 import PropTypes from 'prop-types';
-import { useMemo, useReducer, useCallback } from 'react';
+import { useMemo, useReducer, useCallback, useEffect} from 'react';
 import axiosInstance from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 import { AuthContext } from './auth-context';
 import { setSession } from './utils';
+ import { isValidToken, jwtDecode } from "./utils";
 
 // ----------------------------------------------------------------------
-/**
- * NOTE:
- * We only build demo at basic level.
- * Customer will need to do some extra handling yourself if you want to extend the logic and other features...
- */
-// ----------------------------------------------------------------------
-
 const initialState = {
   user: null,
   loading: true,
@@ -53,48 +47,52 @@ const STORAGE_KEY = 'token';
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // const initialize = useCallback(async () => {
-  //   try {
-  //     const token = sessionStorage.getItem(STORAGE_KEY);
+  const initialize = useCallback(async () => {
+    try {
+      const token = sessionStorage.getItem(STORAGE_KEY);
 
-  //     if (token && isValidToken(token)) {
-  //       setSession(token);
+      if (token && isValidToken(token)) {
+        setSession(token);
 
-  //       const response = await axiosInstance.get(endpoints.auth.me);
+        // Decode the JWT to get the userID
+        const decodedToken = jwtDecode(token);
+        const userID = decodedToken.userID;
+        // Make an API call to get the user's information
+        const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userID}`);
+        const  userInfo  = response.data.Data;
 
-  //       const { user } = response.data;
+        dispatch({
+          type: 'INITIAL',
+          payload: {
+            user: {
+              ...userInfo,
+              token,
+            },
+          },
+        });
+      } else 
+      {
+        dispatch({
+          type: 'INITIAL',
+          payload: {
+            user: null,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch({
+        type: 'INITIAL',
+        payload: {
+          user: null,
+        },
+      });
+    }
+  }, []);
 
-  //       dispatch({
-  //         type: 'INITIAL',
-  //         payload: {
-  //           user: {
-  //             ...user,
-  //             token,
-  //           },
-  //         },
-  //       });
-  //     } else {
-  //       dispatch({
-  //         type: 'INITIAL',
-  //         payload: {
-  //           user: null,
-  //         },
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     dispatch({
-  //       type: 'INITIAL',
-  //       payload: {
-  //         user: null,
-  //       },
-  //     });
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   initialize();
-  // }, [initialize]);
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   // LOGIN
   const login = useCallback(async (username, password) => {
@@ -105,7 +103,6 @@ export function AuthProvider({ children }) {
 
     try {
       const response = await axiosInstance.post(endpoints.auth.login, data);
-      console.log(100)
       // Check whether user login successfully
       if (response.data.status_code === 0) {
         const { token, userInfo } = response.data.Data;
@@ -216,7 +213,6 @@ export function AuthProvider({ children }) {
   const memoizedValue = useMemo(
     () => ({
       user: state.user,
-      method: 'jwt',
       loading: status === 'loading',
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',

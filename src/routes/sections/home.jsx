@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 
-// import { AuthGuard } from 'src/auth/guard';
+import { AuthGuard } from 'src/auth/guard';
 import HomeLayout from 'src/layouts/home';
 
 import { LoadingScreen } from 'src/components/loading-screen';
@@ -30,13 +30,13 @@ export const homeRoutes = [
   {
     path: 'home',
     element: (
-
-      <HomeLayout>
-        <Suspense fallback={<LoadingScreen />}>
-          <Outlet />
-        </Suspense>
-      </HomeLayout>
-
+      <AuthGuard>
+        <HomeLayout>
+          <Suspense fallback={<LoadingScreen />}>
+            <Outlet />
+          </Suspense>
+        </HomeLayout>
+      </AuthGuard>
     ),
     children: [
       { element: <HomePage />, index: true },
