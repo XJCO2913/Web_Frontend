@@ -10,7 +10,7 @@ const icon = (name) => (
 );
 
 const ICONS = {
-  home: icon('ic_blog'),
+  home: icon('ic_label'),
   user: icon('ic_user'),
   chat: icon('ic_chat'),
   tour: icon('ic_tour'),
@@ -35,10 +35,7 @@ export function useNavData() {
           icon: ICONS.user,
           children: [
             { title: t('profile'), path: paths.home.user.root },
-            
             { title: t('list'), path: paths.home.user.list },
-           
-            { title: t('edit'), path: paths.home.user.demo.edit },
             { title: t('account'), path: paths.home.user.account },
           ],
         },
