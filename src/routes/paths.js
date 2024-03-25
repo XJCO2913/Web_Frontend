@@ -1,32 +1,44 @@
-// import { paramCase } from 'src/utils/change-case';
-
-// import { _id, _postTitles } from 'src/_mock/assets';
+import { _id } from 'src/_mock/assets';
 
 // ----------------------------------------------------------------------
+const MOCK_ID = _id[1];
 
-// const MOCK_ID = _id[1];
-// const MOCK_TITLE = _postTitles[2];
+
+// ROOT PATH AFTER LOGIN SUCCESSFUL
+export const PATH_AFTER_LOGIN = '/home';
 
 const ROOTS = {
-  AUTH: '/auth',
-  DASHBOARD: '/dashboard',
+  HOME: '/home',
 };
 
 // ----------------------------------------------------------------------
 
 export const paths = {
-  //   post: {
-  //     root: `/post`,
-  //     details: (title) => `/post/${paramCase(title)}`,
-  //     demo: {
-  //       details: `/post/${paramCase(MOCK_TITLE)}`,
-  //     },
-  //   },
-  // AUTH
-  auth: {
-    jwt: {
-      login: `${ROOTS.AUTH}/jwt/login`,
-      register: `${ROOTS.AUTH}/jwt/register`,
-    }
+  heroPage: '/',
+  login: '/login',
+  register: '/register',
+  pricing: '/pricing',
+  payment: '/payment',
+  // HOME
+  home: {
+    root: ROOTS.HOME,
+    chat: `${ROOTS.HOME}/chat`,
+    user: {
+      root: `${ROOTS.HOME}/user`,
+      list: `${ROOTS.HOME}/user/list`,
+      profile: `${ROOTS.HOME}/user/profile`,
+      account: `${ROOTS.HOME}/user/account`,
+    },
+    tour: {
+      root: `${ROOTS.HOME}/tour`,
+      new: `${ROOTS.HOME}/tour/new`,
+      details: `${ROOTS.HOME}/tour/${MOCK_ID}`,
+      edit: `${ROOTS.HOME}/tour/${MOCK_ID}/edit`,
+      demo: {
+        details: `${ROOTS.HOME}/tour/${MOCK_ID}`,
+        edit: `${ROOTS.HOME}/tour/${MOCK_ID}/edit`,
+      },
+    },
   },
 };
+

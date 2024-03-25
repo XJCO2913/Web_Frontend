@@ -1,14 +1,9 @@
 import { Navigate, useRoutes } from 'react-router-dom';
-import Layout from "@/pages/Layout"
-import Home from '@/pages/Home';
 import { authRoutes } from './auth';
-
-//import { PATH_AFTER_LOGIN } from 'src/config-global';
-
-// import { authDemoRoutes } from './auth-demo';
-// import { HomePage, mainRoutes } from './main';
-// import { dashboardRoutes } from './dashboard';
-// import { componentsRoutes } from './components';
+import { heroRoutes } from './hero-page';
+import { homeRoutes } from './home'
+import { HeroPage } from './hero-page';
+import MainLayout from 'src/layouts/main';
 
 // ----------------------------------------------------------------------
 
@@ -17,28 +12,19 @@ export default function Router() {
     // SET INDEX PAGE WITH HOME PAGE
     {
       path: '/',
-        // element: <AuthRoute><Layout/></AuthRoute>
-        element: <Layout />,
-        children: [
-            {
-                path: '',
-                element: <Home />
-            }
-        ]
+      element: (
+        <MainLayout>
+          <HeroPage />
+        </MainLayout>
+      ),
     },
 
     // Auth routes
     ...authRoutes,
-    // ...authDemoRoutes,
 
-    // Dashboard routes
-    // ...dashboardRoutes,
+    ...heroRoutes,
 
-    // // Main routes
-    // ...mainRoutes,
-
-    // // Components routes
-    // ...componentsRoutes,
+    ...homeRoutes,
 
     // No match 404
     { path: '*', element: <Navigate to="/404" replace /> },

@@ -1,51 +1,34 @@
 import { lazy, Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
 import AuthClassicLayout from 'src/layouts/auth/classic';
 import { SplashScreen } from 'src/components/loading-screen';
-// import CompactLayout from 'src/layouts/compact';
 
 // ----------------------------------------------------------------------
 
-// JWT
+// Use lazy to load the login and registration pages
 const JwtLoginPage = lazy(() => import('src/pages/auth/login'));
 const JwtRegisterPage = lazy(() => import('src/pages/auth/register'));
 
-
 // ----------------------------------------------------------------------
-
-const authJwt = {
-  path: 'jwt',
+const loginRoute = {
+  path: 'login',
   element: (
     <Suspense fallback={<SplashScreen />}>
-      <Outlet />
+      <AuthClassicLayout type="login">
+        <JwtLoginPage />
+      </AuthClassicLayout>
     </Suspense>
   ),
-  children: [
-    {
-      path: 'login',
-      element: (
-
-          <AuthClassicLayout type="login">
-            <JwtLoginPage />
-          </AuthClassicLayout>
-
-      ),
-    },
-    {
-      path: 'register',
-      element: (
-
-          <AuthClassicLayout type="register" title="Manage the job more effectively with XXX">
-            <JwtRegisterPage />
-          </AuthClassicLayout>
-      ),
-    },
-  ],
 };
 
-export const authRoutes = [
-  {
-    path: 'auth',
-    children: [authJwt],
-  },
-];
+const registerRoute = {
+  path: 'register',
+  element: (
+    <Suspense fallback={<SplashScreen />}>
+      <AuthClassicLayout type="register" title="Map Your Moves, Chat Your Paths!">
+        <JwtRegisterPage />
+      </AuthClassicLayout>
+    </Suspense>
+  ),
+};
+
+export const authRoutes = [loginRoute, registerRoute];

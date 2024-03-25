@@ -17,20 +17,42 @@ import { useRouter } from 'src/routes/hooks';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 
-
 import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
-import { PATH_AFTER_LOGIN } from 'src/config-global'
+import { PATH_AFTER_LOGIN } from 'src/routes/paths'
 // ----------------------------------------------------------------------
 
 export default function JwtLoginView() {
   const { login } = useAuthContext();
   const router = useRouter();
   const [errorMsg, setErrorMsg] = useState('');
-  // const searchParams = useSearchParams();
-  // const returnTo = searchParams.get('returnTo');
   const password = useBoolean();
+  const [countdown, setCountdown] = useState('');
 
+  // function to calculate countdown of locked user
+  const calculateCountdown = (expiresTimestamp) => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const distance = expiresTimestamp - now;
+
+      if (distance < 0) {
+        clearInterval(interval);
+        // finish countdown
+        setCountdown('');
+        // update unlocked message for user
+        setErrorMsg('Your account is now unlocked. Please try again.');
+      } else {
+        // update countdown
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        setCountdown(`${minutes} minutes ${seconds} seconds`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  };
+
+  // Check the form
   const LoginSchema = Yup.object().shape({
     username: Yup.string().required('Username is required'),
     password: Yup.string().required('Password is required'),
@@ -54,26 +76,32 @@ export default function JwtLoginView() {
       const result = await login?.(data.username, data.password);
 
       if (result.success) {
-        console.log('Redirecting to:', PATH_AFTER_LOGIN);
         router.push(PATH_AFTER_LOGIN);
       } else {
-        // Use the detailed error message including attempt information
-        setErrorMsg(result.message);
+        // If user was locked manifest time remaining
+        if (result.message.includes('Account is locked.')) {
+          const lockExpires = result.data.lockExpires * 1000;
+          calculateCountdown(lockExpires);
+          setErrorMsg('Account is locked. Time remaining: ');
+        } 
+        // Manifest the remaing times to try to login
+        else {
+          setErrorMsg(result.message);
+        }
       }
     } catch (error) {
-      console.error(error);
-      setErrorMsg(typeof error === 'string' ? error : error.message);
+      setErrorMsg('An unexpected error occurred. Please try again later.');
     }
   });
 
   const renderHead = (
     <Stack spacing={2} sx={{ mb: 5 }}>
-      <Typography variant="h4">Sign in to XXX</Typography>
+      <Typography variant="h4">Sign in to PathPals</Typography>
 
       <Stack direction="row" spacing={0.5}>
         <Typography variant="body2">New user?</Typography>
 
-        <Link component={RouterLink} href={paths.auth.jwt.register} variant="subtitle2">
+        <Link component={RouterLink} href={paths.register} variant="subtitle2">
           Create an account
         </Link>
       </Stack>
@@ -122,7 +150,7 @@ export default function JwtLoginView() {
 
       {!!errorMsg && (
         <Alert severity="error" sx={{ mb: 3 }}>
-          {errorMsg}
+          {errorMsg}{countdown && ` ${countdown}`}
         </Alert>
       )}
 

@@ -1,19 +1,12 @@
 import PropTypes from 'prop-types';
-import { useMemo, useReducer, useCallback } from 'react';
-
-import axiosInstance, { endpoints } from 'src/utils/axios';
-
+import { useMemo, useReducer, useCallback, useEffect} from 'react';
+import axiosInstance from 'src/utils/axios';
+import { endpoints } from 'src/api/index'
 import { AuthContext } from './auth-context';
 import { setSession } from './utils';
+ import { isValidToken, jwtDecode } from "./utils";
 
 // ----------------------------------------------------------------------
-/**
- * NOTE:
- * We only build demo at basic level.
- * Customer will need to do some extra handling yourself if you want to extend the logic and other features...
- */
-// ----------------------------------------------------------------------
-
 const initialState = {
   user: null,
   loading: true,
@@ -54,48 +47,52 @@ const STORAGE_KEY = 'token';
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // const initialize = useCallback(async () => {
-  //   try {
-  //     const token = sessionStorage.getItem(STORAGE_KEY);
+  const initialize = useCallback(async () => {
+    try {
+      const token = sessionStorage.getItem(STORAGE_KEY);
 
-  //     if (token && isValidToken(token)) {
-  //       setSession(token);
+      if (token && isValidToken(token)) {
+        setSession(token);
 
-  //       const response = await axiosInstance.get(endpoints.auth.me);
+        // Decode the JWT to get the userID
+        const decodedToken = jwtDecode(token);
+        const userID = decodedToken.userID;
+        // Make an API call to get the user's information
+        const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userID}`);
+        const  userInfo  = response.data.Data;
 
-  //       const { user } = response.data;
+        dispatch({
+          type: 'INITIAL',
+          payload: {
+            user: {
+              ...userInfo,
+              token,
+            },
+          },
+        });
+      } else 
+      {
+        dispatch({
+          type: 'INITIAL',
+          payload: {
+            user: null,
+          },
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      dispatch({
+        type: 'INITIAL',
+        payload: {
+          user: null,
+        },
+      });
+    }
+  }, []);
 
-  //       dispatch({
-  //         type: 'INITIAL',
-  //         payload: {
-  //           user: {
-  //             ...user,
-  //             token,
-  //           },
-  //         },
-  //       });
-  //     } else {
-  //       dispatch({
-  //         type: 'INITIAL',
-  //         payload: {
-  //           user: null,
-  //         },
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     dispatch({
-  //       type: 'INITIAL',
-  //       payload: {
-  //         user: null,
-  //       },
-  //     });
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   initialize();
-  // }, [initialize]);
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   // LOGIN
   const login = useCallback(async (username, password) => {
@@ -103,17 +100,15 @@ export function AuthProvider({ children }) {
       username,
       password,
     };
-  
+
     try {
-      // 尝试发送POST请求到登录端点
       const response = await axiosInstance.post(endpoints.auth.login, data);
-      // 检查状态码以确认登录是否成功
+      // Check whether user login successfully
       if (response.data.status_code === 0) {
-        // 提取令牌和用户信息
         const { token, userInfo } = response.data.Data;
-        // 存储令牌
+        // store the token
         setSession(token);
-        // 更新用户状态
+        // Update user status
         dispatch({
           type: 'LOGIN',
           payload: {
@@ -125,15 +120,36 @@ export function AuthProvider({ children }) {
         });
         return { success: true };
       } else {
-        // 如果状态码不是0，处理登录失败，但这种情况应该已经被拦截器捕获
+        // If the status code is not 0, processing of the login fails, but this should already be caught by the interceptor
         return { success: false, message: 'Login failed due to unexpected error.' };
       }
-    } catch (error) {
-      // 从拦截器返回的自定义错误对象中提取错误信息和其他数据
-      const message = error.status_msg || error.message; 
-      return { success: false, message: `${message}` };
     }
-  }, []);  
+    catch (error) {
+      let customErrorData = { success: false, data: {} };
+
+      // If user not found send the message to upper layer
+      if (error.data.status_code === -1 && error.data.status_msg === 'user not found') {
+        customErrorData.message = "The username does not exist.";
+        return customErrorData;
+      }
+
+      if (error.status_code === -1) {
+        // Send the remaining attempts to upper layer
+        if (error.data.remainingAttempts) {
+          customErrorData.message = `Wrong password. You have ${error.data.remainingAttempts} attempts remaining.`;
+          customErrorData.data.remainingAttempts = error.data.remainingAttempts;
+        }
+        // Send the lockdown time to upper layer
+        if (error.data.lockExpires) {
+          customErrorData.message = `Account is locked.`;
+          customErrorData.data.lockExpires = error.data.lockExpires;
+        }
+      } else {
+        customErrorData.message = 'Login failed due to an unexpected error. Please try again later.';
+      }
+      return customErrorData;
+    }
+  }, []);
 
   // REGISTER
   const register = useCallback(async (username, password, gender, birthday, region) => {
@@ -142,23 +158,42 @@ export function AuthProvider({ children }) {
       password,
       gender,
       birthday,
-      region
+      region,
     };
 
-    const response = await axiosInstance.post(endpoints.auth.register, data);
-    const { token, user } = response.data;
+    try {
+      const response = await axiosInstance.post(endpoints.auth.register, data);
+      // Assuming the response structure is similar to login
+      if (response.data.status_code === 0) {
+        const { token, userInfo } = response.data.Data;
+        // Store the token
+        sessionStorage.setItem(STORAGE_KEY, token);
+        // Update user status
+        dispatch({
+          type: 'REGISTER',
+          payload: {
+            user: {
+              ...userInfo,
+              token,
+            },
+          },
+        });
+        return { success: true };
+      } else {
+        // If the status code is not 0, the registration process is considered failed
+        return { success: false, message: 'Sign up failed due to unexpected error.' };
+      }
+    } catch (error) {
+      let customErrorData = { success: false, data: {} };
 
-    sessionStorage.setItem(STORAGE_KEY, token);
+      // If user not found send the message to upper layer
+      if (error.data.status_code === -1 && error.data.status_msg === 'user already exist') {
+        customErrorData.message = "The username already exists.";
+        return customErrorData;
+      }
 
-    dispatch({
-      type: 'REGISTER',
-      payload: {
-        user: {
-          ...user,
-          token,
-        },
-      },
-    });
+      return customErrorData;
+    }
   }, []);
 
   // LOGOUT
@@ -178,7 +213,6 @@ export function AuthProvider({ children }) {
   const memoizedValue = useMemo(
     () => ({
       user: state.user,
-      method: 'jwt',
       loading: status === 'loading',
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',

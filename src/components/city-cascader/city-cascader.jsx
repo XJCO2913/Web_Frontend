@@ -1,48 +1,57 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { Cascader, ConfigProvider } from 'antd';
 import Alert from '@mui/material/Alert';
-import { fetchProvinces, fetchCitiesByProvince, translateName } from '@/apis/cityCascader';
+import { fetchProvinces, fetchCitiesByProvince, translateName } from './utils';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import { GAODE_API } from 'src/api/index';
 
+// ----------------------------------------------------------------------
 const StyledCascader = styled(Cascader)`
   width: 100%;
   height: 100%;
 `;
 
-// Define the CityCascader component with a prop `onChange` for handling changes in selection.
-export const CityCascader = ({ onChange }) => {
+// ----------------------------------------------------------------------
+export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldFetchData }, ref) => {
   // State hook for storing options for the cascader (provinces and cities).
   const [options, setOptions] = useState([]);
   // State hook for storing the currently selected location.
   const [selectedLocation, setSelectedLocation] = useState([]);
-
   const [openAlert, setOpenAlert] = useState(false);
   const [alertType, setAlertType] = useState('info'); // 'error', 'warning', 'info', 'success'
   const [alertMessage, setAlertMessage] = useState('');
+  const [open, setOpen] = useState(true);
 
-  // Effect hook to load provinces on component mount and fetch user's location.
+  // ----------------------------------------------------------------------
+  // Async function to load province options from an API.
   useEffect(() => {
-    // Async function to load province options from an API.
     const loadProvinces = async () => {
       const provinces = await fetchProvinces();
       setOptions(provinces);
     };
 
-    // 显示提示信息的函数
+    loadProvinces();
+  }, [shouldFetchData]);
+
+  // ----------------------------------------------------------------------
+  // Effect hook to load provinces on component mount and fetch user's location.
+  useEffect(() => {
+    // A function that displays a prompt message
     const showAlert = (type, message) => {
       setAlertType(type);
       setAlertMessage(message);
       setOpenAlert(true);
     };
 
+    // ----------------------------------------------------------------------
     const fetchLocation = async () => {
       try {
-        const response = await axios.get(`https://restapi.amap.com/v3/ip?key=03eceb9420e057a98616285039c15367`);
+        const response = await axios.get(`${GAODE_API.apiIP}${GAODE_API.apiKey}`);
         if (
-          response.data.status === "1" && 
-          response.data.info === "OK" && 
+          response.data.status === "1" &&
+          response.data.info === "OK" &&
           response.data.province && response.data.province.length > 0 &&
           response.data.city && response.data.city.length > 0
         ) {
@@ -55,7 +64,7 @@ export const CityCascader = ({ onChange }) => {
             onChange(location);
           }
         } else {
-          // 服务不可用或数据为空
+          // when IP is not in China show the alert
           showAlert('warning', 'This service is only available to users in China.');
         }
       } catch (error) {
@@ -63,11 +72,13 @@ export const CityCascader = ({ onChange }) => {
         showAlert('error', 'An error occurred when trying to get user location.');
       }
     };
-    // Call the functions to load initial data.
-    loadProvinces();
-    fetchLocation();
-  }, []); // Empty dependency array means this effect runs only once on mount.
 
+    if (shouldFetchData) {
+      fetchLocation();
+    }
+  }, [shouldFetchData]);
+
+  // ----------------------------------------------------------------------
   // Function to load city options dynamically when a province is selected.
   const loadData = async (selectedOptions) => {
     const targetOption = selectedOptions[selectedOptions.length - 1];
@@ -101,6 +112,13 @@ export const CityCascader = ({ onChange }) => {
         </Alert>
       )}
 
+      {error && open &&
+        (<Alert
+          severity="error"
+          onClose={() => setOpen(false)}>
+          {errorMessage}
+        </Alert>)}
+
       <ConfigProvider
         theme={{
           token: {
@@ -111,13 +129,15 @@ export const CityCascader = ({ onChange }) => {
           },
           components: {
             Cascader: {
-              controlItemWidth: 55,
+              controlItemWidth: 1,
+              controlWidth: 1,
               optionSelectedBg: '#e6f4ff'
             },
           }
         }}
       >
         <StyledCascader
+          ref={ref}
           size='large'
           options={options} // The options for provinces and their cities.
           loadData={loadData} // Function to call for dynamically loading city options.
@@ -125,14 +145,19 @@ export const CityCascader = ({ onChange }) => {
           onChange={onLocationChange} // Handler for when the selection changes.
           changeOnSelect // Allow changing selection on each level of the cascader.
           placeholder='select your reigon'
+          dropdownMenuColumnStyle={{ width: "100%", maxWidth: "250px" }}
         />
       </ConfigProvider></>
   );
-};
+});
+CityCascader.displayName = 'CityCascader';
 
 // Type-checking for the `onChange` prop to ensure it's a function if provided.
 CityCascader.propTypes = {
   onChange: PropTypes.func,
+  error: PropTypes.bool,
+  errorMessage: PropTypes.string,
+  shouldFetchData: PropTypes.bool,
 };
 
 export default CityCascader;
