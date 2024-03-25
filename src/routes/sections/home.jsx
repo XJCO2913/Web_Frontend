@@ -13,7 +13,6 @@ const HomePage = lazy(() => import('src/pages/home/app'));
 const UserProfilePage = lazy(() => import('src/pages/home/user/profile'));
 const UserListPage = lazy(() => import('src/pages/home/user/list'));
 const UserAccountPage = lazy(() => import('src/pages/home/user/account'));
-const UserEditPage = lazy(() => import('src/pages/home/user/edit'));
 
 // TOUR
 const TourDetailsPage = lazy(() => import('src/pages/home/tour/details'));
@@ -46,7 +45,6 @@ export const homeRoutes = [
           { element: <UserProfilePage />, index: true },
           { path: 'profile', element: <UserProfilePage /> },
           { path: 'list', element: <UserListPage /> },
-          { path: ':id/edit', element: <UserEditPage /> },
           { path: 'account', element: <UserAccountPage /> },
         ],
       },
