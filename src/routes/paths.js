@@ -1,10 +1,8 @@
-import { _id, _postTitles } from 'src/_mock/assets';
-import { paramCase } from 'src/utils/change-case';
+import { _id } from 'src/_mock/assets';
 
 // ----------------------------------------------------------------------
 const MOCK_ID = _id[1];
 
-const MOCK_TITLE = _postTitles[2];
 
 // ROOT PATH AFTER LOGIN SUCCESSFUL
 export const PATH_AFTER_LOGIN = '/home';
@@ -27,25 +25,9 @@ export const paths = {
     chat: `${ROOTS.HOME}/chat`,
     user: {
       root: `${ROOTS.HOME}/user`,
-      new: `${ROOTS.HOME}/user/new`,
       list: `${ROOTS.HOME}/user/list`,
-      cards: `${ROOTS.HOME}/user/cards`,
       profile: `${ROOTS.HOME}/user/profile`,
       account: `${ROOTS.HOME}/user/account`,
-      edit: (id) => `${ROOTS.HOME}/user/${id}/edit`,
-      demo: {
-        edit: `${ROOTS.HOME}/user/${MOCK_ID}/edit`,
-      },
-    },
-    post: {
-      root: `${ROOTS.HOME}/post`,
-      new: `${ROOTS.HOME}/post/new`,
-      details: (title) => `${ROOTS.HOME}/post/${paramCase(title)}`,
-      edit: (title) => `${ROOTS.HOME}/post/${paramCase(title)}/edit`,
-      demo: {
-        details: `${ROOTS.HOME}/post/${paramCase(MOCK_TITLE)}`,
-        edit: `${ROOTS.HOME}/post/${paramCase(MOCK_TITLE)}/edit`,
-      },
     },
     tour: {
       root: `${ROOTS.HOME}/tour`,

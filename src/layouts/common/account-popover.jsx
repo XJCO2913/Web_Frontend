@@ -11,11 +11,8 @@ import Typography from '@mui/material/Typography';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
-
-import { useMockedUser } from 'src/hooks/use-mocked-user';
-
+import Label from 'src/components/label';
 import { useAuthContext } from 'src/auth/hooks';
-
 import { varHover } from 'src/components/animate';
 import { useSnackbar } from 'src/components/snackbar';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
@@ -25,7 +22,7 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 const OPTIONS = [
   {
     label: 'Home',
-    linkTo: '/',
+    linkTo: '/home',
   },
   {
     label: 'Profile',
@@ -35,6 +32,12 @@ const OPTIONS = [
     label: 'Settings',
     linkTo: paths.home.user.account,
   },
+  {
+    label: 'Upgrade',
+    action: (router) => {
+      router.push('/home/user/account');
+    }
+  },
 ];
 
 // ----------------------------------------------------------------------
@@ -42,7 +45,7 @@ const OPTIONS = [
 export default function AccountPopover() {
   const router = useRouter();
 
-  const { user } = useMockedUser();
+  const { user } = useAuthContext();
 
   const { logout } = useAuthContext();
 
@@ -61,9 +64,20 @@ export default function AccountPopover() {
     }
   };
 
-  const handleClickItem = (path) => {
+  // const handleClickItem = (path) => {
+  //   popover.onClose();
+  //   router.push(path);
+  // };
+
+  const handleClickItem = (option) => {
     popover.onClose();
-    router.push(path);
+    if (option.action) {
+      // 执行action时传入router对象
+      option.action(router);
+    } else {
+      // 使用自定义router的push方法进行导航
+      router.push(option.linkTo);
+    }
   };
 
   return (
@@ -85,34 +99,43 @@ export default function AccountPopover() {
         }}
       >
         <Avatar
-          src={user?.photoURL}
-          alt={user?.displayName}
+          src={user?.avatarUrl}
+          alt="avatar"
           sx={{
             width: 36,
             height: 36,
             border: (theme) => `solid 2px ${theme.palette.background.default}`,
           }}
         >
-          {user?.displayName?.charAt(0).toUpperCase()}
+          {user?.username?.charAt(0).toUpperCase()}
         </Avatar>
       </IconButton>
 
       <CustomPopover open={popover.open} onClose={popover.onClose} sx={{ width: 200, p: 0 }}>
-        <Box sx={{ p: 2, pb: 1.5 }}>
+        <Box sx={{ p: 2, pb: 0.9 }}>
           <Typography variant="subtitle2" noWrap>
-            {user?.displayName}
+            {user?.username}
           </Typography>
 
-          <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {user?.email}
-          </Typography>
+          <Label
+            color="success"
+            variant="filled"
+            sx={{
+              px: 1,
+              mb: -2,
+              height: 20,
+              width: 50,
+            }}
+          >
+            Free
+          </Label>
         </Box>
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Stack sx={{ p: 1 }}>
           {OPTIONS.map((option) => (
-            <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
+            <MenuItem key={option.label} onClick={() => handleClickItem(option)}>
               {option.label}
             </MenuItem>
           ))}

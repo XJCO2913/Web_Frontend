@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 
-// import { AuthGuard } from 'src/auth/guard';
+import { AuthGuard } from 'src/auth/guard';
 import HomeLayout from 'src/layouts/home';
 
 import { LoadingScreen } from 'src/components/loading-screen';
@@ -13,7 +13,6 @@ const HomePage = lazy(() => import('src/pages/home/app'));
 const UserProfilePage = lazy(() => import('src/pages/home/user/profile'));
 const UserListPage = lazy(() => import('src/pages/home/user/list'));
 const UserAccountPage = lazy(() => import('src/pages/home/user/account'));
-const UserEditPage = lazy(() => import('src/pages/home/user/edit'));
 
 // TOUR
 const TourDetailsPage = lazy(() => import('src/pages/home/tour/details'));
@@ -30,13 +29,13 @@ export const homeRoutes = [
   {
     path: 'home',
     element: (
-
-      <HomeLayout>
-        <Suspense fallback={<LoadingScreen />}>
-          <Outlet />
-        </Suspense>
-      </HomeLayout>
-
+      <AuthGuard>
+        <HomeLayout>
+          <Suspense fallback={<LoadingScreen />}>
+            <Outlet />
+          </Suspense>
+        </HomeLayout>
+      </AuthGuard>
     ),
     children: [
       { element: <HomePage />, index: true },
@@ -46,7 +45,6 @@ export const homeRoutes = [
           { element: <UserProfilePage />, index: true },
           { path: 'profile', element: <UserProfilePage /> },
           { path: 'list', element: <UserListPage /> },
-          { path: ':id/edit', element: <UserEditPage /> },
           { path: 'account', element: <UserAccountPage /> },
         ],
       },
