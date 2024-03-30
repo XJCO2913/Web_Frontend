@@ -126,10 +126,14 @@ export function AuthProvider({ children }) {
     }
     catch (error) {
       let customErrorData = { success: false, data: {} };
-
       // If user not found send the message to upper layer
-      if (error.data.status_code === -1 && error.data.status_msg === 'user not found') {
+      if (error.status_code === -1 && error.status_msg === 'User not found') {
         customErrorData.message = "The username does not exist.";
+        return customErrorData;
+      }
+
+      if (error.status_code === -1 && error.status_msg === 'account is banned') {
+        customErrorData.message = "Your account had been suspended, please contact the admin for help.";
         return customErrorData;
       }
 
@@ -187,7 +191,7 @@ export function AuthProvider({ children }) {
       let customErrorData = { success: false, data: {} };
 
       // If user not found send the message to upper layer
-      if (error.data.status_code === -1 && error.data.status_msg === 'user already exist') {
+      if (error.data.status_code === -1 && error.data.status_msg === 'User already exist') {
         customErrorData.message = "The username already exists.";
         return customErrorData;
       }
