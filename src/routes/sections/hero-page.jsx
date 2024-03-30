@@ -8,6 +8,7 @@ import { SplashScreen } from 'src/components/loading-screen';
 
 export const HeroPage = lazy(() => import('src/pages/hero-page'));
 const PricingPage = lazy(() => import('src/pages/pricing'));
+const MapPage = lazy(() => import('src/pages/map'));
 
 // ----------------------------------------------------------------------
 
@@ -19,7 +20,8 @@ export const heroRoutes = [
             </Suspense>
         ),
         children: [
-            { path: 'pricing', element: <PricingPage /> }
+            { path: 'pricing', element: <PricingPage /> },
+            { path: 'map', element: <MapPage /> },
         ],
     },
 ];
