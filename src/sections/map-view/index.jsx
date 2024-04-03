@@ -84,6 +84,8 @@ export default function MapView() {
   const handleEndRun = () => {
     setIsRunning(false)
     setCountdown(3) // Reset the countdown to 30 seconds
+    setIsControlBarExpanded(false)
+    setIsPaused(false)
   };
 
   const controlBarHandlers = useSwipeable({
@@ -131,7 +133,7 @@ export default function MapView() {
                 >
                   <m.div {...controlBarHandlers}
                     variants={varZoom().inUp}
-                   
+
                   >
                     <ControlBar
                       onEnd={handleEndRun}
