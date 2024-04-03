@@ -162,7 +162,7 @@ export default function TourNewEditForm({ currentTour }) {
             Details
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Title, short description, image...
+            Bacis infomations about activity
           </Typography>
         </Grid>
       )}
@@ -209,7 +209,7 @@ export default function TourNewEditForm({ currentTour }) {
             Properties
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            Additional functions and attributes...
+            Additional functions and attributes
           </Typography>
         </Grid>
       )}
@@ -229,11 +229,29 @@ export default function TourNewEditForm({ currentTour }) {
                 id="activityScale"
                 name="acticityScale"
                 options={['1~10 people', '11~30 people', '31~100 people']}
-                sx={{ width: 300 }}
                 onChange={(event, newValue)=>{
-                  setActivityScale(newValue)
-                  setValue('activityScale', newValue, {shouldValidate: true}
-                )}}
+                  switch (newValue) {
+                    case '1~10 people':
+                      setActivityScale('small')
+                      setValue('activityScale', 'small', {shouldValidate: true})
+                      break
+                    
+                    case '11~30 people':
+                      setActivityScale('medium')
+                      setValue('activityScale', 'medium', {shouldValidate: true})
+                      break
+
+                    case '31~100 people':
+                      setActivityScale('large')
+                      setValue('activityScale', 'large', {shouldValidate: true})
+                      break
+                    
+                    default:
+                      if (!isActivityScaleError) {
+                        setIsActivityScaleError(true)
+                      }
+                  }
+                }}
                 renderInput={(params) => (
                   <TextField 
                     {...params} 
@@ -329,11 +347,11 @@ export default function TourNewEditForm({ currentTour }) {
     <>
       {mdUp && <Grid md={4} />}
       <Grid xs={12} md={8} sx={{ display: 'flex', alignItems: 'center' }}>
-        <FormControlLabel
+        {/* <FormControlLabel
           control={<Switch defaultChecked />}
           label="Publish"
           sx={{ flexGrow: 1, pl: 3 }}
-        />
+        /> */}
 
         <LoadingButton
           type="submit"
