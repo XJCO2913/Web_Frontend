@@ -12,8 +12,7 @@ import Iconify from 'src/components/iconify';
 import { MotionContainer } from 'src/components/animate';
 import { varSlide, varZoom, } from 'src/components/animate';
 
-
-import Map from './draft'
+import Map from './map'
 import ControlBar from './control-bar'
 
 // ----------------------------------------------------------------------
@@ -58,6 +57,7 @@ export default function MapView() {
     easeOut: "easeInOut",
   });
 
+  // handle countdown
   useEffect(() => {
     if (isCountingDown && countdown > 0) {
       const interval = setInterval(() => {
@@ -67,12 +67,13 @@ export default function MapView() {
       return () => clearInterval(interval);
     } else if (countdown === 0) {
       setIsCountingDown(false);
-      setIsRunning(true); // Adjust based on your app's logic
+      setIsRunning(true);
     }
   }, [countdown, isCountingDown]);
 
   const handleGoClick = () => {
     setIsCountingDown(true);
+    setIsPaused(false);
   };
 
   // Handlers for pause and end
@@ -133,14 +134,14 @@ export default function MapView() {
                 >
                   <m.div {...controlBarHandlers}
                     variants={varZoom().inUp}
-
                   >
                     <ControlBar
                       onEnd={handleEndRun}
                       onPause={handlePauseResume}
                       isPaused={isPaused}
                       expanded={isControlBarExpanded}
-                      setIsExpanded={setIsControlBarExpanded} // Pass the expanded state as a prop
+                      isRunning={isRunning}
+                      setIsExpanded={setIsControlBarExpanded}
                     />
                   </m.div>
                 </MotionContainer>

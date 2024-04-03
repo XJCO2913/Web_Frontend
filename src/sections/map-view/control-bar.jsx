@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useSwipeable } from 'react-swipeable';
 import { m, AnimatePresence } from 'framer-motion';
@@ -9,7 +10,30 @@ import Iconify from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-const ControlBar = ({ onEnd, onPause, isPaused, expanded, setIsExpanded }) => {
+const ControlBar = ({ onEnd, onPause, isPaused, expanded, setIsExpanded, isRunning }) => {
+    const [time, setTime] = useState(0); // 正式计时的时间，以秒为单位
+
+    // 处理正式计时逻辑
+    useEffect(() => {
+        let interval = null;
+
+        if (isRunning && !isPaused) {
+            interval = setInterval(() => {
+                setTime((prevTime) => prevTime + 1);
+            }, 1000);
+        } else {
+            clearInterval(interval);
+        }
+
+        return () => clearInterval(interval);
+    }, [isRunning, isPaused]);
+
+    // 将时间（秒）转换为MM:SS格式
+    const formatTime = (time) => {
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
 
     const swipeHandlers = useSwipeable({
         onSwipedDown: () => setIsExpanded(false),
@@ -60,6 +84,7 @@ const ControlBar = ({ onEnd, onPause, isPaused, expanded, setIsExpanded }) => {
                 >
                 </div>
                 {expanded ? (
+                    // expand
                     <div>
                         <div
                             style={{
@@ -107,7 +132,7 @@ const ControlBar = ({ onEnd, onPause, isPaused, expanded, setIsExpanded }) => {
                                         fontSize: 35,
                                         fontWeight: 600
                                     }}>
-                                    {"00:00"}
+                                    {formatTime(time)}
                                 </Typography>
 
                                 <Typography
@@ -176,7 +201,7 @@ const ControlBar = ({ onEnd, onPause, isPaused, expanded, setIsExpanded }) => {
                                         fontWeight: 500,
                                         color: "#807b88"
                                     }}>
-                                    Total Consumption
+                                    Calorie Consumption
                                 </Typography>
 
                             </Grid>
@@ -282,6 +307,7 @@ const ControlBar = ({ onEnd, onPause, isPaused, expanded, setIsExpanded }) => {
                         )}
                     </div>
                 ) : (
+                    // collapsed
                     <Grid container
                         sx={{
                             mt: 1,
@@ -325,7 +351,7 @@ const ControlBar = ({ onEnd, onPause, isPaused, expanded, setIsExpanded }) => {
                                     fontSize: 35,
                                     fontWeight: 600
                                 }}>
-                                {"00:00"}
+                                {formatTime(time)}
                             </Typography>
 
                             <Typography
@@ -372,6 +398,7 @@ ControlBar.propTypes = {
     onPause: PropTypes.func.isRequired,
     isPaused: PropTypes.bool.isRequired,
     expanded: PropTypes.bool.isRequired,
+    isRunning: PropTypes.bool.isRequired,
     setIsExpanded: PropTypes.func.isRequired,
 };
 
