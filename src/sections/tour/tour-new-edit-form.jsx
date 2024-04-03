@@ -174,12 +174,12 @@ export default function TourNewEditForm({ currentTour }) {
           <Stack spacing={3} sx={{ p: 3 }}>
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Name</Typography>
-              <RHFTextField name="name" placeholder="Ex: Adventure Seekers Expedition..." />
+              <RHFTextField name="name" placeholder="Enter name of activity" />
             </Stack>
 
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Description</Typography>
-              <RHFTextField name="description" placeholder="Enther description of acticity" multiline rows={5}/>
+              <RHFTextField name="description" placeholder="Enther description of activity" multiline rows={5}/>
             </Stack>
 
             <Stack spacing={1.5}>
