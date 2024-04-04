@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, Controller } from 'react-hook-form';
 import { useMemo, useEffect, useCallback, useState } from 'react';
+import { format } from "date-fns";
 
 import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
@@ -34,6 +35,8 @@ import FormProvider, {
   RHFMultiCheckbox,
 } from 'src/components/hook-form';
 import { Autocomplete, TextField } from '@mui/material';
+import { axiosSimple } from '@/utils/axios';
+import { endpoints } from '@/api';
 
 // ----------------------------------------------------------------------
 
@@ -57,7 +60,7 @@ export default function TourNewEditForm({ currentTour }) {
   const NewTourSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
     description: Yup.string().required('Description is required'),
-    images: Yup.array().min(1, 'Images is required'),
+    coverFile: Yup.array().min(1, 'Cover iamge is required'),
     //
     // destination: Yup.string().required('Destination is required'),
     available: Yup.object().shape({
@@ -76,11 +79,11 @@ export default function TourNewEditForm({ currentTour }) {
     () => ({
       name: currentTour?.name || '',
       description: currentTour?.description || '',
-      images: currentTour?.images || [],
+      coverFile: currentTour?.coverFile || [],
       //
-      activityScale: currentTour?.activityScale || [],
+      level: currentTour?.level || [],
       destination: currentTour?.destination || '',
-      services: currentTour?.services || [],
+      tags: currentTour?.tags || [],
       available: {
         startDate: currentTour?.available.startDate || null,
         endDate: currentTour?.available.endDate || null,
@@ -117,11 +120,42 @@ export default function TourNewEditForm({ currentTour }) {
     }
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const formData = new FormData()
+      
+      // convert data to form-data
+      for (const key in data) {
+        if (key === 'available') {
+          formData.append('startDate',  format(new Date(data[key].startDate), 'yyyy-MM-dd'))
+          formData.append('endDate', format(new Date(data[key].endDate), 'yyyy-MM-dd'))
+          continue
+        } else if (key === 'coverFile') {
+          formData.append('coverFile', data[key][0])
+          continue
+        } else if (key === 'tags') {
+          formData.append('tags', data['tags'].toString().replace(/,/g, '|'))
+          continue
+        }
+
+        formData.append(key, data[key])
+      }
+
+      formData.forEach((value, key) => {
+        console.log(key, value);
+      });
+
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTIyOTE5NjcsImlzQWRtaW4iOnRydWUsImlzT3JnYW5pc2VyIjp0cnVlLCJ1c2VySUQiOiIxMjMxMjMxMjMifQ.vVhNSMwZ75uZHVwF0gIelf9zmoiJ8OcMfKXOFtQ7vPc'}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+      const resp = await axiosSimple.post(endpoints.activity.create, formData, httpConfig)
+      console.log(resp.data)
+
       reset();
       enqueueSnackbar(currentTour ? 'Update success!' : 'Create success!');
       router.push(paths.home.tour.root);
-      console.info('DATA', data);
     } catch (error) {
       console.error(error);
     }
@@ -129,7 +163,7 @@ export default function TourNewEditForm({ currentTour }) {
 
   const handleDrop = useCallback(
     (acceptedFiles) => {
-      const files = values.images || [];
+      const files = values.coverFile || [];
 
       const newFiles = acceptedFiles.map((file) =>
         Object.assign(file, {
@@ -137,21 +171,21 @@ export default function TourNewEditForm({ currentTour }) {
         })
       );
 
-      setValue('images', [...files, ...newFiles], { shouldValidate: true });
+      setValue('coverFile', [...files, ...newFiles], { shouldValidate: true });
     },
-    [setValue, values.images]
+    [setValue, values.coverFile]
   );
 
   const handleRemoveFile = useCallback(
     (inputFile) => {
-      const filtered = values.images && values.images?.filter((file) => file !== inputFile);
-      setValue('images', filtered);
+      const filtered = values.coverFile && values.coverFile?.filter((file) => file !== inputFile);
+      setValue('coverFile', filtered);
     },
-    [setValue, values.images]
+    [setValue, values.coverFile]
   );
 
   const handleRemoveAllFiles = useCallback(() => {
-    setValue('images', []);
+    setValue('coverFile', []);
   }, [setValue]);
 
   const renderDetails = (
@@ -187,12 +221,10 @@ export default function TourNewEditForm({ currentTour }) {
               <RHFUpload
                 multiple
                 thumbnail
-                name="images"
-                maxSize={3145728}
+                name="coverFile"
                 onDrop={handleDrop}
                 onRemove={handleRemoveFile}
                 onRemoveAll={handleRemoveAllFiles}
-                onUpload={() => console.info('ON UPLOAD')}
               />
             </Stack>
           </Stack>
@@ -233,17 +265,17 @@ export default function TourNewEditForm({ currentTour }) {
                   switch (newValue) {
                     case '1~10 people':
                       setActivityScale('small')
-                      setValue('activityScale', 'small', {shouldValidate: true})
+                      setValue('level', 'small', {shouldValidate: true})
                       break
                     
                     case '11~30 people':
                       setActivityScale('medium')
-                      setValue('activityScale', 'medium', {shouldValidate: true})
+                      setValue('level', 'medium', {shouldValidate: true})
                       break
 
                     case '31~100 people':
                       setActivityScale('large')
-                      setValue('activityScale', 'large', {shouldValidate: true})
+                      setValue('level', 'large', {shouldValidate: true})
                       break
                     
                     default:
@@ -328,7 +360,7 @@ export default function TourNewEditForm({ currentTour }) {
             <Stack spacing={1}>
               <Typography variant="subtitle2">Services</Typography>
               <RHFMultiCheckbox
-                name="services"
+                name="tags"
                 options={ACTIVITY_TAGS}
                 sx={{
                   display: 'grid',
