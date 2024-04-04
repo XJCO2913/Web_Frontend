@@ -17,7 +17,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import AvatarGroup, { avatarGroupClasses } from '@mui/material/AvatarGroup';
 
-import { useMockedUser } from 'src/hooks/use-mocked-user';
+import { useAuthContext } from 'src/auth/hooks'
 
 import { fDate } from 'src/utils/format-time';
 import { fShortenNumber } from 'src/utils/format-number';
@@ -28,7 +28,7 @@ import Iconify from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 export default function MomentPost({ post }) {
-  const { user } = useMockedUser();
+  const { user } = useAuthContext()
 
   const commentRef = useRef(null);
 
@@ -38,12 +38,6 @@ export default function MomentPost({ post }) {
 
   const handleChangeMessage = useCallback((event) => {
     setMessage(event.target.value);
-  }, []);
-
-  const handleAttach = useCallback(() => {
-    if (fileRef.current) {
-      fileRef.current.click();
-    }
   }, []);
 
   const handleClickComment = useCallback(() => {
@@ -56,13 +50,13 @@ export default function MomentPost({ post }) {
     <CardHeader
       disableTypography
       avatar={
-        <Avatar src={user?.photoURL} alt={user?.displayName}>
-          {user?.displayName?.charAt(0).toUpperCase()}
+        <Avatar src={user?.avatarUrl} alt={user?.username}>
+          {user?.username?.charAt(0).toUpperCase()}
         </Avatar>
       }
       title={
         <Link color="inherit" variant="subtitle1">
-          {user?.displayName}
+          {user?.username}
         </Link>
       }
       subheader={
@@ -83,7 +77,6 @@ export default function MomentPost({ post }) {
       {post.comments.map((comment) => (
         <Stack key={comment.id} direction="row" spacing={2}>
           <Avatar alt={comment.author.name} src={comment.author.avatarUrl} />
-
           <Paper
             sx={{
               p: 1.5,
@@ -120,8 +113,7 @@ export default function MomentPost({ post }) {
         p: (theme) => theme.spacing(0, 3, 3, 3),
       }}
     >
-      <Avatar src={user?.photoURL} alt={user?.displayName} />
-
+      <Avatar src={user?.avatarUrl} alt={user?.username} />
       <InputBase
         fullWidth
         value={message}
@@ -130,7 +122,7 @@ export default function MomentPost({ post }) {
         onChange={handleChangeMessage}
         endAdornment={
           <InputAdornment position="end" sx={{ mr: 1 }}>
-            <IconButton size="small" onClick={handleAttach}>
+            <IconButton size="small">
               <Iconify icon="solar:gallery-add-bold" />
             </IconButton>
 
