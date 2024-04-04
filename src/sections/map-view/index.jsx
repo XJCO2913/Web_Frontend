@@ -113,7 +113,12 @@ export default function MapView() {
           </StyledHeaderContainer>
 
           <StyledMapContainer>
-            <Map />
+            {isRunning && !isPaused ? (
+              <Map isTracking={true} />
+            ) : (
+              <Map isTracking={false}/>
+            )}
+
           </StyledMapContainer>
 
           <StyledButtonContainer>
