@@ -1,11 +1,14 @@
-import { useRef, useCallback, useState } from 'react';
+import * as Yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useCallback, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import { alpha } from '@mui/material/styles';
-import { Fab, InputBase, Button } from '@mui/material'
+import { InputBase } from '@mui/material'
 import Snackbar from '@mui/material/Snackbar';
 import AlertTitle from '@mui/material/AlertTitle'
 import Alert from '@mui/material/Alert';
@@ -13,22 +16,18 @@ import Alert from '@mui/material/Alert';
 import { _appFeatured } from 'src/_mock';
 import { useSettingsContext } from 'src/components/settings';
 import Carousel, { useCarousel, CarouselDots, CarouselArrows } from 'src/components/carousel';
-import Iconify from 'src/components/iconify';
 import MomentPost from '../home-moment-post';
 import CarouselItem from '../home-carousel'
+import FormProvider, { RHFUploadOverride } from 'src/components/hook-form';
 
 // ----------------------------------------------------------------------
 
 export default function HomeView() {
 
   const [errorWarning, seterrorWarning] = useState(false);
-
-  // ----------------------------------------------------------------------
-
-  // Function to control snackbar
-  const handleError = () => {
-    seterrorWarning(true);
-  };
+  const [content, setContent] = useState('');
+  const settings = useSettingsContext();
+  const list = _appFeatured;
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -37,55 +36,77 @@ export default function HomeView() {
     seterrorWarning(false);
   };
 
-  // ----------------------------------------------------------------------
+  // validate the form
+  const PostSchema = Yup.object().shape({
+    content: Yup.string(),
+    images: Yup.array().min(1, 'Images is required'),
+  });
 
-  const settings = useSettingsContext();
-  const list = _appFeatured;
+  const defaultValues = {
+    content: '',
+    images: [],
+  };
 
-  const fileRef = useRef(null);
+  const methods = useForm({
+    resolver: yupResolver(PostSchema),
+    defaultValues
+  });
 
-  const handleAttach = useCallback(() => {
-    if (fileRef.current) {
-      fileRef.current.click();
+  const {
+    watch,
+    reset,
+    setValue,
+    handleSubmit,
+    // formState: { isSubmitting },
+  } = methods;
+
+  const values = watch();
+
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      reset();
+      console.info('DATA', data);
+    } catch (error) {
+      console.error(error);
     }
-  }, []);
+  });
+  const handleDrop = useCallback(
+    (acceptedFiles) => {
+      const files = values.images || [];
 
-  const handleFileImage = useCallback((event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const fileExtension = file.name.split('.').pop().toLowerCase();
-      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp'];
+      const newFiles = acceptedFiles.map((file) =>
+        Object.assign(file, {
+          preview: URL.createObjectURL(file),
+        })
+      );
 
-      if (imageExtensions.includes(fileExtension)) {
-        console.log('文件是图像格式');
-      } else {
-        handleError()
-      }
-    }
-  }, []);
+      setValue('images', [...files, ...newFiles], { shouldValidate: true });
+    },
+    [setValue, values.images]
+  );
 
-  const handleFileGPX = useCallback((event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const fileExtension = file.name.split('.').pop().toLowerCase();
-      const gpxExtension = ['gpx'];
+  const handleRemoveFile = useCallback(
+    (inputFile) => {
+      const filtered = values.images && values.images?.filter((file) => file !== inputFile);
+      setValue('images', filtered);
+    },
+    [setValue, values.images]
+  );
 
-      if (gpxExtension.includes(fileExtension)) {
-        console.log('文件是GPX格式');
-      } else {
-        handleError();
-      }
-    }
-  }, []);
-
+  const handleRemoveAllFiles = useCallback(() => {
+    setValue('images', []);
+  }, [setValue]);
 
   const renderPostInput = (
     <Card sx={{ p: 3 }}>
       <InputBase
+        name='content'
         multiline
         fullWidth
         rows={4}
         placeholder="Share what you are thinking here..."
+        onChange={(e) => setContent(e.target.value)}
         sx={{
           p: 2,
           mb: 3,
@@ -94,35 +115,19 @@ export default function HomeView() {
         }}
       />
 
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'text.secondary' }}>
-          <Fab size="small" color="inherit" variant="softExtended" onClick={handleAttach}>
-            <Iconify icon="solar:gallery-wide-bold" width={24} sx={{ color: 'success.main' }} />
-            <input
-              type="file"
-              ref={fileRef}
-              style={{ display: 'none' }}
-              onChange={handleFileImage}
-            />
-            Image/Video
-          </Fab>
-
-          <Fab size="small" color="inherit" variant="softExtended" onClick={handleAttach}>
-            <Iconify icon="tabler:gps-filled" width={24} sx={{ color: 'error.main' }} />
-            <input
-              type="file"
-              ref={fileRef}
-              style={{ display: 'none' }}
-              onChange={handleFileGPX}
-            />
-            GPX File
-          </Fab>
-        </Stack>
-
-        <Button variant="contained">Post</Button>
+      <Stack spacing={1.5}>
+        <RHFUploadOverride
+          multiple
+          thumbnail
+          name="images"
+          maxSize={3145728}
+          onDrop={handleDrop}
+          onRemove={handleRemoveFile}
+          onRemoveAll={handleRemoveAllFiles}
+          onPost={() => console.info('ON UPLOAD')}
+          onContent={content}
+        />
       </Stack>
-
-      <input type="file" style={{ display: 'none' }} />
     </Card>
   );
 
@@ -168,7 +173,11 @@ export default function HomeView() {
                 sx={{ top: 8, right: 8, position: 'absolute', color: 'common.white' }}
               />
             </Card>
-            {renderPostInput}
+
+            <FormProvider methods={methods} onSubmit={onSubmit}>
+              {renderPostInput}
+            </FormProvider>
+
             <MomentPost post={{
               "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b1",
               "createdAt": "2024-03-17T04:09:26.232Z",

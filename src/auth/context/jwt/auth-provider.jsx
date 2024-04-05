@@ -105,7 +105,7 @@ export function AuthProvider({ children }) {
       const response = await axiosInstance.post(endpoints.auth.login, data);
       // Check whether user login successfully
       if (response.data.status_code === 0) {
-        const { token, userInfo } = response.data.Data;
+        const { token } = response.data.Data;
         // store the token
         setSession(token);
         // Update user status
@@ -113,11 +113,11 @@ export function AuthProvider({ children }) {
           type: 'LOGIN',
           payload: {
             user: {
-              ...userInfo,
               token,
             },
           },
         });
+        await initialize();
         return { success: true };
       } else {
         // If the status code is not 0, processing of the login fails, but this should already be caught by the interceptor
@@ -150,6 +150,7 @@ export function AuthProvider({ children }) {
         }
       } else {
         customErrorData.message = 'Login failed due to an unexpected error. Please try again later.';
+        console.log(error)
       }
       return customErrorData;
     }
