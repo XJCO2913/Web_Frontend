@@ -1,14 +1,17 @@
 import PropTypes from 'prop-types';
 import { useDropzone } from 'react-dropzone';
+import { m, AnimatePresence } from 'framer-motion';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import LoadingButton from '@mui/lab/LoadingButton';
 import { alpha } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
 import { UploadIllustration } from 'src/assets/illustrations';
+import { varFade } from 'src/components/animate';
 
 import Iconify from '../iconify';
 import MultiFilePreview from './preview-multi-file';
@@ -32,6 +35,8 @@ export default function UploadOverride({
   onRemove,
   onRemoveAll,
   onContent,
+  isSuccess,
+  loading,
   sx,
   ...other
 }) {
@@ -84,34 +89,52 @@ export default function UploadOverride({
   );
 
   const renderMultiPreview = (
-    <>
-      {hasFiles && (
-        <Box sx={{ my: 3 }}>
-          <MultiFilePreview files={files} thumbnail={thumbnail} onRemove={onRemove} />
-        </Box>
-      )}
+    <AnimatePresence>
+      {(hasFiles || onContent !== '') && (
+        <Stack
+          component={m.div}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          variants={varFade({ durationIn: 0.8, durationOut: 0.8, easeIn: "easeOut", easeOut: "easeInOut" }).inUp}
+        >
+          {hasFiles && (
+            <Box sx={{ my: 3 }}>
+              <MultiFilePreview files={files} thumbnail={thumbnail} onRemove={onRemove} />
+            </Box>
+          )}
 
-      <Stack direction="row" justifyContent="flex-end" spacing={1.5}>
-        {hasFiles && onRemoveAll && (
-          <Button color="inherit" variant="outlined" size="small" onClick={onRemoveAll} sx={{ mt: 1 }}>
-            Remove All
-          </Button>
-        )}
-
-        {(hasFiles || onContent !== '') && (
-          <Button
-            size="small"
-            variant="contained"
-            onClick={onPost}
-            startIcon={<Iconify icon="tabler:send" />}
-            sx={{ mt: 1 }}
+          <Stack
+            direction="row"
+            justifyContent="flex-end"
+            spacing={1.5}
+            component={m.div}
+            variants={varFade({ durationIn: 0.3, durationOut: 0.3, easeIn: "easeOut", easeOut: "easeInOut" }).inUp}
           >
-            Post
-          </Button>
-        )}
-      </Stack>
-    </>
+            {hasFiles && onRemoveAll && (
+              <Button color="inherit" variant="outlined" size="small" onClick={onRemoveAll} sx={{ mt: 1 }}>
+                Remove All
+              </Button>
+            )}
+
+            {!isSuccess && (hasFiles || onContent !== '') && (
+              <LoadingButton
+                size="small"
+                variant="contained"
+                onClick={onPost}
+                startIcon={<Iconify icon="tabler:send" />}
+                sx={{ mt: 1 }}
+                loading={loading}
+              >
+                Post
+              </LoadingButton>
+            )}
+          </Stack>
+        </Stack>
+      )}
+    </AnimatePresence>
   );
+
 
   return (
     <Box sx={{ width: 1, position: 'relative', ...sx }}>
@@ -177,4 +200,6 @@ UploadOverride.propTypes = {
   sx: PropTypes.object,
   thumbnail: PropTypes.bool,
   onContent: PropTypes.string,
+  isSuccess: PropTypes.bool,
+  loading: PropTypes.bool,
 };

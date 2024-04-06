@@ -20,7 +20,8 @@ export default function RHFUploadOverride({ name, multiple, helperText, ...other
             multiple
             accept={{
               'image/*': [],
-              'video/*': []
+              'video/*': [],
+              'application/xml': []
             }}
             files={field.value}
             error={!!error}
@@ -37,7 +38,8 @@ export default function RHFUploadOverride({ name, multiple, helperText, ...other
           <UploadOverride
             accept={{
               'image/*': [],
-              'video/*': []
+              'video/*': [],
+              'application/xml': []
             }}
             file={field.value}
             error={!!error}

@@ -17,18 +17,25 @@ import { _appFeatured } from 'src/_mock';
 import { useSettingsContext } from 'src/components/settings';
 import Carousel, { useCarousel, CarouselDots, CarouselArrows } from 'src/components/carousel';
 import FormProvider, { RHFUploadOverride } from 'src/components/hook-form';
-import {axiosTest} from 'src/utils/axios';
+import { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 
 import MomentPost from '../home-moment-post';
 import CarouselItem from '../home-carousel'
+import { m, AnimatePresence } from 'framer-motion';
 
 
 // ----------------------------------------------------------------------
 
 export default function HomeView() {
 
-  const [errorWarning, seterrorWarning] = useState(false);
+  const [snackbarInfo, setSnackbarInfo] = useState({
+    open: false,
+    message: '',
+    type: 'success',
+  });
+
+  const [success, setSuccess] = useState(false);
   const [content, setContent] = useState('');
   const settings = useSettingsContext();
   const list = _appFeatured;
@@ -37,20 +44,17 @@ export default function HomeView() {
     if (reason === 'clickaway') {
       return;
     }
-    seterrorWarning(false);
+    setSnackbarInfo(prev => ({ ...prev, open: false }));
   };
 
   // validate the form
   const PostSchema = Yup.object().shape({
     content: Yup.string(),
-    images: Yup.array().min(1, 'Images is required'),
   });
 
   const defaultValues = {
     content: '',
-    imageFile: [],
-    videoFile: [],
-    gpxFile: []
+    file: [],
   };
 
   const methods = useForm({
@@ -63,6 +67,7 @@ export default function HomeView() {
     reset,
     setValue,
     handleSubmit,
+    formState: { isSubmitting },
   } = methods;
 
   const values = watch();
@@ -71,80 +76,151 @@ export default function HomeView() {
     try {
       const formData = new FormData();
       formData.append('content', data.content);
-      if (data.imageFile && data.imageFile[0]) {
-        formData.append('imageFile', data.imageFile[0]);
+
+      const file = data.file[0];
+
+      if (file) {
+        let fieldName = '';
+
+        if (file.type.match('image.*')) {
+          fieldName = 'file';
+        } else if (file.type === 'application/gpx+xml') {
+          fieldName = 'gpxFile';
+        } else if (file.type.match('video.*')) {
+          fieldName = 'videoFile';
+        }
+        if (fieldName) {
+          formData.append(fieldName, file);
+        } else {
+          throw new Error('Invalid file format');
+        }
       }
-      console.log(data.imageFile[0], data.videoFile, data.gpxFile)
+
       const response = await axiosTest.post(endpoints.moment.create, formData);
-      console.log(response)
-      reset();
-      console.info('DATA', data);
+      if (response.data.status_code === 0) {
+        console.log(response)
+        setSuccess(true)
+        reset({ content: '', file: [] });
+        setSnackbarInfo({ open: true, message: 'Post successfully created!', type: 'success' });
+      } else {
+        console.log(response)
+        setSuccess(false)
+        setSnackbarInfo({ open: true, message: 'Post failed to create!', type: 'error' });
+      }
+
     } catch (error) {
       console.error(error);
+      setSnackbarInfo({ open: true, message: error.message || 'An unexpected error occurred', type: 'error' });
     }
   });
 
   const handleDrop = useCallback(
     (acceptedFiles) => {
-      const files = values.imageFile || [];
+      const newImageFiles = acceptedFiles.filter(file => file.type.match('image.*'));
+      const newVideoFiles = acceptedFiles.filter(file => file.type.match('video.*'));
+      const newXmlFiles = acceptedFiles.filter(file => file.type === 'application/xml' || file.type === 'text/xml');
 
-      const newFiles = acceptedFiles.map((file) =>
+      // 获取已上传文件的类型
+      const existingTypes = values.file ? values.file.map(file => file.type) : [];
+      const hasExistingImage = existingTypes.some(type => type.match('image.*'));
+      const hasExistingVideo = existingTypes.some(type => type.match('video.*'));
+      const hasExistingXml = existingTypes.some(type => type === 'application/xml' || type === 'text/xml');
+
+      // 规则检验：
+      // 1. 不允许同时上传视频、图片和XML。
+      // 2. 视频和XML文件都只能上传一个。
+      // 3. 分次上传不同类型的文件也不被允许。
+      const isInvalidCombination = (
+        (newVideoFiles.length > 0 && (newImageFiles.length > 0 || newXmlFiles.length > 0 || hasExistingImage || hasExistingXml)) ||
+        (newXmlFiles.length > 0 && (newImageFiles.length > 0 || newVideoFiles.length > 0 || hasExistingImage || hasExistingVideo)) ||
+        (newImageFiles.length > 0 && (hasExistingVideo || hasExistingXml)) ||
+        newVideoFiles.length > 1 || newXmlFiles.length > 1 ||
+        (newVideoFiles.length > 0 && hasExistingVideo) ||
+        (newXmlFiles.length > 0 && hasExistingXml)
+      );
+
+      if (isInvalidCombination) {
+        setSnackbarInfo({
+          open: true,
+          message: 'Uploading diffreent types of files together is not allowed. Only one type of file can be uploaded.',
+          type: 'error',
+        });
+        return;
+      }
+
+      const newFiles = acceptedFiles.map(file =>
         Object.assign(file, {
           preview: URL.createObjectURL(file),
         })
       );
-
-      setValue('imageFile', [...files, ...newFiles], { shouldValidate: true });
+      setValue('file', [...(values.file || []), ...newFiles], { shouldValidate: true });
     },
-    [setValue, values.imageFile]
+    [setValue, values.file, setSnackbarInfo]
   );
+
 
   const handleRemoveFile = useCallback(
     (inputFile) => {
-      const filtered = values.imageFile && values.imageFile?.filter((file) => file !== inputFile);
-      setValue('imageFile', filtered);
+      setSuccess(false);
+      const filtered = values.file && values.file?.filter((file) => file !== inputFile);
+      setValue('file', filtered);
     },
-    [setValue, values.imageFile]
+    [setValue, values.file, setSuccess]
   );
 
   const handleRemoveAllFiles = useCallback(() => {
-    setValue('imageFile', []);
-  }, [setValue]);
+    setSuccess(false);
+    setValue('file', []);
+  }, [setValue, setSuccess]);
+
+  const handleContentChange = (e) => {
+    // Reset the success state whenever the content changes
+    setSuccess(false);
+    // Assuming you are controlling content via React Hook Form
+    setContent(e.target.value);
+    setValue('content', e.target.value);
+  };
+
 
   const renderPostInput = (
-    <Card sx={{ p: 3 }}>
-      <InputBase
-        name='content'
-        multiline
-        fullWidth
-        rows={4}
-        placeholder="Share what you are thinking here..."
-        onChange={(e) => {
-          setContent(e.target.value);
-          setValue('content', e.target.value); // 确保也更新了 react-hook-form 的值
-        }}
-        sx={{
-          p: 2,
-          mb: 3,
-          borderRadius: 1,
-          border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.2)}`,
-        }}
-      />
-
-      <Stack spacing={1.5}>
-        <RHFUploadOverride
-          multiple
-          thumbnail
-          name="imageFile"
-          maxSize={3145728}
-          onDrop={handleDrop}
-          onRemove={handleRemoveFile}
-          onRemoveAll={handleRemoveAllFiles}
-          onPost={onSubmit}
-          onContent={content}
+    <AnimatePresence>
+      <Card sx={{ p: 3 }}
+        component={m.div}
+        transition={0.8}
+      >
+        <InputBase
+          name='content'
+          multiline
+          fullWidth
+          rows={4}
+          placeholder="Share what you are thinking here..."
+          value={values.content}
+          onChange={handleContentChange}
+          sx={{
+            p: 2,
+            mb: 3,
+            borderRadius: 1,
+            border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.2)}`,
+          }}
         />
-      </Stack>
-    </Card>
+        <Stack spacing={1.5}
+        >
+          <RHFUploadOverride
+            multiple
+            thumbnail
+            name="file"
+            maxSize={3145728}
+            onDrop={handleDrop}
+            onRemove={handleRemoveFile}
+            onRemoveAll={handleRemoveAllFiles}
+            onPost={onSubmit}
+            onContent={content}
+            isSuccess={success}
+            loading={isSubmitting}
+          />
+        </Stack>
+      </Card>
+    </AnimatePresence >
   );
 
   const carousel = useCarousel({
@@ -163,16 +239,18 @@ export default function HomeView() {
   return (
     <>
       <Snackbar
-        open={errorWarning}
+        open={snackbarInfo.open}
         autoHideDuration={6000}
         onClose={handleClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-          <AlertTitle>Error</AlertTitle>
-          File format error!
+        <Alert onClose={handleClose} severity={snackbarInfo.type} sx={{ width: '100%' }}>
+          <AlertTitle>{snackbarInfo.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
+          {snackbarInfo.message}
         </Alert>
       </Snackbar>
+
+
       <Container maxWidth={settings.themeStretch ? false : 'xl'} sx={{ mt: -2.5 }}>
         <Grid container spacing={3}>
           <Grid xs={12} md={12}>
