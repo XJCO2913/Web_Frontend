@@ -16,9 +16,13 @@ import Alert from '@mui/material/Alert';
 import { _appFeatured } from 'src/_mock';
 import { useSettingsContext } from 'src/components/settings';
 import Carousel, { useCarousel, CarouselDots, CarouselArrows } from 'src/components/carousel';
+import FormProvider, { RHFUploadOverride } from 'src/components/hook-form';
+import {axiosTest} from 'src/utils/axios';
+import { endpoints } from 'src/api/index'
+
 import MomentPost from '../home-moment-post';
 import CarouselItem from '../home-carousel'
-import FormProvider, { RHFUploadOverride } from 'src/components/hook-form';
+
 
 // ----------------------------------------------------------------------
 
@@ -44,7 +48,9 @@ export default function HomeView() {
 
   const defaultValues = {
     content: '',
-    images: [],
+    imageFile: [],
+    videoFile: [],
+    gpxFile: []
   };
 
   const methods = useForm({
@@ -57,23 +63,30 @@ export default function HomeView() {
     reset,
     setValue,
     handleSubmit,
-    // formState: { isSubmitting },
   } = methods;
 
   const values = watch();
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const formData = new FormData();
+      formData.append('content', data.content);
+      if (data.imageFile && data.imageFile[0]) {
+        formData.append('imageFile', data.imageFile[0]);
+      }
+      console.log(data.imageFile[0], data.videoFile, data.gpxFile)
+      const response = await axiosTest.post(endpoints.moment.create, formData);
+      console.log(response)
       reset();
       console.info('DATA', data);
     } catch (error) {
       console.error(error);
     }
   });
+
   const handleDrop = useCallback(
     (acceptedFiles) => {
-      const files = values.images || [];
+      const files = values.imageFile || [];
 
       const newFiles = acceptedFiles.map((file) =>
         Object.assign(file, {
@@ -81,21 +94,21 @@ export default function HomeView() {
         })
       );
 
-      setValue('images', [...files, ...newFiles], { shouldValidate: true });
+      setValue('imageFile', [...files, ...newFiles], { shouldValidate: true });
     },
-    [setValue, values.images]
+    [setValue, values.imageFile]
   );
 
   const handleRemoveFile = useCallback(
     (inputFile) => {
-      const filtered = values.images && values.images?.filter((file) => file !== inputFile);
-      setValue('images', filtered);
+      const filtered = values.imageFile && values.imageFile?.filter((file) => file !== inputFile);
+      setValue('imageFile', filtered);
     },
-    [setValue, values.images]
+    [setValue, values.imageFile]
   );
 
   const handleRemoveAllFiles = useCallback(() => {
-    setValue('images', []);
+    setValue('imageFile', []);
   }, [setValue]);
 
   const renderPostInput = (
@@ -106,7 +119,10 @@ export default function HomeView() {
         fullWidth
         rows={4}
         placeholder="Share what you are thinking here..."
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => {
+          setContent(e.target.value);
+          setValue('content', e.target.value); // 确保也更新了 react-hook-form 的值
+        }}
         sx={{
           p: 2,
           mb: 3,
@@ -119,12 +135,12 @@ export default function HomeView() {
         <RHFUploadOverride
           multiple
           thumbnail
-          name="images"
+          name="imageFile"
           maxSize={3145728}
           onDrop={handleDrop}
           onRemove={handleRemoveFile}
           onRemoveAll={handleRemoveAllFiles}
-          onPost={() => console.info('ON UPLOAD')}
+          onPost={onSubmit}
           onContent={content}
         />
       </Stack>
