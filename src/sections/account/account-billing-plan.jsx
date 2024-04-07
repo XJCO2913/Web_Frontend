@@ -19,11 +19,17 @@ import Iconify from 'src/components/iconify';
 
 import { AddressListDialog } from '../address';
 import PaymentCardListDialog from '../payment/payment-card-list-dialog';
+import { useAuthContext } from '../../auth/hooks';
+import axiosInstance from 'src/utils/axios';
+import { endpoints } from 'src/api/index';
+import { message } from 'antd';
 
 // ----------------------------------------------------------------------
-
+const plansContant = ["basic", 'starter', 'premium']
 export default function AccountBillingPlan({ cardList, addressBook, plans }) {
   const openAddress = useBoolean();
+  const { user } = useAuthContext();
+  const { isSubscribed, membershipType = 0, userId } = user;
 
   const openCards = useBoolean();
 
@@ -31,7 +37,7 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
 
   const primaryCard = cardList.filter((card) => card.primary)[0];
 
-  const [selectedPlan, setSelectedPlan] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState(plansContant[isSubscribed ? membershipType : 0]);
 
   const [selectedAddress, setSelectedAddress] = useState(primaryAddress);
 
@@ -39,12 +45,12 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
 
   const handleSelectPlan = useCallback(
     (newValue) => {
-      const currentPlan = plans.filter((plan) => plan.primary)[0].subscription;
+      const currentPlan = plans.filter((plan) => plan.subscription === selectedPlan)[0].subscription;
       if (currentPlan !== newValue) {
         setSelectedPlan(newValue);
       }
     },
-    [plans]
+    [plans, selectedPlan]
   );
 
   const handleSelectAddress = useCallback((newValue) => {
@@ -54,6 +60,26 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
   const handleSelectCard = useCallback((newValue) => {
     setSelectedCard(newValue);
   }, []);
+
+  const upgradePlan = useCallback(async () => {
+    const type = plansContant.indexOf(selectedPlan);
+    try {
+      const res = await axiosInstance.post(`${endpoints.auth.subscribe}?userID=${userId}&membershipType=${type}`);
+      message.success(res.data.status_msg);
+    } catch (error) {
+      message.error(error.data.status_msg);
+    }
+  }, [selectedPlan, userId]);
+
+  const cancelPlan = useCallback(async () => {
+    try {
+      const res = await axiosInstance.post(`/user/cancel?userID=${userId}`);
+      message.success(res.data.status_msg);
+      setSelectedPlan(plansContant[0])
+    } catch (error) {
+      message.error(error.data.status_msg);
+    }
+  }, [userId])
 
   const renderPlans = plans.map((plan) => (
     <Grid xs={12} md={4} key={plan.subscription}>
@@ -65,7 +91,7 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
           p: 2.5,
           position: 'relative',
           cursor: 'pointer',
-          ...(plan.primary && {
+          ...(plan.subscription === selectedPlan && {
             opacity: 0.48,
             cursor: 'default',
           }),
@@ -74,7 +100,7 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
           }),
         }}
       >
-        {plan.primary && (
+        {plan.subscription === selectedPlan && (
           <Label
             color="info"
             startIcon={<Iconify icon="eva:star-fill" />}
@@ -185,8 +211,8 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Stack spacing={1.5} direction="row" justifyContent="flex-end" sx={{ p: 3 }}>
-          <Button variant="outlined">Cancel Plan</Button>
-          <Button variant="contained">Upgrade Plan</Button>
+          <Button variant="outlined" onClick={cancelPlan}>Cancel Plan</Button>
+          <Button variant="contained" onClick={upgradePlan}>Upgrade Plan</Button>
         </Stack>
       </Card>
 
