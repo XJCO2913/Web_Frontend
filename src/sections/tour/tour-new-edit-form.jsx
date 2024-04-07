@@ -146,7 +146,7 @@ export default function TourNewEditForm({ currentTour }) {
       const token = sessionStorage.getItem('token')
       const httpConfig = {
         headers: {
-          'Authorization': `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTIyOTE5NjcsImlzQWRtaW4iOnRydWUsImlzT3JnYW5pc2VyIjp0cnVlLCJ1c2VySUQiOiIxMjMxMjMxMjMifQ.vVhNSMwZ75uZHVwF0gIelf9zmoiJ8OcMfKXOFtQ7vPc'}`,
+          'Authorization': `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTI1ODE3MjYsImlzQWRtaW4iOnRydWUsImlzT3JnYW5pc2VyIjp0cnVlLCJtZW1iZXJzaGlwVHlwZSI6MiwidXNlcklEIjoiMTIzMTIzMTIzIn0.ZO-E3pxNjhYbl_sbxoeSCV6tsCKOqLZq7L2UaDVD7uo'}`,
           'Content-Type': 'multipart/form-data'
         }
       }
