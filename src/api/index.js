@@ -25,5 +25,6 @@ export const endpoints = {
     chat: '/chat',
     activity: {
         create: '/activity/create',
+        all: '/activities'
     },
 };
