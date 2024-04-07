@@ -29,13 +29,13 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
   const {
     activityId,
     name,
-    fee,
+    finalFee,
     coverUrl,
     numberLimit,
     createdAt,
     startDate,
     endDate,
-    originFee,
+    originalFee,
     destination,
   } = tour;
   const DETAIL_URL = `/home/tour/${tour.activityId}`
@@ -58,12 +58,12 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
         typography: 'subtitle2',
       }}
     >
-      {!!originFee && (
+      {(!!originalFee && originalFee !== finalFee ) && (
         <Box component="span" sx={{ color: 'grey.500', mr: 0.25, textDecoration: 'line-through' }}>
-          {fCurrency(originFee)}
+          {fCurrency(originalFee)}
         </Box>
       )}
-      {fCurrency(fee)}
+      {fCurrency(finalFee)}
     </Stack>
   );
 
