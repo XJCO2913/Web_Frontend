@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useCallback } from 'react';
+import { useCallback ,useState,useEffect} from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -23,7 +23,31 @@ import FormProvider, {
   RHFTextField,
   RHFUploadAvatar,
   RHFAutocomplete,
+  RHFSelect
 } from 'src/components/hook-form';
+import {InputAdornment,IconButton,MenuItem} from '@mui/material';
+import Iconify from 'src/components/iconify';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+import { CityCascader } from 'src/components/city-cascader'
+import {  Controller } from 'react-hook-form';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { useBoolean } from 'src/hooks/use-boolean';
+ import axiosInstance from '@/utils/axios'
+ import { isValidToken, jwtDecode ,setSession} from "src/auth/context/jwt/utils";
+ import { endpoints } from 'src/api/index'
+ import Snackbar from '@mui/material/Snackbar';
+ import Alert from '@mui/material/Alert';
+ import moment from 'moment';
+
+const genderOptions = [
+  { label: "Male", value: 0 },
+  { label: "Female", value: 1 },
+  { label: "Prefer not to say", value: 2 },
+  {label:"",value:''}
+];
+let userInfo = sessionStorage.getItem('userInfo') || JSON.stringify({});
+userInfo = JSON.parse(userInfo)
 
 // ----------------------------------------------------------------------
 
@@ -31,36 +55,29 @@ export default function AccountGeneral() {
   const { enqueueSnackbar } = useSnackbar();
 
   const { user } = useMockedUser();
-
+  const password = useBoolean();
+  const [open,setOpen]=useState(false)
+  const [userID,setUserID] = useState('')
   const UpdateUserSchema = Yup.object().shape({
-    displayName: Yup.string().required('Name is required'),
-    email: Yup.string().required('Email is required').email('Email must be a valid email address'),
-    photoURL: Yup.mixed().nullable().required('Avatar is required'),
-    phoneNumber: Yup.string().required('Phone number is required'),
-    country: Yup.string().required('Country is required'),
-    address: Yup.string().required('Address is required'),
-    state: Yup.string().required('State is required'),
-    city: Yup.string().required('City is required'),
-    zipCode: Yup.string().required('Zip code is required'),
-    about: Yup.string().required('About is required'),
-    // not required
-    isPublic: Yup.boolean(),
+    username: Yup.string(),
+    password: Yup.string(),
+    gender: Yup.number()|Yup.string(),
+    birthday: Yup.date()
+      .nullable()
+      .transform((value, originalValue) => originalValue === "" ? null : value)
+      .max(new Date(), 'Birthday cannot be in the future')
+      .typeError('Invalid date'),
+    // Correctly exclude undefined and empty strings
+    region: Yup.string(),
   });
-
   const defaultValues = {
-    displayName: user?.displayName || '',
-    email: user?.email || '',
-    photoURL: user?.photoURL || null,
-    phoneNumber: user?.phoneNumber || '',
-    country: user?.country || '',
-    address: user?.address || '',
-    state: user?.state || '',
-    city: user?.city || '',
-    zipCode: user?.zipCode || '',
-    about: user?.about || '',
-    isPublic: user?.isPublic || false,
+    username: userInfo.username,
+    password: '',
+    gender: userInfo.gender,
+    birthday: new Date(userInfo.birthday),
+    region: userInfo.region.split('-'),
+    photoURL:userInfo.avatarUrl||''
   };
-
   const methods = useForm({
     resolver: yupResolver(UpdateUserSchema),
     defaultValues,
@@ -71,19 +88,28 @@ export default function AccountGeneral() {
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
-
+  const getUserInfo = async(flag,userId) =>{
+    flag && setOpen(true)
+    const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userId || userID}`);
+    sessionStorage.setItem("userInfo",JSON.stringify(response.data.Data));
+  }
   const onSubmit = handleSubmit(async (data) => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      enqueueSnackbar('Update success!');
-      console.info('DATA', data);
-    } catch (error) {
-      console.error(error);
+    const {username,password,gender,birthday,region} = data
+    const params = {
+      username:username||undefined,
+      password:password||undefined,
+      gender:typeof gender==='number'?gender:undefined,
+      birthday:birthday?moment(birthday).format('YYYY-MM-DD'):undefined,
+      region:region||undefined
     }
+      const res = await axiosInstance.patch(`${endpoints.auth.changeAccount}?userID=${userID}`,params)
+        if(res.data.status_code===0){
+          getUserInfo(true,undefined);
+        }
   });
 
   const handleDrop = useCallback(
-    (acceptedFiles) => {
+    async (acceptedFiles) => {
       const file = acceptedFiles[0];
 
       const newFile = Object.assign(file, {
@@ -91,12 +117,37 @@ export default function AccountGeneral() {
       });
 
       if (file) {
-        setValue('photoURL', newFile, { shouldValidate: true });
+        const formData = new FormData();
+        formData.append('avatar', file);
+        formData.append('userId', userID);
+        const rest = await axiosInstance.post(`${endpoints.auth.avatarUpload}`,formData,{
+          headers:{
+            'Content-Type':'multipart/form-data'
+          }
+        })
+        if(rest.data.status_code===0){
+          setValue('photoURL', newFile, { shouldValidate: true });
+          setOpen(true)
+        }
+        
       }
     },
-    [setValue]
+    [userID]
   );
+  const [lastError, setLastError] = useState({ message: '', key: 0 });
+  const [shouldFetchData, setShouldFetchData] = useState(true);
+  useEffect(()=>{
+    const STORAGE_KEY = 'token';
+    const token = sessionStorage.getItem(STORAGE_KEY);
 
+      if (token && isValidToken(token)) {
+        setSession(token);
+        const decodedToken = jwtDecode(token);
+        const userID = decodedToken.userID;
+        setUserID(userID)
+        getUserInfo(undefined,userID)
+      }
+  },[])
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Grid container spacing={3}>
@@ -122,60 +173,107 @@ export default function AccountGeneral() {
                 </Typography>
               }
             />
-
-            <RHFSwitch
-              name="isPublic"
-              labelPlacement="start"
-              label="Public Profile"
-              sx={{ mt: 5 }}
-            />
-
-            <Button variant="soft" color="error" sx={{ mt: 3 }}>
-              Delete User
-            </Button>
           </Card>
         </Grid>
 
         <Grid xs={12} md={8}>
           <Card sx={{ p: 3 }}>
-            <Box
-              rowGap={3}
-              columnGap={2}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-            >
-              <RHFTextField name="displayName" label="Name" />
-              <RHFTextField name="email" label="Email Address" />
-              <RHFTextField name="phoneNumber" label="Phone Number" />
-              <RHFTextField name="address" label="Address" />
+             <Stack spacing={1.5}>
+              <RHFTextField name="username" label="Username" />
+              <RHFTextField
+        name="password"
+        label="Password"
+        type={password.value ? 'text' : 'password'}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={password.onToggle} edge="end">
+                <Iconify icon={password.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
 
-              <RHFAutocomplete
-                name="country"
-                type="country"
-                label="Country"
-                placeholder="Choose a country"
-                options={countries.map((option) => option.label)}
-                getOptionLabel={(option) => option}
+              <RHFSelect name="gender" label="Gender">
+                {genderOptions.map((option) => (
+                  <MenuItem key={option.value} value={genderOptions.indexOf(option)}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <Controller
+                  name="birthday"
+                  control={methods.control}
+                  render={({ field, fieldState: { error } }) => (
+                    <DatePicker
+                      label={error ? error.message : "Birthday"}
+                      inputFormat="yyyy-MM-dd"
+                      maxDate={new Date()}
+                      value={field.value || null}
+                      onChange={(newValue) => {
+                        field.onChange(newValue);
+                      }}
+                    />
+                  )}
+                />
+              </LocalizationProvider>
+
+              <Controller
+                name="region"
+                label="Region"
+                control={methods.control}
+                render={({ field, fieldState: { error } }) =>{
+                  return (
+                  <CityCascader
+                    {...field}
+                    onChange={(value) => {
+                      // Ensure that value is an array, if it is not or undefined, it defaults to an empty array
+                      const safeValue = Array.isArray(value) ? value : [];
+                      // Filter out the undefined value in the array and concatenate it with join('-')
+                      const filteredValue = safeValue.filter(item => item !== undefined);
+                      const formattedValue = filteredValue.join('-');
+                      field.onChange(formattedValue);
+                    }}
+                    error={!!error}
+                    errorMessage={error ? error.message : ''}
+                    key={lastError.key}
+                    shouldFetchData={shouldFetchData}
+                  />
+                )}}
               />
 
-              <RHFTextField name="state" label="State/Region" />
-              <RHFTextField name="city" label="City" />
-              <RHFTextField name="zipCode" label="Zip/Code" />
-            </Box>
-
-            <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
-              <RHFTextField name="about" multiline rows={4} label="About" />
-
-              <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
+              <LoadingButton
+                fullWidth
+                color="inherit"
+                size="large"
+                type='submit'
+                variant="contained"
+                loading={isSubmitting}
+              >
                 Save Changes
               </LoadingButton>
             </Stack>
           </Card>
         </Grid>
       </Grid>
+      <Snackbar 
+        open={open} 
+        autoHideDuration={2000}
+        anchorOrigin={{ vertical:'top', horizontal:'center' }}
+        onClose={()=>{setOpen(false)}}
+       >
+        <Alert
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
+          onClose={()=>{setOpen(false)}}
+        >
+          Update success!
+        </Alert>
+      </Snackbar>
     </FormProvider>
   );
 }
