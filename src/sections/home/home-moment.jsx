@@ -27,7 +27,7 @@ import Iconify from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export default function MomentPost({ post }) {
+export default function Moment({ post }) {
   const { user } = useAuthContext()
 
   const commentRef = useRef(null);
@@ -74,7 +74,7 @@ export default function MomentPost({ post }) {
 
   const renderCommentList = (
     <Stack spacing={1.5} sx={{ px: 3, pb: 2 }}>
-      {post.comments.map((comment) => (
+      {post?.comments?.map((comment) => (
         <Stack key={comment.id} direction="row" spacing={2}>
           <Avatar alt={comment.author.name} src={comment.author.avatarUrl} />
           <Paper
@@ -103,6 +103,7 @@ export default function MomentPost({ post }) {
       ))}
     </Stack>
   );
+
 
   const renderInput = (
     <Stack
@@ -160,11 +161,11 @@ export default function MomentPost({ post }) {
             checkedIcon={<Iconify icon="solar:heart-bold" />}
           />
         }
-        label={fShortenNumber(post.personLikes.length)}
+        label={fShortenNumber(post?.personLikes?.length)}
         sx={{ mr: 1 }}
       />
 
-      {!!post.personLikes.length && (
+      {!!post?.personLikes?.length && (
         <AvatarGroup
           sx={{
             [`& .${avatarGroupClasses.avatar}`]: {
@@ -173,7 +174,7 @@ export default function MomentPost({ post }) {
             },
           }}
         >
-          {post.personLikes.map((person) => (
+          {post?.personLikes?.map((person) => (
             <Avatar key={person.name} alt={person.name} src={person.avatarUrl} />
           ))}
         </AvatarGroup>
@@ -192,31 +193,33 @@ export default function MomentPost({ post }) {
   );
 
   return (
-    <Card>
+    <Card sx={{ mt: 2 }}>
       {renderHead}
+      {post?.message && (
+        <Typography
+          variant="body2"
+          sx={{
+            p: (theme) => theme.spacing(3, 3, 2, 3),
+          }}
+        >
+          {post?.message}
+        </Typography>)}
 
-      <Typography
-        variant="body2"
-        sx={{
-          p: (theme) => theme.spacing(3, 3, 2, 3),
-        }}
-      >
-        {post.message}
-      </Typography>
-
-      <Box sx={{ p: 1 }}>
-        <Image alt={post.media} src={post.media} ratio="16/9" sx={{ borderRadius: 1.5 }} />
-      </Box>
+      {post?.media && (
+        <Box sx={{ p: 1 }}>
+          <Image alt={post.media} src={post.media} ratio="16/9" sx={{ borderRadius: 1.5 }} />
+        </Box>
+      )}
 
       {renderActions}
 
-      {!!post.comments.length && renderCommentList}
+      {post?.comments?.length > 0 && renderCommentList}
 
       {renderInput}
     </Card>
   );
 }
 
-MomentPost.propTypes = {
+Moment.propTypes = {
   post: PropTypes.object,
 };

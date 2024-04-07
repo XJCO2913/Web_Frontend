@@ -1,7 +1,8 @@
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { m, AnimatePresence } from 'framer-motion';
 
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -20,11 +21,33 @@ import FormProvider, { RHFUploadOverride } from 'src/components/hook-form';
 import { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 
-import MomentPost from '../home-moment-post';
+import Moment from '../home-moment';
 import CarouselItem from '../home-carousel'
-import { m, AnimatePresence } from 'framer-motion';
 
+// ----------------------------------------------------------------------
 
+const fetchMoments = async (setMoments, setNextTime, nextTime, hasMore, setHasMore) => {
+  if (!hasMore) return;
+
+  const time = nextTime || new Date().getTime();
+  try {
+    const response = await axiosTest.get(`${endpoints.moment.fetch}?latestTime=${time}`);
+    console.log(response)
+    console.log(response.data.Data.nextTime)
+    if (response.data.Data.nextTime) {
+      setMoments(prevMoments => [...prevMoments, ...response.data.Data.moments]);
+      setNextTime(response.data.Data.nextTime);
+      if (response.data.Data.moments.length === 0) {
+        setHasMore(false);
+      }
+    } else {
+      setHasMore(false);
+      console.log("No more moments to load");
+    }
+  } catch (error) {
+    console.error('Fetching moments failed:', error);
+  }
+};
 // ----------------------------------------------------------------------
 
 export default function HomeView() {
@@ -39,6 +62,50 @@ export default function HomeView() {
   const [content, setContent] = useState('');
   const settings = useSettingsContext();
   const list = _appFeatured;
+  const [moments, setMoments] = useState([]);
+  const [nextTime, setNextTime] = useState();
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => {
+    fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
+  }, []);
+
+  useEffect(() => {
+    if (shouldLoad) {
+      const fetchInitialMoments = async () => {
+        await fetchMoments(setMoments, setNextTime, nextTime);
+        setShouldLoad(false); // 重置加载标志
+      };
+      fetchInitialMoments();
+    }
+
+    // 防抖函数
+    const debounce = (func, wait) => {
+      let timeout;
+      return function executedFunction() {
+        const later = () => {
+          clearTimeout(timeout);
+          func();
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    };
+
+    // 使用防抖函数来减少频繁调用
+    const debouncedHandleScroll = debounce(handleScroll, 100);
+
+    window.addEventListener('scroll', debouncedHandleScroll);
+    return () => window.removeEventListener('scroll', debouncedHandleScroll);
+  }, [shouldLoad, nextTime, moments.length]);
+
+  // 在滚动事件处理函数中设置shouldLoad
+  const handleScroll = () => {
+    if (window.innerHeight + document.documentElement.scrollTop + 10 >= document.documentElement.offsetHeight) {
+      setShouldLoad(true);
+    }
+  };
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -81,7 +148,6 @@ export default function HomeView() {
 
       if (file) {
         let fieldName = '';
-
         if (file.type.match('image.*')) {
           fieldName = 'file';
         } else if (file.type === 'application/gpx+xml') {
@@ -102,6 +168,7 @@ export default function HomeView() {
         setSuccess(true)
         reset({ content: '', file: [] });
         setSnackbarInfo({ open: true, message: 'Post successfully created!', type: 'success' });
+        fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
       } else {
         console.log(response)
         setSuccess(false)
@@ -181,10 +248,9 @@ export default function HomeView() {
     setValue('content', e.target.value);
   };
 
-
   const renderPostInput = (
     <AnimatePresence>
-      <Card sx={{ p: 3 }}
+      <Card sx={{ p: 3, mt: 2 }}
         component={m.div}
         transition={0.8}
       >
@@ -250,7 +316,6 @@ export default function HomeView() {
         </Alert>
       </Snackbar>
 
-
       <Container maxWidth={settings.themeStretch ? false : 'xl'} sx={{ mt: -2.5 }}>
         <Grid container spacing={3}>
           <Grid xs={12} md={12}>
@@ -272,58 +337,9 @@ export default function HomeView() {
               {renderPostInput}
             </FormProvider>
 
-            <MomentPost post={{
-              "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b1",
-              "createdAt": "2024-03-17T04:09:26.232Z",
-              "media": "https://api-dev-minimal-v510.vercel.app/assets/images/travel/travel_2.jpg",
-              "message": "The sun slowly set over the horizon, painting the sky in vibrant hues of orange and pink.",
-              "personLikes":
-                [{ "name": "Jayvion Simon", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_3.jpg" },
-                { "name": "Lucian Obrien", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_4.jpg" },
-                { "name": "Deja Brady", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_5.jpg" },
-                { "name": "Harrison Stein", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_6.jpg" },
-                { "name": "Reece Chung", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_7.jpg" },
-                { "name": "Lainey Davidson", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_8.jpg" },
-                { "name": "Cristopher Cardenas", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_9.jpg" },
-                { "name": "Melanie Noble", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_10.jpg" },
-                { "name": "Chase Day", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_11.jpg" },
-                { "name": "Shawn Manning", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_12.jpg" },
-                { "name": "Soren Durham", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_13.jpg" },
-                { "name": "Cortez Herring", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_14.jpg" },
-                { "name": "Brycen Jimenez", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_15.jpg" },
-                { "name": "Giana Brandt", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_16.jpg" },
-                { "name": "Aspen Schmitt", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_17.jpg" },
-                { "name": "Colten Aguilar", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_18.jpg" },
-                { "name": "Angelique Morse", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_19.jpg" },
-                { "name": "Selina Boyer", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_20.jpg" },
-                { "name": "Lawson Bass", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_21.jpg" },
-                { "name": "Ariana Lang", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_22.jpg" }],
-
-              "comments":
-                [{
-                  "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b8",
-                  "author":
-                  {
-                    "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b9",
-                    "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_6.jpg",
-                    "name": "Lainey Davidson"
-                  },
-                  "createdAt": "2024-03-15T02:09:26.232Z",
-                  "message": "Praesent venenatis metus at"
-                },
-
-                {
-                  "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b10",
-                  "author":
-                  {
-                    "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b11",
-                    "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_7.jpg",
-                    "name": "Cristopher Cardenas"
-                  },
-                  "createdAt": "2024-03-14T01:09:26.232Z",
-                  "message": "Etiam rhoncus. Nullam vel sem. Pellentesque libero tortor, tincidunt et, tincidunt eget, semper nec, quam. Sed lectus."
-                }]
-            }} />
+            {moments.map((post, index) => (
+              <Moment key={index} post={post} />
+            ))}
           </Grid>
         </Grid>
       </Container >
