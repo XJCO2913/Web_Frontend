@@ -26,35 +26,36 @@ function Map({ isTracking }) {
     }, []);
 
     // 实时获取用户位置
-    useEffect(() => {
-        const updatePosition = () => {
-            navigator.geolocation.getCurrentPosition(position => {
-                const { latitude, longitude } = position.coords;
-                lastPositionRef.current = [longitude, latitude];
-                console.log("User position:", longitude, latitude);
-                if (userLocationCircleRef.current) {
-                    userLocationCircleRef.current.setCenter(new AMapRef.current.LngLat(longitude, latitude));
-                }
-                if (isTracking) {
-                    drawPath();
-                }
-            }, (error) => {
-                console.error('Fail to get location', error);
-            }, {
-                enableHighAccuracy: true,
-                maximumAge: 0,
-                timeout: 5000,
-            });
-        };
+    // useEffect(() => {
+    //     const updatePosition = () => {
+    //         navigator.geolocation.getCurrentPosition(position => {
+    //             const { latitude, longitude } = position.coords;
+    //             lastPositionRef.current = [longitude, latitude];
+    //             console.log("User position:", longitude, latitude);
+    //             if (userLocationCircleRef.current) {
+    //                 userLocationCircleRef.current.setCenter(new AMapRef.current.LngLat(longitude, latitude));
+    //             }
+    //             if (isTracking) {
+    //                 drawPath();
+    //             }
+    //         }, (error) => {
+    //             console.error('Fail to get location', error);
+    //         }, {
+    //             enableHighAccuracy: true,
+    //             maximumAge: 0,
+    //             timeout: 5000,
+    //         });
+    //     };
 
-        const intervalId = setInterval(updatePosition, 2000); // 每2秒更新一次位置
+    //     const intervalId = setInterval(updatePosition, 2000); // 每2秒更新一次位置
 
-        return () => clearInterval(intervalId);
-    }, [isTracking]);
+    //     return () => clearInterval(intervalId);
+    // }, [isTracking]);
 
     const initMap = (AMap) => {
         const map = new AMap.Map('container', {
             zoom: 16,
+            center: [103.984199, 30.763503],
             mapStyle: "amap://styles/normal",
         });
 
@@ -68,7 +69,7 @@ function Map({ isTracking }) {
 
             geolocation.getCurrentPosition((status, result) => {
                 if (status === 'complete') {
-                    map.setCenter(result.position);
+                    //map.setCenter(result.position);
                     lastPositionRef.current = [result.position.lng, result.position.lat];
                 } else {
                     console.error('Fail to locate', result.message);
