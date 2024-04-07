@@ -78,14 +78,14 @@ export function RHFMultiCheckbox({ row, name, label, options, spacing, helperTex
           >
             {options.map((option) => (
               <FormControlLabel
-                key={option.value}
+                key={option.tagID}
                 control={
                   <Checkbox
-                    checked={field.value.includes(option.value)}
-                    onChange={() => field.onChange(getSelected(field.value, option.value))}
+                    checked={field.value.includes(option.tagID)}
+                    onChange={() => field.onChange(getSelected(field.value, option.tagID))}
                   />
                 }
-                label={option.label}
+                label={option.tagName}
                 {...other}
               />
             ))}

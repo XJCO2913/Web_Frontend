@@ -3,6 +3,9 @@ import { HOST_API, TEST_HOST_API } from 'src/api/index';
 
 // ----------------------------------------------------------------------
 
+// 用于除了auth以外的请求(不设置全局拦截器)
+export const axiosSimple = axios.create({ baseURL: TEST_HOST_API })
+
 // Can be used to send various requests get post delete
 const axiosInstance = axios.create({ baseURL: HOST_API });
 export const axiosTest = axios.create({ baseURL: TEST_HOST_API });

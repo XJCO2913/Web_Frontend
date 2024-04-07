@@ -15,17 +15,17 @@ export default function TourCreateView() {
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
-        heading="Create a new tour"
+        heading="Create a new activity"
         links={[
           {
             name: 'Home',
             href: paths.home.root,
           },
           {
-            name: 'Tour',
+            name: 'Activity',
             href: paths.home.tour.root,
           },
-          { name: 'New tour' },
+          { name: 'New activity' },
         ]}
         sx={{
           mb: { xs: 3, md: 5 },

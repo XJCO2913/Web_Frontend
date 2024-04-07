@@ -1,5 +1,5 @@
 import orderBy from 'lodash/orderBy';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -25,6 +25,8 @@ import TourSort from '../tour-sort';
 import TourSearch from '../tour-search';
 import TourFilters from '../tour-filters';
 import TourFiltersResult from '../tour-filters-result';
+import { axiosSimple } from '@/utils/axios';
+import { endpoints } from '@/api';
 
 // ----------------------------------------------------------------------
 
@@ -54,8 +56,21 @@ export default function TourListView() {
 
   const dateError = isAfter(filters.startDate, filters.endDate);
 
+  const [activities, setActivities] = useState([])
+  // fetch activity data
+  const token = sessionStorage.getItem('token')
+  const httpConfig = {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    }
+  }
+  const fetchAllActivities = async () => {
+    const resp = await axiosSimple.get(endpoints.activity.all, httpConfig)
+    setActivities(resp.data.Data)
+  }
+
   const dataFiltered = applyFilter({
-    inputData: _tours,
+    inputData: activities,
     filters,
     sortBy,
     dateError,
@@ -104,6 +119,10 @@ export default function TourListView() {
     },
     [search.query]
   );
+
+  useEffect(() => {
+    fetchAllActivities()
+  }, [])
 
   const renderFilters = (
     <Stack
@@ -162,7 +181,7 @@ export default function TourListView() {
         links={[
           { name: 'Home', href: paths.home.root },
           {
-            name: 'Tour',
+            name: 'Activity',
             href: paths.home.tour.root,
           },
           { name: 'List' },
@@ -174,7 +193,7 @@ export default function TourListView() {
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
           >
-            New Tour
+            New Activity
           </Button>
         }
         sx={{

@@ -22,9 +22,15 @@ export const endpoints = {
         register: '/user/register',
         me: '/user',
     },
+    chat: '/chat',
+    activity: {
+        create: '/activity/create',
+        all: '/activity/all'
+    },
     moment:{
         create: '/moment/create',
         fetch: '/moment/feed'
     },
     chat: '/chat',
+
 };
