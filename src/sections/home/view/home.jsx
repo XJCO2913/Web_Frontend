@@ -48,6 +48,7 @@ const fetchMoments = async (setMoments, setNextTime, nextTime, hasMore, setHasMo
     console.error('Fetching moments failed:', error);
   }
 };
+
 // ----------------------------------------------------------------------
 
 export default function HomeView() {
@@ -72,9 +73,9 @@ export default function HomeView() {
   }, []);
 
   useEffect(() => {
-    if (shouldLoad) {
+    if (shouldLoad && hasMore) {
       const fetchInitialMoments = async () => {
-        await fetchMoments(setMoments, setNextTime, nextTime);
+        await fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
         setShouldLoad(false); // 重置加载标志
       };
       fetchInitialMoments();
@@ -102,7 +103,7 @@ export default function HomeView() {
 
   // 在滚动事件处理函数中设置shouldLoad
   const handleScroll = () => {
-    if (window.innerHeight + document.documentElement.scrollTop + 10 >= document.documentElement.offsetHeight) {
+    if (window.innerHeight + document.documentElement.scrollTop + 50 >= document.documentElement.offsetHeight) {
       setShouldLoad(true);
     }
   };
@@ -149,7 +150,7 @@ export default function HomeView() {
       if (file) {
         let fieldName = '';
         if (file.type.match('image.*')) {
-          fieldName = 'file';
+          fieldName = 'imageFile';
         } else if (file.type === 'application/gpx+xml') {
           fieldName = 'gpxFile';
         } else if (file.type.match('video.*')) {
@@ -163,6 +164,7 @@ export default function HomeView() {
       }
 
       const response = await axiosTest.post(endpoints.moment.create, formData);
+      console.log(response)
       if (response.data.status_code === 0) {
         console.log(response)
         setSuccess(true)
@@ -220,6 +222,7 @@ export default function HomeView() {
           preview: URL.createObjectURL(file),
         })
       );
+      setSuccess(false)
       setValue('file', [...(values.file || []), ...newFiles], { shouldValidate: true });
     },
     [setValue, values.file, setSnackbarInfo]

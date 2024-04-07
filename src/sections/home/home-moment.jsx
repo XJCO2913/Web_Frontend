@@ -205,11 +205,20 @@ export default function Moment({ post }) {
           {post?.message}
         </Typography>)}
 
-      {post?.media && (
-        <Box sx={{ p: 1 }}>
-          <Image alt={post.media} src={post.media} ratio="16/9" sx={{ borderRadius: 1.5 }} />
-        </Box>
-      )}
+      {
+        post?.media_image && (
+          <Box sx={{ p: 1 }}>
+            <Image alt="Post image" src={post.media_image} style={{ width: '100%', borderRadius: '8px' }} />
+          </Box>
+        )
+      }
+      {
+        post?.media_video && (
+          <Box sx={{ p: 1 }}>
+            <video controls src={post.media_video} style={{ width: '100%', borderRadius: '8px' }} />
+          </Box>
+        )
+      }
 
       {renderActions}
 
