@@ -17,7 +17,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import AvatarGroup, { avatarGroupClasses } from '@mui/material/AvatarGroup';
 
-import { useMockedUser } from 'src/hooks/use-mocked-user';
+import { useAuthContext } from 'src/auth/hooks'
 
 import { fDate } from 'src/utils/format-time';
 import { fShortenNumber } from 'src/utils/format-number';
@@ -27,8 +27,8 @@ import Iconify from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-export default function MomentPost({ post }) {
-  const { user } = useMockedUser();
+export default function Moment({ post }) {
+  const { user } = useAuthContext()
 
   const commentRef = useRef(null);
 
@@ -38,12 +38,6 @@ export default function MomentPost({ post }) {
 
   const handleChangeMessage = useCallback((event) => {
     setMessage(event.target.value);
-  }, []);
-
-  const handleAttach = useCallback(() => {
-    if (fileRef.current) {
-      fileRef.current.click();
-    }
   }, []);
 
   const handleClickComment = useCallback(() => {
@@ -56,13 +50,13 @@ export default function MomentPost({ post }) {
     <CardHeader
       disableTypography
       avatar={
-        <Avatar src={user?.photoURL} alt={user?.displayName}>
-          {user?.displayName?.charAt(0).toUpperCase()}
+        <Avatar src={user?.avatarUrl} alt={user?.username}>
+          {user?.username?.charAt(0).toUpperCase()}
         </Avatar>
       }
       title={
         <Link color="inherit" variant="subtitle1">
-          {user?.displayName}
+          {user?.username}
         </Link>
       }
       subheader={
@@ -80,10 +74,9 @@ export default function MomentPost({ post }) {
 
   const renderCommentList = (
     <Stack spacing={1.5} sx={{ px: 3, pb: 2 }}>
-      {post.comments.map((comment) => (
+      {post?.comments?.map((comment) => (
         <Stack key={comment.id} direction="row" spacing={2}>
           <Avatar alt={comment.author.name} src={comment.author.avatarUrl} />
-
           <Paper
             sx={{
               p: 1.5,
@@ -111,6 +104,7 @@ export default function MomentPost({ post }) {
     </Stack>
   );
 
+
   const renderInput = (
     <Stack
       spacing={2}
@@ -120,8 +114,7 @@ export default function MomentPost({ post }) {
         p: (theme) => theme.spacing(0, 3, 3, 3),
       }}
     >
-      <Avatar src={user?.photoURL} alt={user?.displayName} />
-
+      <Avatar src={user?.avatarUrl} alt={user?.username} />
       <InputBase
         fullWidth
         value={message}
@@ -130,7 +123,7 @@ export default function MomentPost({ post }) {
         onChange={handleChangeMessage}
         endAdornment={
           <InputAdornment position="end" sx={{ mr: 1 }}>
-            <IconButton size="small" onClick={handleAttach}>
+            <IconButton size="small">
               <Iconify icon="solar:gallery-add-bold" />
             </IconButton>
 
@@ -168,11 +161,11 @@ export default function MomentPost({ post }) {
             checkedIcon={<Iconify icon="solar:heart-bold" />}
           />
         }
-        label={fShortenNumber(post.personLikes.length)}
+        label={fShortenNumber(post?.personLikes?.length)}
         sx={{ mr: 1 }}
       />
 
-      {!!post.personLikes.length && (
+      {!!post?.personLikes?.length && (
         <AvatarGroup
           sx={{
             [`& .${avatarGroupClasses.avatar}`]: {
@@ -181,7 +174,7 @@ export default function MomentPost({ post }) {
             },
           }}
         >
-          {post.personLikes.map((person) => (
+          {post?.personLikes?.map((person) => (
             <Avatar key={person.name} alt={person.name} src={person.avatarUrl} />
           ))}
         </AvatarGroup>
@@ -200,31 +193,42 @@ export default function MomentPost({ post }) {
   );
 
   return (
-    <Card>
+    <Card sx={{ mt: 2 }}>
       {renderHead}
+      {post?.message && (
+        <Typography
+          variant="body2"
+          sx={{
+            p: (theme) => theme.spacing(3, 3, 2, 3),
+          }}
+        >
+          {post?.message}
+        </Typography>)}
 
-      <Typography
-        variant="body2"
-        sx={{
-          p: (theme) => theme.spacing(3, 3, 2, 3),
-        }}
-      >
-        {post.message}
-      </Typography>
-
-      <Box sx={{ p: 1 }}>
-        <Image alt={post.media} src={post.media} ratio="16/9" sx={{ borderRadius: 1.5 }} />
-      </Box>
+      {
+        post?.media_image && (
+          <Box sx={{ p: 1 }}>
+            <Image alt="Post image" src={post.media_image} style={{ width: '100%', borderRadius: '8px' }} />
+          </Box>
+        )
+      }
+      {
+        post?.media_video && (
+          <Box sx={{ p: 1 }}>
+            <video controls src={post.media_video} style={{ width: '100%', borderRadius: '8px' }} />
+          </Box>
+        )
+      }
 
       {renderActions}
 
-      {!!post.comments.length && renderCommentList}
+      {post?.comments?.length > 0 && renderCommentList}
 
       {renderInput}
     </Card>
   );
 }
 
-MomentPost.propTypes = {
+Moment.propTypes = {
   post: PropTypes.object,
 };
