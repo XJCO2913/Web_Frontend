@@ -59,8 +59,8 @@ export function AuthProvider({ children }) {
         const userID = decodedToken.userID;
         // Make an API call to get the user's information
         const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userID}`);
-        const userInfo = response.data.Data;
-
+        const  userInfo  = response.data.Data;
+        sessionStorage.setItem('userInfo',JSON.stringify(userInfo))
         dispatch({
           type: 'INITIAL',
           payload: {

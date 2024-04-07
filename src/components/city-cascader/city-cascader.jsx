@@ -14,7 +14,7 @@ const StyledCascader = styled(Cascader)`
 `;
 
 // ----------------------------------------------------------------------
-export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldFetchData }, ref) => {
+export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldFetchData,value }, ref) => {
   // State hook for storing options for the cascader (provinces and cities).
   const [options, setOptions] = useState([]);
   // State hook for storing the currently selected location.
@@ -23,7 +23,6 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldF
   const [alertType, setAlertType] = useState('info'); // 'error', 'warning', 'info', 'success'
   const [alertMessage, setAlertMessage] = useState('');
   const [open, setOpen] = useState(true);
-
   // ----------------------------------------------------------------------
   // Async function to load province options from an API.
   useEffect(() => {
@@ -59,7 +58,18 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldF
           const translatedProvince = translateName(locationData.province);
           const translatedCity = translateName(locationData.city);
           const location = [translatedProvince, translatedCity];
-          setSelectedLocation(location);
+          if(value&&value.length){
+            setSelectedLocation(value);
+            if (onChange) {
+              onChange(value);
+            }
+          }else{
+            setSelectedLocation(location);
+            if (onChange) {
+              onChange(location);
+            }
+          }
+          
           if (onChange) {
             onChange(location);
           }
