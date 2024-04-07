@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import { useMemo, useReducer, useCallback, useEffect} from 'react';
+import { useMemo, useReducer, useCallback, useEffect } from 'react';
 import axiosInstance from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 import { AuthContext } from './auth-context';
 import { setSession } from './utils';
- import { isValidToken, jwtDecode } from "./utils";
+import { isValidToken, jwtDecode } from "./utils";
 
 // ----------------------------------------------------------------------
 const initialState = {
@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
         const userID = decodedToken.userID;
         // Make an API call to get the user's information
         const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userID}`);
-        const  userInfo  = response.data.Data;
+        const userInfo = response.data.Data;
 
         dispatch({
           type: 'INITIAL',
@@ -70,8 +70,7 @@ export function AuthProvider({ children }) {
             },
           },
         });
-      } else 
-      {
+      } else {
         dispatch({
           type: 'INITIAL',
           payload: {
@@ -105,7 +104,7 @@ export function AuthProvider({ children }) {
       const response = await axiosInstance.post(endpoints.auth.login, data);
       // Check whether user login successfully
       if (response.data.status_code === 0) {
-        const { token, userInfo } = response.data.Data;
+        const { token } = response.data.Data;
         // store the token
         setSession(token);
         // Update user status
@@ -113,11 +112,11 @@ export function AuthProvider({ children }) {
           type: 'LOGIN',
           payload: {
             user: {
-              ...userInfo,
               token,
             },
           },
         });
+        await initialize();
         return { success: true };
       } else {
         // If the status code is not 0, processing of the login fails, but this should already be caught by the interceptor
@@ -150,6 +149,7 @@ export function AuthProvider({ children }) {
         }
       } else {
         customErrorData.message = 'Login failed due to an unexpected error. Please try again later.';
+        console.log(error)
       }
       return customErrorData;
     }
@@ -169,19 +169,6 @@ export function AuthProvider({ children }) {
       const response = await axiosInstance.post(endpoints.auth.register, data);
       // Assuming the response structure is similar to login
       if (response.data.status_code === 0) {
-        const { token, userInfo } = response.data.Data;
-        // Store the token
-        sessionStorage.setItem(STORAGE_KEY, token);
-        // Update user status
-        dispatch({
-          type: 'REGISTER',
-          payload: {
-            user: {
-              ...userInfo,
-              token,
-            },
-          },
-        });
         return { success: true };
       } else {
         // If the status code is not 0, the registration process is considered failed

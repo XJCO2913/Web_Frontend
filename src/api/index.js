@@ -27,4 +27,10 @@ export const endpoints = {
         create: '/activity/create',
         all: '/activity/all'
     },
+    moment:{
+        create: '/moment/create',
+        fetch: '/moment/feed'
+    },
+    chat: '/chat',
+
 };
