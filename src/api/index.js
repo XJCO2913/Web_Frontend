@@ -21,7 +21,7 @@ export const endpoints = {
         login: '/user/login',
         register: '/user/register',
         me: '/user',
-        subscribe: '/user/subscribe'
+        subscribe: '/user/subscribe',
         changeAccount:'/user',
         avatarUpload:'/user/avatar'
     },
