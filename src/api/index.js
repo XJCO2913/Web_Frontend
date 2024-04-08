@@ -31,6 +31,4 @@ export const endpoints = {
         create: '/moment/create',
         fetch: '/moment/feed'
     },
-    chat: '/chat',
-
 };
