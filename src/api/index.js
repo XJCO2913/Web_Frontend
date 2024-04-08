@@ -20,8 +20,10 @@ export const endpoints = {
         login: '/user/login',
         register: '/user/register',
         me: '/user',
-        changeAccount:'/user',
-        avatarUpload:'/user/avatar'
+    },
+    user: {
+        changeAccount: '/user',
+        avatarUpload: '/user/avatar'
     },
     chat: '/chat'
 };

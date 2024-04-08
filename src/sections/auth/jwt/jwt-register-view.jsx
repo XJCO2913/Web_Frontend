@@ -262,7 +262,6 @@ export default function JwtRegisterView() {
           <CityCascader
             {...field}
             onChange={(value) => {
-              console.log(value);
               // Ensure that value is an array, if it is not or undefined, it defaults to an empty array
               const safeValue = Array.isArray(value) ? value : [];
               // Filter out the undefined value in the array and concatenate it with join('-')
@@ -275,6 +274,7 @@ export default function JwtRegisterView() {
             errorMessage={error ? error.message : ''}
             key={lastError.key}
             shouldFetchData={shouldFetchData}
+            autoIP={true}
           />
         )}
       />

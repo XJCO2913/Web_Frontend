@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -21,14 +21,35 @@ import { CityCascader } from 'src/components/city-cascader'
 import { useSnackbar } from 'src/components/snackbar';
 import { useAuthContext } from 'src/auth/hooks';
 import { endpoints } from 'src/api/index'
-import moment from 'moment';
 
 // ----------------------------------------------------------------------
 
 export default function AccountGeneral() {
-  const { enqueueSnackbar } = useSnackbar();
-  const { user } = useAuthContext()
 
+  const { enqueueSnackbar } = useSnackbar();
+
+  const { user } = useAuthContext();
+  const { initialize } = useAuthContext();
+
+  const [avatarChanged, setAvatarChanged] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const hasFormValueChanged = () => {
+    return Object.keys(defaultValues).some(key => {
+      const isValueChanged = defaultValues[key] != watchAllFields[key];
+
+      if (isValueChanged) {
+        console.log(`差异值在 '${key}': 默认值为 ${defaultValues[key]}, 当前值为 ${watchAllFields[key]}`);
+      }
+      return isValueChanged;
+    });
+  };
+
+  const genderOptions = [
+    { label: "Male", value: 0 },
+    { label: "Female", value: 1 },
+    { label: "Prefer not to say", value: 2 },
+  ];
 
   const UpdateUserSchema = Yup.object().shape({
     username: Yup.string(),
@@ -39,73 +60,96 @@ export default function AccountGeneral() {
       .transform((value, originalValue) => originalValue === "" ? null : value)
       .max(new Date(), 'Birthday cannot be in the future')
       .typeError('Invalid date'),
-    // Correctly exclude undefined and empty strings
     region: Yup.string(),
   });
 
-  const dateFromBackend = user.birthday; 
+  const dateFromBackend = user.birthday;
+  const regionValue = user.region.split('-');
   const defaultValues = {
     username: user.username,
     gender: user.gender,
-    birthday: dateFromBackend ? new Date(dateFromBackend) : null,
-    region: user.region.split('-'),
+    birthday: dateFromBackend ? new Date(dateFromBackend) : "",
+    region: user.region,
     photoURL: user.avatarUrl || ''
   };
 
-  console.log(typeof defaultValues.birthday)
   const methods = useForm({
     resolver: yupResolver(UpdateUserSchema),
     defaultValues,
   });
 
   const {
-    setValue,
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = handleSubmit(async (data) => {
-    const { username, gender, birthday, region } = data
-    console.log(region)
-    const params = {
-      username: username || undefined,
-      gender: typeof gender === 'number' ? gender : undefined,
-      birthday: birthday ? moment(birthday).format('YYYY-MM-DD') : undefined,
-      region: region || undefined
-    }
-    await axiosInstance.post(`${endpoints.auth.changeAccount}?userID=${user.userId}`, params)
+  const watchAllFields = methods.watch();
 
+  const onSubmit = handleSubmit(async (data) => {
+    const formChanged = hasFormValueChanged();
+
+    // 如果用户更新了信息
+    if (formChanged) {
+      const formData = {
+        username: data.username,
+        gender: data.gender,
+        birthday: data.birthday,
+        region: data.region,
+      };
+      try {
+        const res = await axiosInstance.patch(`${endpoints.user.changeAccount}?userID=${user.userId}`, formData);
+        if (res.data.status_code === 0) {
+          console.log(1)
+          enqueueSnackbar('Update success!');
+          console.log(2)
+        }
+
+      } catch (error) {
+        console.error(error);
+        enqueueSnackbar('An error occurred while updating user information. Please try again.', { variant: 'error' });
+        return; // 如果发生错误，提前退出
+      }
+    }
+
+    // 如果用户更新了头像
+    if (avatarChanged && selectedFile) {
+      const formData = new FormData();
+      formData.append('avatar', selectedFile);
+      formData.append('userId', user.userId);
+      try {
+        await axiosInstance.post(`${endpoints.user.avatarUpload}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        enqueueSnackbar('Avatar upload successful!');
+      } catch (error) {
+        console.error(error);
+        enqueueSnackbar('An error occurred while uploading avatar. Please try again.', { variant: 'error' });
+        return;
+      }
+    }
+
+    // 如果没有任何更改
+    if (!formChanged && !(avatarChanged && selectedFile)) {
+      enqueueSnackbar('No changes detected.');
+    }
+
+    // 重新初始化表单或页面，无需等待异步操作
+    initialize();
   });
 
   const handleDrop = useCallback(
-    async (acceptedFiles) => {
+    (acceptedFiles) => {
       const file = acceptedFiles[0];
-      const newFile = Object.assign(file, {
-        preview: URL.createObjectURL(file),
-      });
-
       if (file) {
-        const formData = new FormData();
-        formData.append('avatar', file);
-        formData.append('userId', user.userId);
-        const rest = await axiosInstance.post(`${endpoints.auth.avatarUpload}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        })
-        if (rest.data.status_code === 0) {
-          setValue('photoURL', newFile, { shouldValidate: true });
-        }
+        const newFile = Object.assign(file, {
+          preview: URL.createObjectURL(file),
+        });
+        setSelectedFile(newFile);
+        setAvatarChanged(true);
       }
     },
-    [setValue, user.userId]
+    [setSelectedFile]
   );
-
-  const genderOptions = [
-    { label: "Male", value: 0 },
-    { label: "Female", value: 1 },
-    { label: "Prefer not to say", value: 2 },
-  ];
 
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
@@ -183,9 +227,10 @@ export default function AccountGeneral() {
                         field.onChange(formattedValue);
                       }}
                       shouldFetchData={true}
+                      autoIP={false}
                       error={!!error}
                       errorMessage={error ? error.message : ''}
-                      value={defaultValues.region}
+                      valueArr={regionValue}
                     />
                   )
                 }}

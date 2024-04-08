@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import { useMemo, useReducer, useCallback, useEffect} from 'react';
+import { useMemo, useReducer, useCallback, useEffect } from 'react';
 import axiosInstance from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 import { AuthContext } from './auth-context';
 import { setSession } from './utils';
- import { isValidToken, jwtDecode } from "./utils";
+import { isValidToken, jwtDecode } from "./utils";
 
 // ----------------------------------------------------------------------
 const initialState = {
@@ -28,7 +28,6 @@ const reducer = (state, action) => {
   if (action.type === 'REGISTER') {
     return {
       ...state,
-      user: action.payload.user,
     };
   }
   if (action.type === 'LOGOUT') {
@@ -59,7 +58,7 @@ export function AuthProvider({ children }) {
         const userID = decodedToken.userID;
         // Make an API call to get the user's information
         const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userID}`);
-        const  userInfo  = response.data.Data;
+        const userInfo = response.data.Data;
         dispatch({
           type: 'INITIAL',
           payload: {
@@ -69,8 +68,7 @@ export function AuthProvider({ children }) {
             },
           },
         });
-      } else 
-      {
+      } else {
         dispatch({
           type: 'INITIAL',
           payload: {
@@ -104,7 +102,7 @@ export function AuthProvider({ children }) {
       const response = await axiosInstance.post(endpoints.auth.login, data);
       // Check whether user login successfully
       if (response.data.status_code === 0) {
-        const { token, userInfo } = response.data.Data;
+        const { token } = response.data.Data;
         // store the token
         setSession(token);
         // Update user status
@@ -112,7 +110,6 @@ export function AuthProvider({ children }) {
           type: 'LOGIN',
           payload: {
             user: {
-              ...userInfo,
               token,
             },
           },
@@ -127,7 +124,7 @@ export function AuthProvider({ children }) {
       let customErrorData = { success: false, data: {} };
 
       // If user not found send the message to upper layer
-      if (error.data.status_code === -1 && error.data.status_msg === 'user not found') {
+      if (error.status_code === -1 && error.status_msg === "User not found") {
         customErrorData.message = "The username does not exist.";
         return customErrorData;
       }
@@ -164,17 +161,11 @@ export function AuthProvider({ children }) {
       const response = await axiosInstance.post(endpoints.auth.register, data);
       // Assuming the response structure is similar to login
       if (response.data.status_code === 0) {
-        const { token, userInfo } = response.data.Data;
-        // Store the token
-        sessionStorage.setItem(STORAGE_KEY, token);
         // Update user status
         dispatch({
           type: 'REGISTER',
           payload: {
-            user: {
-              ...userInfo,
-              token,
-            },
+            user: null,
           },
         });
         return { success: true };
@@ -186,7 +177,7 @@ export function AuthProvider({ children }) {
       let customErrorData = { success: false, data: {} };
 
       // If user not found send the message to upper layer
-      if (error.data.status_code === -1 && error.data.status_msg === 'user already exist') {
+      if (error.data.status_code === -1 && error.data.status_msg === 'User already exist') {
         customErrorData.message = "The username already exists.";
         return customErrorData;
       }
@@ -216,11 +207,12 @@ export function AuthProvider({ children }) {
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
       //
+      initialize,
       login,
       register,
       logout,
     }),
-    [login, logout, register, state.user, status]
+    [initialize, login, logout, register, state.user, status]
   );
 
   return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;
