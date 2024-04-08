@@ -14,7 +14,7 @@ const StyledCascader = styled(Cascader)`
 `;
 
 // ----------------------------------------------------------------------
-export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldFetchData,value }, ref) => {
+export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldFetchData, value }, ref) => {
   // State hook for storing options for the cascader (provinces and cities).
   const [options, setOptions] = useState([]);
   // State hook for storing the currently selected location.
@@ -23,6 +23,7 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldF
   const [alertType, setAlertType] = useState('info'); // 'error', 'warning', 'info', 'success'
   const [alertMessage, setAlertMessage] = useState('');
   const [open, setOpen] = useState(true);
+
   // ----------------------------------------------------------------------
   // Async function to load province options from an API.
   useEffect(() => {
@@ -32,9 +33,16 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldF
     };
 
     loadProvinces();
+    if (value && value.length) {
+      setSelectedLocation(value);
+      if (onChange) {
+        onChange(value);
+      }
+    }
   }, [shouldFetchData]);
 
   // ----------------------------------------------------------------------
+
   // Effect hook to load provinces on component mount and fetch user's location.
   useEffect(() => {
     // A function that displays a prompt message
@@ -58,18 +66,7 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldF
           const translatedProvince = translateName(locationData.province);
           const translatedCity = translateName(locationData.city);
           const location = [translatedProvince, translatedCity];
-          if(value&&value.length){
-            setSelectedLocation(value);
-            if (onChange) {
-              onChange(value);
-            }
-          }else{
-            setSelectedLocation(location);
-            if (onChange) {
-              onChange(location);
-            }
-          }
-          
+          setSelectedLocation(location);
           if (onChange) {
             onChange(location);
           }
@@ -168,6 +165,7 @@ CityCascader.propTypes = {
   error: PropTypes.bool,
   errorMessage: PropTypes.string,
   shouldFetchData: PropTypes.bool,
+  value: PropTypes.array,
 };
 
 export default CityCascader;

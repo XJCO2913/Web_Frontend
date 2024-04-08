@@ -1,67 +1,39 @@
 import * as Yup from 'yup';
-import { useCallback ,useState,useEffect} from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Grid from '@mui/material/Unstable_Grid2';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
-
-import { useMockedUser } from 'src/hooks/use-mocked-user';
-
-import { fData } from 'src/utils/format-number';
-
-import { countries } from 'src/assets/data';
-
-import { useSnackbar } from 'src/components/snackbar';
-import FormProvider, {
-  RHFSwitch,
-  RHFTextField,
-  RHFUploadAvatar,
-  RHFAutocomplete,
-  RHFSelect
-} from 'src/components/hook-form';
-import {InputAdornment,IconButton,MenuItem} from '@mui/material';
-import Iconify from 'src/components/iconify';
+import { MenuItem } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
-import { CityCascader } from 'src/components/city-cascader'
-import {  Controller } from 'react-hook-form';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { useBoolean } from 'src/hooks/use-boolean';
- import axiosInstance from '@/utils/axios'
- import { isValidToken, jwtDecode ,setSession} from "src/auth/context/jwt/utils";
- import { endpoints } from 'src/api/index'
- import Snackbar from '@mui/material/Snackbar';
- import Alert from '@mui/material/Alert';
- import moment from 'moment';
 
-const genderOptions = [
-  { label: "Male", value: 0 },
-  { label: "Female", value: 1 },
-  { label: "Prefer not to say", value: 2 },
-  {label:"",value:''}
-];
-let userInfo = sessionStorage.getItem('userInfo') || JSON.stringify({});
-userInfo = JSON.parse(userInfo)
+import { fData } from 'src/utils/format-number';
+import axiosInstance from 'src/utils/axios'
+import FormProvider, { RHFTextField, RHFUploadAvatar, RHFSelect } from 'src/components/hook-form';
+import { CityCascader } from 'src/components/city-cascader'
+import { useSnackbar } from 'src/components/snackbar';
+import { useAuthContext } from 'src/auth/hooks';
+import { endpoints } from 'src/api/index'
+import moment from 'moment';
 
 // ----------------------------------------------------------------------
 
 export default function AccountGeneral() {
   const { enqueueSnackbar } = useSnackbar();
+  const { user } = useAuthContext()
 
-  const { user } = useMockedUser();
-  const password = useBoolean();
-  const [open,setOpen]=useState(false)
-  const [userID,setUserID] = useState('')
+
   const UpdateUserSchema = Yup.object().shape({
     username: Yup.string(),
     password: Yup.string(),
-    gender: Yup.number()|Yup.string(),
+    gender: Yup.number() | Yup.string(),
     birthday: Yup.date()
       .nullable()
       .transform((value, originalValue) => originalValue === "" ? null : value)
@@ -70,14 +42,17 @@ export default function AccountGeneral() {
     // Correctly exclude undefined and empty strings
     region: Yup.string(),
   });
+
+  const dateFromBackend = user.birthday; 
   const defaultValues = {
-    username: userInfo.username,
-    password: '',
-    gender: userInfo.gender,
-    birthday: new Date(userInfo.birthday),
-    region: userInfo.region.split('-'),
-    photoURL:userInfo.avatarUrl||''
+    username: user.username,
+    gender: user.gender,
+    birthday: dateFromBackend ? new Date(dateFromBackend) : null,
+    region: user.region.split('-'),
+    photoURL: user.avatarUrl || ''
   };
+
+  console.log(typeof defaultValues.birthday)
   const methods = useForm({
     resolver: yupResolver(UpdateUserSchema),
     defaultValues,
@@ -88,30 +63,23 @@ export default function AccountGeneral() {
     handleSubmit,
     formState: { isSubmitting },
   } = methods;
-  const getUserInfo = async(flag,userId) =>{
-    flag && setOpen(true)
-    const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userId || userID}`);
-    sessionStorage.setItem("userInfo",JSON.stringify(response.data.Data));
-  }
+
   const onSubmit = handleSubmit(async (data) => {
-    const {username,password,gender,birthday,region} = data
+    const { username, gender, birthday, region } = data
+    console.log(region)
     const params = {
-      username:username||undefined,
-      password:password||undefined,
-      gender:typeof gender==='number'?gender:undefined,
-      birthday:birthday?moment(birthday).format('YYYY-MM-DD'):undefined,
-      region:region||undefined
+      username: username || undefined,
+      gender: typeof gender === 'number' ? gender : undefined,
+      birthday: birthday ? moment(birthday).format('YYYY-MM-DD') : undefined,
+      region: region || undefined
     }
-      const res = await axiosInstance.patch(`${endpoints.auth.changeAccount}?userID=${userID}`,params)
-        if(res.data.status_code===0){
-          getUserInfo(true,undefined);
-        }
+    await axiosInstance.post(`${endpoints.auth.changeAccount}?userID=${user.userId}`, params)
+
   });
 
   const handleDrop = useCallback(
     async (acceptedFiles) => {
       const file = acceptedFiles[0];
-
       const newFile = Object.assign(file, {
         preview: URL.createObjectURL(file),
       });
@@ -119,35 +87,26 @@ export default function AccountGeneral() {
       if (file) {
         const formData = new FormData();
         formData.append('avatar', file);
-        formData.append('userId', userID);
-        const rest = await axiosInstance.post(`${endpoints.auth.avatarUpload}`,formData,{
-          headers:{
-            'Content-Type':'multipart/form-data'
+        formData.append('userId', user.userId);
+        const rest = await axiosInstance.post(`${endpoints.auth.avatarUpload}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
           }
         })
-        if(rest.data.status_code===0){
+        if (rest.data.status_code === 0) {
           setValue('photoURL', newFile, { shouldValidate: true });
-          setOpen(true)
         }
-        
       }
     },
-    [userID]
+    [setValue, user.userId]
   );
-  const [lastError, setLastError] = useState({ message: '', key: 0 });
-  const [shouldFetchData, setShouldFetchData] = useState(true);
-  useEffect(()=>{
-    const STORAGE_KEY = 'token';
-    const token = sessionStorage.getItem(STORAGE_KEY);
 
-      if (token && isValidToken(token)) {
-        setSession(token);
-        const decodedToken = jwtDecode(token);
-        const userID = decodedToken.userID;
-        setUserID(userID)
-        getUserInfo(undefined,userID)
-      }
-  },[])
+  const genderOptions = [
+    { label: "Male", value: 0 },
+    { label: "Female", value: 1 },
+    { label: "Prefer not to say", value: 2 },
+  ];
+
   return (
     <FormProvider methods={methods} onSubmit={onSubmit}>
       <Grid container spacing={3}>
@@ -178,22 +137,8 @@ export default function AccountGeneral() {
 
         <Grid xs={12} md={8}>
           <Card sx={{ p: 3 }}>
-             <Stack spacing={1.5}>
+            <Stack spacing={1.5}>
               <RHFTextField name="username" label="Username" />
-              <RHFTextField
-        name="password"
-        label="Password"
-        type={password.value ? 'text' : 'password'}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={password.onToggle} edge="end">
-                <Iconify icon={password.value ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
 
               <RHFSelect name="gender" label="Gender">
                 {genderOptions.map((option) => (
@@ -212,7 +157,7 @@ export default function AccountGeneral() {
                       label={error ? error.message : "Birthday"}
                       inputFormat="yyyy-MM-dd"
                       maxDate={new Date()}
-                      value={field.value || null}
+                      value={field.value === '' ? null : field.value}
                       onChange={(newValue) => {
                         field.onChange(newValue);
                       }}
@@ -225,24 +170,25 @@ export default function AccountGeneral() {
                 name="region"
                 label="Region"
                 control={methods.control}
-                render={({ field, fieldState: { error } }) =>{
+                render={({ field, fieldState: { error } }) => {
                   return (
-                  <CityCascader
-                    {...field}
-                    onChange={(value) => {
-                      // Ensure that value is an array, if it is not or undefined, it defaults to an empty array
-                      const safeValue = Array.isArray(value) ? value : [];
-                      // Filter out the undefined value in the array and concatenate it with join('-')
-                      const filteredValue = safeValue.filter(item => item !== undefined);
-                      const formattedValue = filteredValue.join('-');
-                      field.onChange(formattedValue);
-                    }}
-                    error={!!error}
-                    errorMessage={error ? error.message : ''}
-                    key={lastError.key}
-                    shouldFetchData={shouldFetchData}
-                  />
-                )}}
+                    <CityCascader
+                      {...field}
+                      onChange={(value) => {
+                        // Ensure that value is an array, if it is not or undefined, it defaults to an empty array
+                        const safeValue = Array.isArray(value) ? value : [];
+                        // Filter out the undefined value in the array and concatenate it with join('-')
+                        const filteredValue = safeValue.filter(item => item !== undefined);
+                        const formattedValue = filteredValue.join('-');
+                        field.onChange(formattedValue);
+                      }}
+                      shouldFetchData={true}
+                      error={!!error}
+                      errorMessage={error ? error.message : ''}
+                      value={defaultValues.region}
+                    />
+                  )
+                }}
               />
 
               <LoadingButton
@@ -259,21 +205,6 @@ export default function AccountGeneral() {
           </Card>
         </Grid>
       </Grid>
-      <Snackbar 
-        open={open} 
-        autoHideDuration={2000}
-        anchorOrigin={{ vertical:'top', horizontal:'center' }}
-        onClose={()=>{setOpen(false)}}
-       >
-        <Alert
-          severity="success"
-          variant="filled"
-          sx={{ width: '100%' }}
-          onClose={()=>{setOpen(false)}}
-        >
-          Update success!
-        </Alert>
-      </Snackbar>
     </FormProvider>
   );
 }
