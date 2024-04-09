@@ -102,7 +102,7 @@ export default function JwtRegisterView() {
   // submit the form
   const onSubmit = handleSubmit(async (data) => {
     // Format the birthday field to 'YYYY-MM-DD' format if it's not null
-    const formattedBirthday = data.birthday ? dayjs(data.birthday).format('YYYY-MM-DD') : null;
+    const formattedBirthday = data.birthday ? dayjs(data.birthday).format('dd-MM-YYYY') : null;
 
     // Verify if the region format contains '-'
     if (!data.region.includes('-')) {
@@ -243,7 +243,7 @@ export default function JwtRegisterView() {
           render={({ field, fieldState: { error } }) => (
             <DatePicker
               label={error ? error.message : "Birthday"}
-              inputFormat="yyyy-MM-dd"
+              inputFormat="dd-MM-YYYY"
               maxDate={new Date()}
               value={field.value || null}
               onChange={(newValue) => {

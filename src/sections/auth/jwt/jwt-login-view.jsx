@@ -74,7 +74,6 @@ export default function JwtLoginView() {
   const onSubmit = handleSubmit(async (data) => {
     try {
       const result = await login?.(data.username, data.password);
-      console.log(result)
       if (result.success) {
         router.push(PATH_AFTER_LOGIN);
       } else {

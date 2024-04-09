@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { useMemo, useReducer, useCallback, useEffect } from 'react';
-import axiosInstance from 'src/utils/axios';
+import axiosInstance, { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 import { AuthContext } from './auth-context';
 import { setSession } from './utils';
@@ -28,6 +28,7 @@ const reducer = (state, action) => {
   if (action.type === 'REGISTER') {
     return {
       ...state,
+      user: action.payload.user,
     };
   }
   if (action.type === 'LOGOUT') {
@@ -99,10 +100,11 @@ export function AuthProvider({ children }) {
     };
 
     try {
-      const response = await axiosInstance.post(endpoints.auth.login, data);
+      const response = await axiosTest.post(endpoints.auth.login, data);
+      console.log(response)
       // Check whether user login successfully
       if (response.data.status_code === 0) {
-        const { token } = response.data.Data;
+        const { token, userInfo } = response.data.Data;
         // store the token
         setSession(token);
         // Update user status
@@ -110,6 +112,7 @@ export function AuthProvider({ children }) {
           type: 'LOGIN',
           payload: {
             user: {
+              ...userInfo,
               token,
             },
           },
@@ -122,7 +125,6 @@ export function AuthProvider({ children }) {
     }
     catch (error) {
       let customErrorData = { success: false, data: {} };
-
       // If user not found send the message to upper layer
       if (error.status_code === -1 && error.status_msg === "User not found") {
         customErrorData.message = "The username does not exist.";
@@ -158,14 +160,17 @@ export function AuthProvider({ children }) {
     };
 
     try {
-      const response = await axiosInstance.post(endpoints.auth.register, data);
+      const response = await axiosTest.post(endpoints.auth.register, data);
       // Assuming the response structure is similar to login
       if (response.data.status_code === 0) {
+        const { userInfo } = response.data.Data;
         // Update user status
         dispatch({
           type: 'REGISTER',
           payload: {
-            user: null,
+            user: {
+              ...userInfo,
+            },
           },
         });
         return { success: true };
