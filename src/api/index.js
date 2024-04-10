@@ -3,6 +3,7 @@
 
 // Base URL
 export const HOST_API = 'http://43.136.232.116:5000/api'
+export const TEST_HOST_API = 'http://43.136.232.116:5000/test'
 
 // ----------------------------------------------------------------------
 
@@ -21,5 +22,13 @@ export const endpoints = {
         register: '/user/register',
         me: '/user',
     },
-    chat: '/chat'
+    chat: '/chat',
+    activity: {
+        create: '/activity/create',
+        all: '/activity/all'
+    },
+    moment:{
+        create: '/moment/create',
+        fetch: '/moment/feed'
+    },
 };

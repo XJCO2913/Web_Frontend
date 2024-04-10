@@ -1,10 +1,14 @@
 import axios from 'axios';
-import { HOST_API } from 'src/api/index';
+import { HOST_API, TEST_HOST_API } from 'src/api/index';
 
 // ----------------------------------------------------------------------
 
+// 用于除了auth以外的请求(不设置全局拦截器)
+export const axiosSimple = axios.create({ baseURL: TEST_HOST_API })
+
 // Can be used to send various requests get post delete
 const axiosInstance = axios.create({ baseURL: HOST_API });
+export const axiosTest = axios.create({ baseURL: TEST_HOST_API });
 
 axiosInstance.interceptors.response.use(
   (res) => res,
@@ -34,7 +38,7 @@ axiosInstance.interceptors.response.use(
     }
 
     // If there is no response or the response does not contain data, return a generic error message
-    return Promise.reject((error.response)||'Something went wrong');
+    return Promise.reject((error.response) || 'Something went wrong');
   }
 );
 
