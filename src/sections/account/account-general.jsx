@@ -55,10 +55,6 @@ export default function AccountGeneral() {
         return false; // 返回 false 来跳过当前迭代，继续检查其他字段
       }
       const isValueChanged = defaultValues[key] != watchAllFields[key];
-
-      if (isValueChanged) {
-        console.log(`差异值在 '${key}': 默认值为 ${defaultValues[key]}, 当前值为 ${watchAllFields[key]}`);
-      }
       return isValueChanged;
     });
   };
@@ -106,7 +102,6 @@ export default function AccountGeneral() {
   const onSubmit = handleSubmit(async (data) => {
     const formChanged = hasFormValueChanged();
     if (!data.region.includes('-')) {
-      // If the region does not contain '-', it indicates the format does not conform to the Province-City format
       triggerError('Please select both province and city.');
       return;
     }
