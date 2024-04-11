@@ -120,7 +120,10 @@ export default function AccountGeneral() {
         region: data.region,
       };
       try {
-        await axiosInstance.patch(`${endpoints.user.changeAccount}?userID=${user.userId}`, formData);
+        const res = await axiosInstance.patch(`${endpoints.user.changeAccount}?userID=${user.userId}`, formData);
+        if (res.data.status_code === 0) {
+          enqueueSnackbar('Update success!');
+        }
       } catch (error) {
         console.error(error);
         enqueueSnackbar('An error occurred while updating user information. Please try again.', { variant: 'error' });
@@ -134,10 +137,12 @@ export default function AccountGeneral() {
       formData.append('avatar', selectedFile);
       formData.append('userId', user.userId);
       try {
-        await axiosInstance.post(`${endpoints.user.avatarUpload}`, formData, {
+        const res = await axiosInstance.post(`${endpoints.user.avatarUpload}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        enqueueSnackbar('Update success!');
+        if (res.data.status_code === 0) {
+          enqueueSnackbar('Update success!');
+        }
       } catch (error) {
         console.error(error);
         enqueueSnackbar('An error occurred while uploading avatar. Please try again.', { variant: 'error' });

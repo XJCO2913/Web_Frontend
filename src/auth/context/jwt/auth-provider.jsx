@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { useMemo, useReducer, useCallback, useEffect } from 'react';
-import axiosInstance, { axiosTest } from 'src/utils/axios';
+import axiosInstance from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 import { AuthContext } from './auth-context';
 import { setSession } from './utils';
@@ -100,7 +100,7 @@ export function AuthProvider({ children }) {
     };
 
     try {
-      const response = await axiosTest.post(endpoints.auth.login, data);
+      const response = await axiosInstance.post(endpoints.auth.login, data);
       console.log(response)
       // Check whether user login successfully
       if (response.data.status_code === 0) {
@@ -160,7 +160,7 @@ export function AuthProvider({ children }) {
     };
 
     try {
-      const response = await axiosTest.post(endpoints.auth.register, data);
+      const response = await axiosInstance.post(endpoints.auth.register, data);
       // Assuming the response structure is similar to login
       if (response.data.status_code === 0) {
         const { userInfo } = response.data.Data;
