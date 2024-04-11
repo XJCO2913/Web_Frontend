@@ -102,7 +102,7 @@ export default function JwtRegisterView() {
   // submit the form
   const onSubmit = handleSubmit(async (data) => {
     // Format the birthday field to 'YYYY-MM-DD' format if it's not null
-    const formattedBirthday = data.birthday ? dayjs(data.birthday).format('YYYY-MM-DD') : null;
+    const formattedBirthday = data.birthday ? dayjs(data.birthday).format('dd-MM-YYYY') : null;
 
     // Verify if the region format contains '-'
     if (!data.region.includes('-')) {
@@ -243,7 +243,7 @@ export default function JwtRegisterView() {
           render={({ field, fieldState: { error } }) => (
             <DatePicker
               label={error ? error.message : "Birthday"}
-              inputFormat="yyyy-MM-dd"
+              inputFormat="dd-MM-YYYY"
               maxDate={new Date()}
               value={field.value || null}
               onChange={(newValue) => {
@@ -262,7 +262,6 @@ export default function JwtRegisterView() {
           <CityCascader
             {...field}
             onChange={(value) => {
-              console.log(value);
               // Ensure that value is an array, if it is not or undefined, it defaults to an empty array
               const safeValue = Array.isArray(value) ? value : [];
               // Filter out the undefined value in the array and concatenate it with join('-')
@@ -275,6 +274,7 @@ export default function JwtRegisterView() {
             errorMessage={error ? error.message : ''}
             key={lastError.key}
             shouldFetchData={shouldFetchData}
+            autoIP={true}
           />
         )}
       />

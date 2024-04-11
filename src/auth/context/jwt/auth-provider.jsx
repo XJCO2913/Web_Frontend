@@ -60,7 +60,6 @@ export function AuthProvider({ children }) {
         // Make an API call to get the user's information
         const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userID}`);
         const userInfo = response.data.Data;
-
         dispatch({
           type: 'INITIAL',
           payload: {
@@ -102,9 +101,10 @@ export function AuthProvider({ children }) {
 
     try {
       const response = await axiosInstance.post(endpoints.auth.login, data);
+      console.log(response)
       // Check whether user login successfully
       if (response.data.status_code === 0) {
-        const { token } = response.data.Data;
+        const { token, userInfo } = response.data.Data;
         // store the token
         setSession(token);
         // Update user status
@@ -112,6 +112,7 @@ export function AuthProvider({ children }) {
           type: 'LOGIN',
           payload: {
             user: {
+              ...userInfo,
               token,
             },
           },
@@ -169,6 +170,16 @@ export function AuthProvider({ children }) {
       const response = await axiosInstance.post(endpoints.auth.register, data);
       // Assuming the response structure is similar to login
       if (response.data.status_code === 0) {
+        const { userInfo } = response.data.Data;
+        // Update user status
+        dispatch({
+          type: 'REGISTER',
+          payload: {
+            user: {
+              ...userInfo,
+            },
+          },
+        });
         return { success: true };
       } else {
         // If the status code is not 0, the registration process is considered failed
@@ -208,11 +219,12 @@ export function AuthProvider({ children }) {
       authenticated: status === 'authenticated',
       unauthenticated: status === 'unauthenticated',
       //
+      initialize,
       login,
       register,
       logout,
     }),
-    [login, logout, register, state.user, status]
+    [initialize, login, logout, register, state.user, status]
   );
 
   return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;
