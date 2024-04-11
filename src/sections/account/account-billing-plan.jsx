@@ -17,69 +17,30 @@ import { PlanFreeIcon, PlanStarterIcon, PlanPremiumIcon } from 'src/assets/icons
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 
-import { AddressListDialog } from '../address';
 import PaymentCardListDialog from '../payment/payment-card-list-dialog';
-import { useAuthContext } from '../../auth/hooks';
-import axiosInstance from 'src/utils/axios';
-import { endpoints } from 'src/api/index';
-import { message } from 'antd';
 
 // ----------------------------------------------------------------------
-const plansContant = ["basic", 'starter', 'premium']
-export default function AccountBillingPlan({ cardList, addressBook, plans }) {
-  const openAddress = useBoolean();
-  const { user } = useAuthContext();
-  const { isSubscribed, membershipType = 0, userId } = user;
 
+export default function AccountBillingPlan({ cardList, plans }) {
   const openCards = useBoolean();
 
-  const primaryAddress = addressBook.filter((address) => address.primary)[0];
-
   const primaryCard = cardList.filter((card) => card.primary)[0];
-
-  const [selectedPlan, setSelectedPlan] = useState(plansContant[isSubscribed ? membershipType : 0]);
-
-  const [selectedAddress, setSelectedAddress] = useState(primaryAddress);
-
+  const [selectedPlan, setSelectedPlan] = useState('');
   const [selectedCard, setSelectedCard] = useState(primaryCard);
 
   const handleSelectPlan = useCallback(
     (newValue) => {
-      const currentPlan = plans.filter((plan) => plan.subscription === selectedPlan)[0].subscription;
+      const currentPlan = plans.filter((plan) => plan.primary)[0].subscription;
       if (currentPlan !== newValue) {
         setSelectedPlan(newValue);
       }
     },
-    [plans, selectedPlan]
+    [plans]
   );
-
-  const handleSelectAddress = useCallback((newValue) => {
-    setSelectedAddress(newValue);
-  }, []);
 
   const handleSelectCard = useCallback((newValue) => {
     setSelectedCard(newValue);
   }, []);
-
-  const upgradePlan = useCallback(async () => {
-    const type = plansContant.indexOf(selectedPlan);
-    try {
-      const res = await axiosInstance.post(`${endpoints.auth.subscribe}?userID=${userId}&membershipType=${type}`);
-      message.success(res.data.status_msg);
-    } catch (error) {
-      message.error(error.data.status_msg);
-    }
-  }, [selectedPlan, userId]);
-
-  const cancelPlan = useCallback(async () => {
-    try {
-      const res = await axiosInstance.post(`/user/cancel?userID=${userId}`);
-      message.success(res.data.status_msg);
-      setSelectedPlan(plansContant[0])
-    } catch (error) {
-      message.error(error.data.status_msg);
-    }
-  }, [userId])
 
   const renderPlans = plans.map((plan) => (
     <Grid xs={12} md={4} key={plan.subscription}>
@@ -91,7 +52,7 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
           p: 2.5,
           position: 'relative',
           cursor: 'pointer',
-          ...(plan.subscription === selectedPlan && {
+          ...(plan.primary && {
             opacity: 0.48,
             cursor: 'default',
           }),
@@ -100,7 +61,7 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
           }),
         }}
       >
-        {plan.subscription === selectedPlan && (
+        {plan.primary && (
           <Label
             color="info"
             startIcon={<Iconify icon="eva:star-fill" />}
@@ -165,30 +126,11 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
             </Grid>
             <Grid xs={12} md={8}>
               <Button
-                onClick={openAddress.onTrue}
                 endIcon={<Iconify width={16} icon="eva:arrow-ios-downward-fill" />}
                 sx={{ typography: 'subtitle2', p: 0, borderRadius: 0 }}
               >
-                {selectedAddress?.name}
+                {1}
               </Button>
-            </Grid>
-          </Grid>
-
-          <Grid container spacing={{ xs: 0.5, md: 2 }}>
-            <Grid xs={12} md={4} sx={{ color: 'text.secondary' }}>
-              Billing address
-            </Grid>
-            <Grid xs={12} md={8} sx={{ color: 'text.secondary' }}>
-              {selectedAddress?.fullAddress}
-            </Grid>
-          </Grid>
-
-          <Grid container spacing={{ xs: 0.5, md: 2 }}>
-            <Grid xs={12} md={4} sx={{ color: 'text.secondary' }}>
-              Billing phone number
-            </Grid>
-            <Grid xs={12} md={8} sx={{ color: 'text.secondary' }}>
-              {selectedAddress?.phoneNumber}
             </Grid>
           </Grid>
 
@@ -211,8 +153,8 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Stack spacing={1.5} direction="row" justifyContent="flex-end" sx={{ p: 3 }}>
-          <Button variant="outlined" onClick={cancelPlan}>Cancel Plan</Button>
-          <Button variant="contained" onClick={upgradePlan}>Upgrade Plan</Button>
+          <Button variant="outlined">Cancel Plan</Button>
+          <Button variant="contained">Upgrade Plan</Button>
         </Stack>
       </Card>
 
@@ -222,23 +164,6 @@ export default function AccountBillingPlan({ cardList, addressBook, plans }) {
         onClose={openCards.onFalse}
         selected={(selectedId) => selectedCard?.id === selectedId}
         onSelect={handleSelectCard}
-      />
-
-      <AddressListDialog
-        list={addressBook}
-        open={openAddress.value}
-        onClose={openAddress.onFalse}
-        selected={(selectedId) => selectedAddress?.id === selectedId}
-        onSelect={handleSelectAddress}
-        action={
-          <Button
-            size="small"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            sx={{ alignSelf: 'flex-end' }}
-          >
-            New
-          </Button>
-        }
       />
     </>
   );
