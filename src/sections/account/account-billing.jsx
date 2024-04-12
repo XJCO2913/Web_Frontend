@@ -10,8 +10,8 @@ import AccountBillingPayment from './account-billing-payment';
 export default function AccountBilling({ cards, plans }) {
   return (
     <Grid container spacing={5} disableEqualOverflow>
-      <Grid xs={12} md={8}>
-        <AccountBillingPlan plans={plans} cardList={cards}/>
+      <Grid xs={12} md={12} lg={12}>
+        <AccountBillingPlan plans={plans} cardList={cards} />
         <AccountBillingPayment cards={cards} />
       </Grid>
     </Grid>

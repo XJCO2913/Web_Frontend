@@ -6,7 +6,7 @@ import Container from '@mui/material/Container';
 
 import { paths } from 'src/routes/paths';
 
-import { _userPlans, _userPayment, } from 'src/_mock';
+import { _userPayment } from 'src/_mock';
 
 import Iconify from 'src/components/iconify';
 import { useSettingsContext } from 'src/components/settings';
@@ -28,6 +28,21 @@ const TABS = [
     label: 'Billing',
     icon: <Iconify icon="solar:bill-list-bold" width={24} />,
   }
+];
+
+const userPlans = [
+  {
+    subscription: 'basic',
+    price: 0,
+  },
+  {
+    subscription: 'starter',
+    price: 4.99,
+  },
+  {
+    subscription: 'premium',
+    price: 9.99,
+  },
 ];
 
 // ----------------------------------------------------------------------
@@ -71,7 +86,7 @@ export default function AccountView() {
 
       {currentTab === 'billing' && (
         <AccountBilling
-          plans={_userPlans}
+          plans={userPlans}
           cards={_userPayment}
         />
       )}

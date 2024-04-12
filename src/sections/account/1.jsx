@@ -11,68 +11,73 @@ import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 
 import { useBoolean } from 'src/hooks/use-boolean';
+
 import { PlanFreeIcon, PlanStarterIcon, PlanPremiumIcon } from 'src/assets/icons';
+
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
-import { useAuthContext } from 'src/auth/hooks';
+
+import { AddressListDialog } from '../address';
+import PaymentCardListDialog from '../payment/payment-card-list-dialog';
+import { useAuthContext } from '../../auth/hooks';
 import axiosInstance from 'src/utils/axios';
 import { endpoints } from 'src/api/index';
-import { useSnackbar } from 'src/components/snackbar';
-
-import PaymentCardListDialog from '../payment/payment-card-list-dialog';
+import { message } from 'antd';
 
 // ----------------------------------------------------------------------
+const plansContant = ["basic", 'starter', 'premium']
 
-export default function AccountBillingPlan({ cardList, plans }) {
-  const openCards = useBoolean();
+export default function AccountBillingPlan({ cardList, addressBook, plans }) {
+  const openAddress = useBoolean();
   const { user } = useAuthContext();
-  const { enqueueSnackbar } = useSnackbar();
   const { isSubscribed, membershipType, userId } = user;
 
+  const openCards = useBoolean();
+  const primaryAddress = addressBook.filter((address) => address.primary)[0];
   const primaryCard = cardList.filter((card) => card.primary)[0];
+  const [selectedPlan, setSelectedPlan] = useState(plansContant[isSubscribed ? membershipType : 0]);
+  const [selectedAddress, setSelectedAddress] = useState(primaryAddress);
   const [selectedCard, setSelectedCard] = useState(primaryCard);
-  const [selectedPlan, setSelectedPlan] = useState(plans[isSubscribed ? membershipType : 0].subscription);
 
   const handleSelectPlan = useCallback(
     (newValue) => {
-      if (selectedPlan !== newValue) {
+      const currentPlan = plans.filter((plan) => plan.subscription === selectedPlan)[0].subscription;
+      if (currentPlan !== newValue) {
         setSelectedPlan(newValue);
       }
     },
-    [selectedPlan]
+    [plans, selectedPlan]
   );
+
+  const handleSelectAddress = useCallback((newValue) => {
+    setSelectedAddress(newValue);
+  }, []);
 
   const handleSelectCard = useCallback((newValue) => {
     setSelectedCard(newValue);
   }, []);
 
   const upgradePlan = useCallback(async () => {
-    const type = plans.findIndex(plan => plan.subscription === selectedPlan);
-    // 检查如果用户的当前等级是free（假设membershipType为0对应的是free）
-    if (membershipType === 0) {
-      enqueueSnackbar("Upgrade from Free plan is not allowed directly. Please choose another plan.", { variant: "warning" });
-      return;
-    }
+    const type = plansContant.indexOf(selectedPlan);
     try {
-      await axiosInstance.post(`${endpoints.user.subscribe}?userID=${userId}&membershipType=${type}`);
-      enqueueSnackbar("Upgrade plan successfully!", { variant: "success" });
+      const res = await axiosInstance.post(`${endpoints.auth.subscribe}?userID=${userId}&membershipType=${type}`);
+      message.success(res.data.status_msg);
     } catch (error) {
-      enqueueSnackbar("Upgrade plan failed!", { variant: "error" });
+      message.error(error.data.status_msg);
     }
-  }, [selectedPlan, userId, plans, membershipType]);
+  }, [selectedPlan, userId]);
 
+  const cancelPlan = useCallback(async () => {
+    try {
+      const res = await axiosInstance.post(`/user/cancel?userID=${userId}`);
+      message.success(res.data.status_msg);
+      setSelectedPlan(plansContant[0])
+    } catch (error) {
+      message.error(error.data.status_msg);
+    }
+  }, [userId])
 
-  // const cancelPlan = useCallback(async () => {
-  //   try {
-  //     const res = await axiosInstance.post(`${endpoints.user.cancelSubscribe}?userID=${userId}`);
-
-  //     setSelectedPlan(plans[0].subsubscriptionscri)
-  //   } catch (error) {
-
-  //   }
-  // }, [userId])
-
-  const renderPlans = plans.map((plan, index) => (
+  const renderPlans = plans.map((plan) => (
     <Grid xs={12} md={4} key={plan.subscription}>
       <Stack
         component={Paper}
@@ -83,11 +88,15 @@ export default function AccountBillingPlan({ cardList, plans }) {
           position: 'relative',
           cursor: 'pointer',
           ...(plan.subscription === selectedPlan && {
+            opacity: 0.48,
+            cursor: 'default',
+          }),
+          ...(plan.subscription === selectedPlan && {
             boxShadow: (theme) => `0 0 0 2px ${theme.palette.text.primary}`,
           }),
         }}
       >
-        {membershipType === index && (
+        {plansContant[membershipType] === selectedPlan && (
           <Label
             color="info"
             startIcon={<Iconify icon="eva:star-fill" />}
@@ -116,6 +125,7 @@ export default function AccountBillingPlan({ cardList, plans }) {
 
         <Stack direction="row" alignItems="center" sx={{ typography: 'h4' }}>
           {plan.price || 'Free'}
+
           {!!plan.price && (
             <Box component="span" sx={{ typography: 'body2', color: 'text.disabled', ml: 0.5 }}>
               /mo
@@ -151,11 +161,30 @@ export default function AccountBillingPlan({ cardList, plans }) {
             </Grid>
             <Grid xs={12} md={8}>
               <Button
+                onClick={openAddress.onTrue}
                 endIcon={<Iconify width={16} icon="eva:arrow-ios-downward-fill" />}
                 sx={{ typography: 'subtitle2', p: 0, borderRadius: 0 }}
               >
-                {user.username}
+                {selectedAddress?.name}
               </Button>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={{ xs: 0.5, md: 2 }}>
+            <Grid xs={12} md={4} sx={{ color: 'text.secondary' }}>
+              Billing address
+            </Grid>
+            <Grid xs={12} md={8} sx={{ color: 'text.secondary' }}>
+              {selectedAddress?.fullAddress}
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={{ xs: 0.5, md: 2 }}>
+            <Grid xs={12} md={4} sx={{ color: 'text.secondary' }}>
+              Billing phone number
+            </Grid>
+            <Grid xs={12} md={8} sx={{ color: 'text.secondary' }}>
+              {selectedAddress?.phoneNumber}
             </Grid>
           </Grid>
 
@@ -189,6 +218,23 @@ export default function AccountBillingPlan({ cardList, plans }) {
         onClose={openCards.onFalse}
         selected={(selectedId) => selectedCard?.id === selectedId}
         onSelect={handleSelectCard}
+      />
+
+      <AddressListDialog
+        list={addressBook}
+        open={openAddress.value}
+        onClose={openAddress.onFalse}
+        selected={(selectedId) => selectedAddress?.id === selectedId}
+        onSelect={handleSelectAddress}
+        action={
+          <Button
+            size="small"
+            startIcon={<Iconify icon="mingcute:add-line" />}
+            sx={{ alignSelf: 'flex-end' }}
+          >
+            New
+          </Button>
+        }
       />
     </>
   );

@@ -23,4 +23,7 @@ export default defineConfig({
   preview: {
     port: 5173, // 预览配置
   },
+  optimizeDeps: {
+    exclude: ['js-big-decimal']
+  },
 });
