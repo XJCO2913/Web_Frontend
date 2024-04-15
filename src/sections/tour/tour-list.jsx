@@ -16,14 +16,14 @@ export default function TourList({ tours }) {
 
   const handleView = useCallback(
     (id) => {
-      router.push(paths.dashboard.tour.details(id));
+      router.push(paths.home.tour.details(id));
     },
     [router]
   );
 
   const handleEdit = useCallback(
     (id) => {
-      router.push(paths.dashboard.tour.edit(id));
+      router.push(paths.home.tour.edit(id));
     },
     [router]
   );
