@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -15,23 +15,36 @@ import { PlanFreeIcon, PlanStarterIcon, PlanPremiumIcon } from 'src/assets/icons
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import { useAuthContext } from 'src/auth/hooks';
+import { jwtDecode } from "src/auth/context/jwt/utils";
 import axiosInstance from 'src/utils/axios';
 import { endpoints } from 'src/api/index';
 import { useSnackbar } from 'src/components/snackbar';
 
 import PaymentCardListDialog from '../payment/payment-card-list-dialog';
 
-// ----------------------------------------------------------------------
-
 export default function AccountBillingPlan({ cardList, plans }) {
   const openCards = useBoolean();
-  const { user } = useAuthContext();
   const { enqueueSnackbar } = useSnackbar();
-  const { isSubscribed, membershipType, userId } = user;
+  const { user, updateToken } = useAuthContext();
+  const [decodedToken, setDecodedToken] = useState(() => {
+    try {
+      return user?.token ? jwtDecode(user.token) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [membershipType, setMembershipType] = useState(decodedToken?.membershipType);
+  
+  useEffect(() => {
+    const newDecodedToken = jwtDecode(user?.token);
+    setDecodedToken(newDecodedToken);
+    setMembershipType(newDecodedToken.membershipType);
+  }, [user?.token]);
 
   const primaryCard = cardList.filter((card) => card.primary)[0];
   const [selectedCard, setSelectedCard] = useState(primaryCard);
-  const [selectedPlan, setSelectedPlan] = useState(plans[isSubscribed ? membershipType : 0].subscription);
+  const [selectedPlan, setSelectedPlan] = useState(plans[membershipType]?.subscription || 'basic');
+  const isBasicPlan = selectedPlan === 'basic';
 
   const handleSelectPlan = useCallback(
     (newValue) => {
@@ -47,30 +60,46 @@ export default function AccountBillingPlan({ cardList, plans }) {
   }, []);
 
   const upgradePlan = useCallback(async () => {
-    const type = plans.findIndex(plan => plan.subscription === selectedPlan);
-    // 检查如果用户的当前等级是free（假设membershipType为0对应的是free）
-    if (membershipType === 0) {
-      enqueueSnackbar("Upgrade from Free plan is not allowed directly. Please choose another plan.", { variant: "warning" });
+    const targetType = plans.findIndex(plan => plan.subscription === selectedPlan);
+    const currentType = membershipType;
+
+    // 如果用户尝试选择当前已订阅的计划
+    if (targetType === currentType) {
+      enqueueSnackbar("Your plan will automatically renew each month.", { variant: "info" });
       return;
     }
+
+    // 如果用户已经订阅并且没有取消当前计划，则不允许升级或更换计划
+    if (user?.isSubscribed === 1 && targetType !== currentType) {
+      enqueueSnackbar("Please cancel your current plan before changing to a new plan.", { variant: "warning" });
+      return;
+    }
+
     try {
-      await axiosInstance.post(`${endpoints.user.subscribe}?userID=${userId}&membershipType=${type}`);
-      enqueueSnackbar("Upgrade plan successfully!", { variant: "success" });
+      const res = await axiosInstance.post(`${endpoints.user.subscribe}?userID=${user.userId}&membershipType=${targetType}`);
+      if (res.data.status_code === 0) {
+        const resToken = await axiosInstance.post(endpoints.user.refreshToken);
+        updateToken(resToken.data.Data.newToken);
+        enqueueSnackbar("Upgrade plan successfully!", { variant: "success" });
+      } else {
+        enqueueSnackbar("Failed to upgrade plan: " + res.data.message, { variant: "error" });
+      }
     } catch (error) {
       enqueueSnackbar("Upgrade plan failed!", { variant: "error" });
     }
-  }, [selectedPlan, userId, plans, membershipType]);
+  }, [selectedPlan, membershipType, plans, user, updateToken, enqueueSnackbar]);
 
 
-  // const cancelPlan = useCallback(async () => {
-  //   try {
-  //     const res = await axiosInstance.post(`${endpoints.user.cancelSubscribe}?userID=${userId}`);
-
-  //     setSelectedPlan(plans[0].subsubscriptionscri)
-  //   } catch (error) {
-
-  //   }
-  // }, [userId])
+  const cancelPlan = useCallback(async () => {
+    try {
+      const res = await axiosInstance.post(`${endpoints.user.cancelSubscribe}?userID=${user?.userId}`);
+      if (res.data.status_code === 0) {
+        enqueueSnackbar("Cancel plan successfully!.", { variant: "success" });
+      }
+    } catch (error) {
+      enqueueSnackbar("Cancel plan failed!", { variant: "error" });
+    }
+  }, [user?.userId, enqueueSnackbar]);
 
   const renderPlans = plans.map((plan, index) => (
     <Grid xs={12} md={4} key={plan.subscription}>
@@ -150,12 +179,7 @@ export default function AccountBillingPlan({ cardList, plans }) {
               Billing name
             </Grid>
             <Grid xs={12} md={8}>
-              <Button
-                endIcon={<Iconify width={16} icon="eva:arrow-ios-downward-fill" />}
-                sx={{ typography: 'subtitle2', p: 0, borderRadius: 0 }}
-              >
-                {user.username}
-              </Button>
+              {user?.username}
             </Grid>
           </Grid>
 
@@ -178,8 +202,8 @@ export default function AccountBillingPlan({ cardList, plans }) {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Stack spacing={1.5} direction="row" justifyContent="flex-end" sx={{ p: 3 }}>
-          <Button variant="outlined" onClick={cancelPlan}>Cancel Plan</Button>
-          <Button variant="contained" onClick={upgradePlan}>Upgrade Plan</Button>
+          <Button variant="outlined" onClick={cancelPlan} disabled={isBasicPlan}>Cancel Plan</Button>
+          <Button variant="contained" onClick={upgradePlan} disabled={isBasicPlan}>Upgrade Plan</Button>
         </Stack>
       </Card>
 

@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import { useMemo, useReducer, useCallback, useEffect} from 'react';
+import { useMemo, useReducer, useCallback, useEffect } from 'react';
 import axiosInstance from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 import { AuthContext } from './auth-context';
 import { setSession } from './utils';
- import { isValidToken, jwtDecode } from "./utils";
+import { isValidToken, jwtDecode } from "./utils";
 
 // ----------------------------------------------------------------------
 const initialState = {
@@ -37,6 +37,15 @@ const reducer = (state, action) => {
       user: null,
     };
   }
+  if (action.type === 'UPDATE_TOKEN') {
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        token: action.payload.token,
+      },
+    };
+  }
   return state;
 };
 
@@ -59,7 +68,7 @@ export function AuthProvider({ children }) {
         const userID = decodedToken.userID;
         // Make an API call to get the user's information
         const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userID}`);
-        const  userInfo  = response.data.Data;
+        const userInfo = response.data.Data;
 
         dispatch({
           type: 'INITIAL',
@@ -70,8 +79,7 @@ export function AuthProvider({ children }) {
             },
           },
         });
-      } else 
-      {
+      } else {
         dispatch({
           type: 'INITIAL',
           payload: {
@@ -118,6 +126,7 @@ export function AuthProvider({ children }) {
             },
           },
         });
+        initialize()
         return { success: true };
       } else {
         // If the status code is not 0, processing of the login fails, but this should already be caught by the interceptor
@@ -208,6 +217,17 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
+  // UPDATE TOKEN
+  const updateToken = useCallback(async (newToken) => {
+    setSession(newToken);
+    dispatch({
+      type: 'UPDATE_TOKEN',
+      payload: {
+        token: newToken,
+      },
+    });
+  }, []);
+
   // ----------------------------------------------------------------------
 
   const checkAuthenticated = state.user ? 'authenticated' : 'unauthenticated';
@@ -224,8 +244,9 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      updateToken,
     }),
-    [login, logout, register, state.user, status]
+    [login, logout, register, updateToken, state.user, status]
   );
 
   return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;

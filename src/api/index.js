@@ -23,7 +23,8 @@ export const endpoints = {
     },
     user:{
         subscribe: '/user/subscribe',
-        cancelSubscribe: 'user/cancelbscribe',
+        cancelSubscribe: '/user/cancel',
+        refreshToken: '/user/refresh',
     },
     chat: '/chat'
 };

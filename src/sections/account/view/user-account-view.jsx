@@ -6,8 +6,6 @@ import Container from '@mui/material/Container';
 
 import { paths } from 'src/routes/paths';
 
-import { _userPayment } from 'src/_mock';
-
 import Iconify from 'src/components/iconify';
 import { useSettingsContext } from 'src/components/settings';
 import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
@@ -44,6 +42,17 @@ const userPlans = [
     price: 9.99,
   },
 ];
+
+function generateId(index) {
+  return new Date().getTime() + index;  // Combines current timestamp with index
+}
+
+const userPayment = [...Array(3)].map((_, index) => ({
+  id: generateId(index),
+  cardNumber: ['**** **** **** 8576', '**** **** **** 8823', '**** **** **** 1268'][index],
+  cardType: ['mastercard', 'visa', 'visa'][index],
+  primary: index === 1,
+}));
 
 // ----------------------------------------------------------------------
 
@@ -87,7 +96,7 @@ export default function AccountView() {
       {currentTab === 'billing' && (
         <AccountBilling
           plans={userPlans}
-          cards={_userPayment}
+          cards={userPayment}
         />
       )}
     </Container>
