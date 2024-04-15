@@ -29,7 +29,8 @@ export const endpoints = {
     chat: '/chat',
     activity: {
         create: '/activity/create',
-        all: '/activity/all'
+        all: '/activity/all',
+        join: '/activity/signup'
     },
     moment: {
         create: '/moment/create',
