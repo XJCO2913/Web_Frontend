@@ -30,7 +30,10 @@ export const endpoints = {
     activity: {
         create: '/activity/create',
         all: '/activity/all',
-        join: '/activity/signup'
+        join: '/activity/signup',
+        me: {
+            all: '/activity/user'
+        }
     },
     moment: {
         create: '/moment/create',
