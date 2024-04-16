@@ -18,10 +18,11 @@ import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
 import { shortDateLabel } from 'src/components/custom-date-range-picker';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import { useState } from 'react';
 
 // ----------------------------------------------------------------------
 
-export default function TourItem({ tour, onView, onEdit, onDelete }) {
+export default function TourItem({ tour, onView, onEdit, onJoin }) {
   
 
   const popover = usePopover();
@@ -37,10 +38,15 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
     endDate,
     originalFee,
     destination,
+    isRegistered,
+    participantsCount
   } = tour;
   const DETAIL_URL = `/home/tour/${tour.activityId}`
 
   const shortLabel = shortDateLabel(startDate, endDate);
+
+  const [isJoin, setIsJoin] = useState(isRegistered)
+  const [curCnt, setCurCnt] = useState(participantsCount)
 
   const renderPrice = (
     <Stack
@@ -133,7 +139,7 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
           icon: <Iconify icon="solar:clock-circle-bold" sx={{ color: 'info.main' }} />,
         },
         {
-          label: `${numberLimit}`,
+          label: `${curCnt} / ${numberLimit}`,
           icon: <Iconify icon="solar:users-group-rounded-bold" sx={{ color: 'primary.main' }} />,
         },
       ].map((item) => (
@@ -180,14 +186,26 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
         <MenuItem
           onClick={() => {
             popover.onClose();
-            onEdit();
+            onJoin()
+            setIsJoin(true)
+            setCurCnt((prev) => (prev + 1))
           }}
+          disabled={isJoin}
         >
-          <Iconify icon="solar:pen-bold" />
-          Edit
+          {
+            isJoin ?
+            <>
+              <Iconify icon="solar:archive-minimalistic-bold" />
+              Joined
+            </> :
+            <>
+              <Iconify icon="solar:add-square-linear" />
+              Join
+            </>
+          }
         </MenuItem>
 
-        <MenuItem
+        {/* <MenuItem
           onClick={() => {
             popover.onClose();
             onDelete();
@@ -196,7 +214,7 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
         >
           <Iconify icon="solar:trash-bin-trash-bold" />
           Delete
-        </MenuItem>
+        </MenuItem> */}
       </CustomPopover>
     </>
   );

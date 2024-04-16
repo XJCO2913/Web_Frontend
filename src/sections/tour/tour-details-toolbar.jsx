@@ -12,6 +12,10 @@ import { RouterLink } from 'src/routes/components';
 
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import { useSnackbar } from 'notistack';
+import { useEffect, useState } from 'react';
+import { axiosSimple } from '@/utils/axios';
+import { endpoints } from '@/api';
 
 // ----------------------------------------------------------------------
 
@@ -23,9 +27,38 @@ export default function TourDetailsToolbar({
   publishOptions,
   onChangePublish,
   sx,
+  isJoined,
+  activityId,
   ...other
 }) {
-  const popover = usePopover();
+  const { enqueueSnackbar } = useSnackbar()
+
+  const [curIsJoined, setCurIsJoined] = useState(isJoined)
+
+  const handleJoin = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const resp = await axiosSimple.post(endpoints.activity.join + "?activityID=" + activityId, null, httpConfig)
+      if (resp.data.status_code === 0) {
+        enqueueSnackbar(resp.data.status_msg)
+        setCurIsJoined(true)
+      } else {
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+      }
+    } catch(err) {
+      enqueueSnackbar(err.toString(), { variant: "error" })
+    }
+  }
+
+  useEffect(() => {
+    setCurIsJoined(isJoined)
+  }, [isJoined])
 
   return (
     <>
@@ -48,54 +81,22 @@ export default function TourDetailsToolbar({
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {publish === 'published' && (
-          <Tooltip title="Go Live">
-            <IconButton component={RouterLink} href={liveLink}>
-              <Iconify icon="eva:external-link-fill" />
-            </IconButton>
-          </Tooltip>
-        )}
-
-        <Tooltip title="Edit">
-          <IconButton component={RouterLink} href={editLink}>
-            <Iconify icon="solar:pen-bold" />
-          </IconButton>
-        </Tooltip>
-
         <LoadingButton
           color="inherit"
           variant="contained"
           loading={!publish}
           loadingIndicator="Loading…"
-          endIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-          onClick={popover.onOpen}
           sx={{ textTransform: 'capitalize' }}
+          disabled={curIsJoined}
+          onClick={handleJoin}
         >
-          {publish}
+          {
+            curIsJoined ? 
+            "Joined" :
+            "Join Now"
+          }
         </LoadingButton>
       </Stack>
-
-      <CustomPopover
-        open={popover.open}
-        onClose={popover.onClose}
-        arrow="top-right"
-        sx={{ width: 140 }}
-      >
-        {publishOptions.map((option) => (
-          <MenuItem
-            key={option.value}
-            selected={option.value === publish}
-            onClick={() => {
-              popover.onClose();
-              onChangePublish(option.value);
-            }}
-          >
-            {option.value === 'published' && <Iconify icon="eva:cloud-upload-fill" />}
-            {option.value === 'draft' && <Iconify icon="solar:file-text-bold" />}
-            {option.label}
-          </MenuItem>
-        ))}
-      </CustomPopover>
     </>
   );
 }

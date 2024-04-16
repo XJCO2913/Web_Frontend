@@ -8,11 +8,16 @@ import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
 import TourItem from './tour-item';
+import { axiosSimple } from '@/utils/axios';
+import { endpoints } from '@/api';
+import { useSnackbar } from 'notistack';
+import { error } from '@/theme/palette';
 
 // ----------------------------------------------------------------------
 
 export default function TourList({ tours }) {
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleView = useCallback(
     (id) => {
@@ -21,16 +26,25 @@ export default function TourList({ tours }) {
     [router]
   );
 
-  const handleEdit = useCallback(
-    (id) => {
-      router.push(paths.home.tour.edit(id));
-    },
-    [router]
-  );
+  const handleJoin = async (tour) => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
 
-  const handleDelete = useCallback((id) => {
-    console.info('DELETE', id);
-  }, []);
+      const resp = await axiosSimple.post(endpoints.activity.join + "?activityID=" + tour.activityId, null, httpConfig)
+      if (resp.data.status_code === 0) {
+        enqueueSnackbar(resp.data.status_msg)
+      } else {
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+      }
+    } catch(err) {
+      enqueueSnackbar(err.toString(), { variant: "error" })
+    }
+  }
 
   return (
     <>
@@ -48,8 +62,9 @@ export default function TourList({ tours }) {
             key={tour.activityId}
             tour={tour}
             onView={() => handleView(tour.activityId)}
-            onEdit={() => handleEdit(tour.activityId)}
-            onDelete={() => handleDelete(tour.activityId)}
+            onJoin={async() => {
+              await handleJoin(tour)
+            }}
           />
         ))}
       </Box>
