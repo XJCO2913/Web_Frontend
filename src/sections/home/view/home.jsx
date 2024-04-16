@@ -1,57 +1,309 @@
+import * as Yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useCallback, useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { m, AnimatePresence } from 'framer-motion';
+
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Unstable_Grid2';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import { alpha } from '@mui/material/styles';
-import { Fab, InputBase, Button } from '@mui/material'
+import { InputBase } from '@mui/material'
+import Snackbar from '@mui/material/Snackbar';
+import AlertTitle from '@mui/material/AlertTitle'
+import Alert from '@mui/material/Alert';
 
-import { _appFeatured } from 'src/_mock';
 import { useSettingsContext } from 'src/components/settings';
 import Carousel, { useCarousel, CarouselDots, CarouselArrows } from 'src/components/carousel';
-import Iconify from 'src/components/iconify';
-import MomentPost from '../home-moment-post';
+import FormProvider, { RHFUploadOverride } from 'src/components/hook-form';
+import axiosInstance from 'src/utils/axios';
+import { endpoints } from 'src/api/index'
+
+import Moment from '../home-moment';
 import CarouselItem from '../home-carousel'
 
 // ----------------------------------------------------------------------
-const renderPostInput = (
-  <Card sx={{ p: 3 }}>
-    <InputBase
-      multiline
-      fullWidth
-      rows={4}
-      placeholder="Share what you are thinking here..."
-      sx={{
-        p: 2,
-        mb: 3,
-        borderRadius: 1,
-        border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.2)}`,
-      }}
-    />
 
-    <Stack direction="row" alignItems="center" justifyContent="space-between">
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'text.secondary' }}>
-        <Fab size="small" color="inherit" variant="softExtended" onClick={() => { }}>
-          <Iconify icon="solar:gallery-wide-bold" width={24} sx={{ color: 'success.main' }} />
-          Image/Video
-        </Fab>
+// 获取朋友圈
+const fetchMoments = async (setMoments, setNextTime, nextTime, hasMore, setHasMore) => {
+  if (!hasMore) return;
 
-        <Fab size="small" color="inherit" variant="softExtended">
-          <Iconify icon="solar:videocamera-record-bold" width={24} sx={{ color: 'error.main' }} />
-          Streaming
-        </Fab>
-      </Stack>
+  const time = nextTime || new Date().getTime();
+  try {
+    const response = await axiosInstance.get(`${endpoints.moment.fetch}?latestTime=${time}`);
+    if (response.data.Data.nextTime) {
+      setMoments(prevMoments => [...prevMoments, ...response.data.Data.moments]);
+      setNextTime(response.data.Data.nextTime);
+      if (response.data.Data.moments.length === 0) {
+        setHasMore(false);
+      }
+    } else {
+      setHasMore(false);
+      console.log("No more moments to load");
+    }
+  } catch (error) {
+    console.error('Fetching moments failed:', error);
+  }
+};
 
-      <Button variant="contained">Post</Button>
-    </Stack>
-
-    <input type="file" style={{ display: 'none' }} />
-  </Card>
-);
+// 获取首页活动
+const fetchActivities = async (setActivities) => {
+  try {
+    const response = await axiosInstance.get(endpoints.activity.fetch);
+    const activitiesData = response.data.Data.Activities.map((activity) => ({
+      id: activity.ActivityID,
+      title: activity.Name,
+      description: activity.Description,
+      coverUrl: activity.CoverUrl,
+    }));
+    setActivities(activitiesData);
+  } catch (error) {
+    console.error('Fetching activities failed:', error.response || error);
+  }
+};
 
 // ----------------------------------------------------------------------
+
 export default function HomeView() {
+
+  const [snackbarInfo, setSnackbarInfo] = useState({
+    open: false,
+    message: '',
+    type: 'success',
+  });
+
+
+
+  const [success, setSuccess] = useState(false);
+  const [content, setContent] = useState('');
   const settings = useSettingsContext();
-  const list = _appFeatured;
+  const [moments, setMoments] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [nextTime, setNextTime] = useState();
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  useEffect(() => {
+    fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
+    fetchActivities(setActivities);
+  }, []);
+
+  useEffect(() => {
+    if (shouldLoad && hasMore) {
+      const fetchInitialMoments = async () => {
+        await fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
+        setShouldLoad(false); // 重置加载标志
+      };
+      fetchInitialMoments();
+    }
+
+    // 防抖函数
+    const debounce = (func, wait) => {
+      let timeout;
+      return function executedFunction() {
+        const later = () => {
+          clearTimeout(timeout);
+          func();
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    };
+
+    // 使用防抖函数来减少频繁调用
+    const debouncedHandleScroll = debounce(handleScroll, 100);
+
+    window.addEventListener('scroll', debouncedHandleScroll);
+    return () => window.removeEventListener('scroll', debouncedHandleScroll);
+  }, [shouldLoad, nextTime, moments.length]);
+
+  // 在滚动事件处理函数中设置shouldLoad
+  const handleScroll = () => {
+    if (window.innerHeight + document.documentElement.scrollTop + 50 >= document.documentElement.offsetHeight) {
+      setShouldLoad(true);
+    }
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarInfo(prev => ({ ...prev, open: false }));
+  };
+
+  // validate the form
+  const PostSchema = Yup.object().shape({
+    content: Yup.string(),
+  });
+
+  const defaultValues = {
+    content: '',
+    file: [],
+  };
+
+  const methods = useForm({
+    resolver: yupResolver(PostSchema),
+    defaultValues
+  });
+
+  const {
+    watch,
+    reset,
+    setValue,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = methods;
+
+  const values = watch();
+
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      const formData = new FormData();
+      formData.append('content', data.content);
+
+      const file = data.file[0];
+
+      if (file) {
+        let fieldName = '';
+        if (file.type.match('image.*')) {
+          fieldName = 'imageFile';
+        } else if (file.type === 'application/gpx+xml') {
+          fieldName = 'gpxFile';
+        } else if (file.type.match('video.*')) {
+          fieldName = 'videoFile';
+        }
+        if (fieldName) {
+          formData.append(fieldName, file);
+        } else {
+          throw new Error('Invalid file format');
+        }
+      }
+
+      const response = await axiosInstance.post(endpoints.moment.create, formData);
+      if (response.data.status_code === 0) {
+        setSuccess(true)
+        reset({ content: '', file: [] });
+        setSnackbarInfo({ open: true, message: 'Post successfully created!', type: 'success' });
+        fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
+      } else {
+        setSuccess(false)
+        setSnackbarInfo({ open: true, message: 'Post failed to create!', type: 'error' });
+      }
+
+    } catch (error) {
+      console.error(error);
+      setSnackbarInfo({ open: true, message: error.message || 'An unexpected error occurred', type: 'error' });
+    }
+  });
+
+  const handleDrop = useCallback(
+    (acceptedFiles) => {
+      const newImageFiles = acceptedFiles.filter(file => file.type.match('image.*'));
+      const newVideoFiles = acceptedFiles.filter(file => file.type.match('video.*'));
+      const newXmlFiles = acceptedFiles.filter(file => file.type === 'application/xml' || file.type === 'text/xml');
+
+      // 获取已上传文件的类型
+      const existingTypes = values.file ? values.file.map(file => file.type) : [];
+      const hasExistingImage = existingTypes.some(type => type.match('image.*'));
+      const hasExistingVideo = existingTypes.some(type => type.match('video.*'));
+      const hasExistingXml = existingTypes.some(type => type === 'application/xml' || type === 'text/xml');
+
+      // 规则检验：
+      // 1. 不允许同时上传视频、图片和XML。
+      // 2. 视频和XML文件都只能上传一个。
+      // 3. 分次上传不同类型的文件也不被允许。
+      const isInvalidCombination = (
+        (newVideoFiles.length > 0 && (newImageFiles.length > 0 || newXmlFiles.length > 0 || hasExistingImage || hasExistingXml)) ||
+        (newXmlFiles.length > 0 && (newImageFiles.length > 0 || newVideoFiles.length > 0 || hasExistingImage || hasExistingVideo)) ||
+        (newImageFiles.length > 0 && (hasExistingVideo || hasExistingXml)) ||
+        newVideoFiles.length > 1 || newXmlFiles.length > 1 ||
+        (newVideoFiles.length > 0 && hasExistingVideo) ||
+        (newXmlFiles.length > 0 && hasExistingXml)
+      );
+
+      if (isInvalidCombination) {
+        setSnackbarInfo({
+          open: true,
+          message: 'Uploading diffreent types of files together is not allowed. Only one type of file can be uploaded.',
+          type: 'error',
+        });
+        return;
+      }
+
+      const newFiles = acceptedFiles.map(file =>
+        Object.assign(file, {
+          preview: URL.createObjectURL(file),
+        })
+      );
+      setSuccess(false)
+      setValue('file', [...(values.file || []), ...newFiles], { shouldValidate: true });
+    },
+    [setValue, values.file, setSnackbarInfo]
+  );
+
+
+  const handleRemoveFile = useCallback(
+    (inputFile) => {
+      setSuccess(false);
+      const filtered = values.file && values.file?.filter((file) => file !== inputFile);
+      setValue('file', filtered);
+    },
+    [setValue, values.file, setSuccess]
+  );
+
+  const handleRemoveAllFiles = useCallback(() => {
+    setSuccess(false);
+    setValue('file', []);
+  }, [setValue, setSuccess]);
+
+  const handleContentChange = (e) => {
+    setSuccess(false);
+    // Assuming you are controlling content via React Hook Form
+    setContent(e.target.value);
+    setValue('content', e.target.value);
+  };
+
+  const renderPostInput = (
+    <AnimatePresence>
+      <Card sx={{ p: 3, mt: 2 }}
+        component={m.div}
+        transition={0.8}
+      >
+        <InputBase
+          name='content'
+          multiline
+          fullWidth
+          rows={4}
+          placeholder="Share what you are thinking here..."
+          value={values.content}
+          onChange={handleContentChange}
+          sx={{
+            p: 2,
+            mb: 3,
+            borderRadius: 1,
+            border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.2)}`,
+          }}
+        />
+        <Stack spacing={1.5}
+        >
+          <RHFUploadOverride
+            multiple
+            thumbnail
+            name="file"
+            maxSize={3145728}
+            onDrop={handleDrop}
+            onRemove={handleRemoveFile}
+            onRemoveAll={handleRemoveAllFiles}
+            onPost={onSubmit}
+            onContent={content}
+            isSuccess={success}
+            loading={isSubmitting}
+          />
+        </Stack>
+      </Card>
+    </AnimatePresence >
+  );
 
   const carousel = useCarousel({
     speed: 800,
@@ -67,27 +319,47 @@ export default function HomeView() {
   });
 
   return (
-    <Container maxWidth={settings.themeStretch ? false : 'xl'} sx={{ mt: -2.5 }}>
-      <Grid container spacing={3}>
-        <Grid xs={12} md={12}>
-          <Card>
-            <Carousel ref={carousel.carouselRef} {...carousel.carouselSettings}>
-              {list.map((app, index) => (
-                <CarouselItem key={app.id} item={app} active={index === carousel.currentIndex} />
-              ))}
-            </Carousel>
+    <>
+      <Snackbar
+        open={snackbarInfo.open}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleClose} severity={snackbarInfo.type} sx={{ width: '100%' }}>
+          <AlertTitle>{snackbarInfo.type === 'success' ? 'Success' : 'Error'}</AlertTitle>
+          {snackbarInfo.message}
+        </Alert>
+      </Snackbar>
 
-            <CarouselArrows
-              onNext={carousel.onNext}
-              onPrev={carousel.onPrev}
-              sx={{ top: 8, right: 8, position: 'absolute', color: 'common.white' }}
-            />
-          </Card>
-          {renderPostInput}
-          <MomentPost post={{ "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b1", "createdAt": "2024-03-17T04:09:26.232Z", "media": "https://api-dev-minimal-v510.vercel.app/assets/images/travel/travel_2.jpg", "message": "The sun slowly set over the horizon, painting the sky in vibrant hues of orange and pink.", "personLikes": [{ "name": "Jayvion Simon", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_3.jpg" }, { "name": "Lucian Obrien", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_4.jpg" }, { "name": "Deja Brady", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_5.jpg" }, { "name": "Harrison Stein", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_6.jpg" }, { "name": "Reece Chung", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_7.jpg" }, { "name": "Lainey Davidson", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_8.jpg" }, { "name": "Cristopher Cardenas", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_9.jpg" }, { "name": "Melanie Noble", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_10.jpg" }, { "name": "Chase Day", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_11.jpg" }, { "name": "Shawn Manning", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_12.jpg" }, { "name": "Soren Durham", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_13.jpg" }, { "name": "Cortez Herring", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_14.jpg" }, { "name": "Brycen Jimenez", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_15.jpg" }, { "name": "Giana Brandt", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_16.jpg" }, { "name": "Aspen Schmitt", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_17.jpg" }, { "name": "Colten Aguilar", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_18.jpg" }, { "name": "Angelique Morse", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_19.jpg" }, { "name": "Selina Boyer", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_20.jpg" }, { "name": "Lawson Bass", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_21.jpg" }, { "name": "Ariana Lang", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_22.jpg" }], "comments": [{ "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b8", "author": { "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b9", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_6.jpg", "name": "Lainey Davidson" }, "createdAt": "2024-03-15T02:09:26.232Z", "message": "Praesent venenatis metus at" }, { "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b10", "author": { "id": "e99f09a7-dd88-49d5-b1c8-1daf80c2d7b11", "avatarUrl": "https://api-dev-minimal-v510.vercel.app/assets/images/avatar/avatar_7.jpg", "name": "Cristopher Cardenas" }, "createdAt": "2024-03-14T01:09:26.232Z", "message": "Etiam rhoncus. Nullam vel sem. Pellentesque libero tortor, tincidunt et, tincidunt eget, semper nec, quam. Sed lectus." }] }} />
+      <Container maxWidth={settings.themeStretch ? false : 'xl'} sx={{ mt: -2.5 }}>
+        <Grid container spacing={3}>
+          <Grid xs={12} md={12}>
+            <Card>
+              <Carousel ref={carousel.carouselRef} {...carousel.carouselSettings}>
+                {activities.map((activity, index) => (
+                  <CarouselItem key={activity.id} item={activity} active={index === carousel.currentIndex} />
+                ))}
+              </Carousel>
+
+              <CarouselArrows
+                onNext={carousel.onNext}
+                onPrev={carousel.onPrev}
+                sx={{ top: 8, right: 8, position: 'absolute', color: 'common.white' }}
+              />
+            </Card>
+
+            <FormProvider methods={methods} onSubmit={onSubmit}>
+              {renderPostInput}
+            </FormProvider>
+
+            {moments.map((post, index) => (
+              <Moment key={index} post={post} />
+            ))}
+          </Grid>
         </Grid>
-      </Grid>
-    </Container >
+      </Container >
+    </>
   );
 }
 

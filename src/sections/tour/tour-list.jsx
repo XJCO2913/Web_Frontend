@@ -16,14 +16,14 @@ export default function TourList({ tours }) {
 
   const handleView = useCallback(
     (id) => {
-      router.push(paths.dashboard.tour.details(id));
+      router.push(paths.home.tour.details(id));
     },
     [router]
   );
 
   const handleEdit = useCallback(
     (id) => {
-      router.push(paths.dashboard.tour.edit(id));
+      router.push(paths.home.tour.edit(id));
     },
     [router]
   );
@@ -45,11 +45,11 @@ export default function TourList({ tours }) {
       >
         {tours.map((tour) => (
           <TourItem
-            key={tour.id}
+            key={tour.activityId}
             tour={tour}
-            onView={() => handleView(tour.id)}
-            onEdit={() => handleEdit(tour.id)}
-            onDelete={() => handleDelete(tour.id)}
+            onView={() => handleView(tour.activityId)}
+            onEdit={() => handleEdit(tour.activityId)}
+            onDelete={() => handleDelete(tour.activityId)}
           />
         ))}
       </Box>

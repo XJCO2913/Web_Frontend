@@ -45,7 +45,7 @@ export function useNavData() {
           icon: ICONS.chat,
         },
         {
-          title: t('tour'),
+          title: t('activity'),
           path: paths.home.tour.root,
           icon: ICONS.tour,
           children: [

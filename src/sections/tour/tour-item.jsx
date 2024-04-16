@@ -22,41 +22,25 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 // ----------------------------------------------------------------------
 
 export default function TourItem({ tour, onView, onEdit, onDelete }) {
+  
+
   const popover = usePopover();
 
   const {
-    id,
+    activityId,
     name,
-    price,
-    images,
-    bookers,
+    finalFee,
+    coverUrl,
+    numberLimit,
     createdAt,
-    available,
-    priceSale,
+    startDate,
+    endDate,
+    originalFee,
     destination,
-    ratingNumber,
   } = tour;
+  const DETAIL_URL = `/home/tour/${tour.activityId}`
 
-  const shortLabel = shortDateLabel(available.startDate, available.endDate);
-
-  const renderRating = (
-    <Stack
-      direction="row"
-      alignItems="center"
-      sx={{
-        top: 8,
-        right: 8,
-        zIndex: 9,
-        borderRadius: 1,
-        position: 'absolute',
-        p: '2px 6px 2px 4px',
-        typography: 'subtitle2',
-        bgcolor: 'warning.lighter',
-      }}
-    >
-      <Iconify icon="eva:star-fill" sx={{ color: 'warning.main', mr: 0.25 }} /> {ratingNumber}
-    </Stack>
-  );
+  const shortLabel = shortDateLabel(startDate, endDate);
 
   const renderPrice = (
     <Stack
@@ -74,12 +58,12 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
         typography: 'subtitle2',
       }}
     >
-      {!!priceSale && (
+      {(!!originalFee && originalFee !== finalFee ) && (
         <Box component="span" sx={{ color: 'grey.500', mr: 0.25, textDecoration: 'line-through' }}>
-          {fCurrency(priceSale)}
+          {fCurrency(originalFee)}
         </Box>
       )}
-      {fCurrency(price)}
+      {fCurrency(finalFee)}
     </Stack>
   );
 
@@ -93,13 +77,12 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
     >
       <Stack flexGrow={1} sx={{ position: 'relative' }}>
         {renderPrice}
-        {renderRating}
-        <Image alt={images[0]} src={images[0]} sx={{ borderRadius: 1, height: 164, width: 1 }} />
+        <Image alt={coverUrl} src={coverUrl} sx={{ borderRadius: 1, height: 164, width: 1 }} />
       </Stack>
-      <Stack spacing={0.5}>
+      {/* <Stack spacing={0.5}>
         <Image alt={images[1]} src={images[1]} ratio="1/1" sx={{ borderRadius: 1, width: 80 }} />
         <Image alt={images[2]} src={images[2]} ratio="1/1" sx={{ borderRadius: 1, width: 80 }} />
-      </Stack>
+      </Stack> */}
     </Stack>
   );
 
@@ -110,7 +93,7 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
       }}
       primary={`Posted date: ${fDateTime(createdAt)}`}
       secondary={
-        <Link component={RouterLink} href={paths.home.tour.details} color="inherit">
+        <Link component={RouterLink} href={DETAIL_URL} color="inherit">
           {name}
         </Link>
       }
@@ -141,16 +124,16 @@ export default function TourItem({ tour, onView, onEdit, onDelete }) {
       </IconButton>
 
       {[
-        {
-          label: destination,
-          icon: <Iconify icon="mingcute:location-fill" sx={{ color: 'error.main' }} />,
-        },
+        // {
+        //   label: destination,
+        //   icon: <Iconify icon="mingcute:location-fill" sx={{ color: 'error.main' }} />,
+        // },
         {
           label: shortLabel,
           icon: <Iconify icon="solar:clock-circle-bold" sx={{ color: 'info.main' }} />,
         },
         {
-          label: `${bookers.length} Booked`,
+          label: `${numberLimit}`,
           icon: <Iconify icon="solar:users-group-rounded-bold" sx={{ color: 'primary.main' }} />,
         },
       ].map((item) => (

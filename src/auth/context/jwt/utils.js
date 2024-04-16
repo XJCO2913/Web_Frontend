@@ -1,5 +1,6 @@
 import { paths } from 'src/routes/paths';
-import axiosInstance, {axiosTest} from 'src/utils/axios';
+
+import axiosInstance, { axiosTest } from 'src/utils/axios';
 
 // ----------------------------------------------------------------------
 

@@ -22,10 +22,21 @@ export const endpoints = {
         register: '/user/register',
         me: '/user',
     },
-    user:{
+    user: {
+        changeAccount: '/user',
+        avatarUpload: '/user/avatar',
         subscribe: '/user/subscribe',
         cancelSubscribe: '/user/cancel',
         refreshToken: '/user/refresh',
     },
-    chat: '/chat'
+    chat: '/chat',
+    activity: {
+        create: '/activity/create',
+        all: '/activity/all',
+        fetch: '/activity/feed'
+    },
+    moment: {
+        create: '/moment/create',
+        fetch: '/moment/feed'
+    },
 };
