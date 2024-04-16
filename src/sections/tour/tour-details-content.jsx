@@ -19,25 +19,36 @@ import Iconify from 'src/components/iconify';
 import Markdown from 'src/components/markdown';
 import { varTranHover } from 'src/components/animate';
 import Lightbox, { useLightBox } from 'src/components/lightbox';
+import { useEffect, useState } from 'react';
 
 // ----------------------------------------------------------------------
+
+const ACTIVITY_TAGS = [
+  {tagID: '10001', tagName: 'Refresher'},
+  {tagID: '10002', tagName: 'Supplement'},
+  {tagID: '10003', tagName: 'Sports-outfit'},
+  {tagID: '10004', tagName: 'Medical-support'},
+]
 
 export default function TourDetailsContent({ tour }) {
   const {
     name,
-    images,
-    content,
-    services,
-    tourGuides,
-    available,
-    durations,
-    destination,
-    ratingNumber,
+    coverUrl,
+    activityId,
+    participantsCount,
+    description,
+    startDate,
+    endDate,
+    tags,
+    creatorID,
+    numberLimit,
   } = tour;
 
-  const slides = images.map((slide) => ({
-    src: slide,
-  }));
+  const [tagArr, setTagArr] = useState([])
+
+  const slides = [
+    {src: coverUrl}
+  ]
 
   const {
     selected: selectedImage,
@@ -46,6 +57,17 @@ export default function TourDetailsContent({ tour }) {
     onClose: handleCloseLightbox,
   } = useLightBox(slides);
 
+  function getTagName(tagID) {
+    const tag = ACTIVITY_TAGS.find(tag => tag.tagID === tagID);
+    return tag ? tag.tagName : null;
+  }
+
+  useEffect(() => {
+    if (tour && tour.tags) {
+      setTagArr(tour.tags.split('|'))
+    }
+  }, [tour])
+
   const renderGallery = (
     <>
       <Box
@@ -53,7 +75,7 @@ export default function TourDetailsContent({ tour }) {
         display="grid"
         gridTemplateColumns={{
           xs: 'repeat(1, 1fr)',
-          md: 'repeat(2, 1fr)',
+          md: 'repeat(1, 1fr)',
         }}
         sx={{
           mb: { xs: 3, md: 5 },
@@ -77,7 +99,7 @@ export default function TourDetailsContent({ tour }) {
         </m.div>
 
         <Box gap={1} display="grid" gridTemplateColumns="repeat(2, 1fr)">
-          {slides.slice(1, 5).map((slide) => (
+          {slides.slice(1, 1).map((slide) => (
             <m.div
               key={slide.src}
               whileHover="hover"
@@ -127,25 +149,25 @@ export default function TourDetailsContent({ tour }) {
       </Stack>
 
       <Stack spacing={3} direction="row" flexWrap="wrap" alignItems="center">
-        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ typography: 'body2' }}>
+        {/* <Stack direction="row" alignItems="center" spacing={0.5} sx={{ typography: 'body2' }}>
           <Iconify icon="eva:star-fill" sx={{ color: 'warning.main' }} />
           <Box component="span" sx={{ typography: 'subtitle2' }}>
             {ratingNumber}
           </Box>
           <Link sx={{ color: 'text.secondary' }}>(234 reviews)</Link>
-        </Stack>
+        </Stack> */}
 
-        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ typography: 'body2' }}>
+        {/* <Stack direction="row" alignItems="center" spacing={0.5} sx={{ typography: 'body2' }}>
           <Iconify icon="mingcute:location-fill" sx={{ color: 'error.main' }} />
           {destination}
-        </Stack>
+        </Stack> */}
 
         <Stack direction="row" alignItems="center" spacing={0.5} sx={{ typography: 'subtitle2' }}>
           <Iconify icon="solar:flag-bold" sx={{ color: 'info.main' }} />
           <Box component="span" sx={{ typography: 'body2', color: 'text.secondary' }}>
-            Guide by
+            Created by
           </Box>
-          {tourGuides.map((tourGuide) => tourGuide.name).join(', ')}
+          {creatorID}
         </Stack>
       </Stack>
     </>
@@ -163,22 +185,22 @@ export default function TourDetailsContent({ tour }) {
       {[
         {
           label: 'Available',
-          value: `${fDate(available.startDate)} - ${fDate(available.endDate)}`,
+          value: `${fDate(startDate)} - ${fDate(endDate)}`,
           icon: <Iconify icon="solar:calendar-date-bold" />,
         },
         {
           label: 'Contact name',
-          value: tourGuides.map((tourGuide) => tourGuide.phoneNumber).join(', '),
+          value: creatorID,
           icon: <Iconify icon="solar:user-rounded-bold" />,
         },
         {
-          label: 'Durations',
-          value: durations,
-          icon: <Iconify icon="solar:clock-circle-bold" />,
+          label: 'Participants limit',
+          value: numberLimit,
+          icon: <Iconify icon="solar:people-nearby-bold" />,
         },
         {
           label: 'Contact phone',
-          value: tourGuides.map((tourGuide) => tourGuide.name).join(', '),
+          value:'+86 18950785805',
           icon: <Iconify icon="solar:phone-bold" />,
         },
       ].map((item) => (
@@ -205,9 +227,9 @@ export default function TourDetailsContent({ tour }) {
 
   const renderContent = (
     <>
-      <Markdown children={content} />
+      <Markdown children={description}/>
 
-      <Stack spacing={2}>
+      <Stack spacing={2} mt={8}>
         <Typography variant="h6"> Services</Typography>
 
         <Box
@@ -218,14 +240,14 @@ export default function TourDetailsContent({ tour }) {
             md: 'repeat(2, 1fr)',
           }}
         >
-          {TOUR_SERVICE_OPTIONS.map((service) => (
+          {ACTIVITY_TAGS.map((tag) => (
             <Stack
-              key={service.label}
+              key={tag.tagID}
               spacing={1}
               direction="row"
               alignItems="center"
               sx={{
-                ...(services.includes(service.label) && {
+                ...(!tagArr.includes(tag.tagID) && {
                   color: 'text.disabled',
                 }),
               }}
@@ -234,12 +256,12 @@ export default function TourDetailsContent({ tour }) {
                 icon="eva:checkmark-circle-2-outline"
                 sx={{
                   color: 'primary.main',
-                  ...(services.includes(service.label) && {
+                  ...(!tagArr.includes(tag.tagID) && {
                     color: 'text.disabled',
                   }),
                 }}
               />
-              {service.label}
+              {getTagName(tag.tagID)}
             </Stack>
           ))}
         </Box>
