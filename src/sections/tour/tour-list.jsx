@@ -21,7 +21,7 @@ export default function TourList({ tours }) {
 
   const handleView = useCallback(
     (id) => {
-      router.push(paths.dashboard.tour.details(id));
+      router.push(paths.home.tour.details(id));
     },
     [router]
   );

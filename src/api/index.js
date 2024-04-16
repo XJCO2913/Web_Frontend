@@ -30,6 +30,7 @@ export const endpoints = {
     activity: {
         create: '/activity/create',
         all: '/activity/all',
+        fetch: '/activity/feed',
         join: '/activity/signup',
         getById: '/activity',
         me: {
