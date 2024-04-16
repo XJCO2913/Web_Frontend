@@ -40,10 +40,10 @@ export default function TourDetailsBookers({ bookers }) {
     >
       {bookers.map((booker) => (
         <BookerItem
-          key={booker.id}
+          key={booker.userID}
           booker={booker}
-          selected={approved.includes(booker.id)}
-          onSelected={() => handleClick(booker.id)}
+          selected={approved.includes(booker.userID)}
+          onSelected={() => handleClick(booker.userID)}
         />
       ))}
     </Box>
@@ -58,16 +58,16 @@ TourDetailsBookers.propTypes = {
 
 function BookerItem({ booker, selected, onSelected }) {
   return (
-    <Stack component={Card} direction="row" spacing={2} key={booker.id} sx={{ p: 3 }}>
-      <Avatar alt={booker.name} src={booker.avatarUrl} sx={{ width: 48, height: 48 }} />
+    <Stack component={Card} direction="row" spacing={2} key={booker.userID} sx={{ p: 3 }}>
+      <Avatar alt={booker.username} src={booker.avatarURL} sx={{ width: 48, height: 48 }} />
 
       <Stack spacing={2} flexGrow={1}>
         <ListItemText
-          primary={booker.name}
+          primary={booker.username}
           secondary={
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <Iconify icon="solar:users-group-rounded-bold" width={16} />
-              {booker.guests} guests
+              <Iconify icon="solar:buildings-2-bold-duotone" width={16} />
+              {booker.region}
             </Stack>
           }
           secondaryTypographyProps={{
@@ -79,7 +79,7 @@ function BookerItem({ booker, selected, onSelected }) {
         />
 
         <Stack spacing={1} direction="row">
-          <IconButton
+          {/* <IconButton
             size="small"
             color="error"
             sx={{
@@ -91,7 +91,7 @@ function BookerItem({ booker, selected, onSelected }) {
             }}
           >
             <Iconify width={18} icon="solar:phone-bold" />
-          </IconButton>
+          </IconButton> */}
 
           <IconButton
             size="small"
@@ -107,7 +107,7 @@ function BookerItem({ booker, selected, onSelected }) {
             <Iconify width={18} icon="solar:chat-round-dots-bold" />
           </IconButton>
 
-          <IconButton
+          {/* <IconButton
             size="small"
             color="primary"
             sx={{
@@ -119,7 +119,7 @@ function BookerItem({ booker, selected, onSelected }) {
             }}
           >
             <Iconify width={18} icon="fluent:mail-24-filled" />
-          </IconButton>
+          </IconButton> */}
         </Stack>
       </Stack>
 

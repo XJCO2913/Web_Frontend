@@ -42,6 +42,7 @@ export default function TourDetailsContent({ tour }) {
     tags,
     creatorID,
     numberLimit,
+    creatorName,
   } = tour;
 
   const [tagArr, setTagArr] = useState([])
@@ -167,7 +168,7 @@ export default function TourDetailsContent({ tour }) {
           <Box component="span" sx={{ typography: 'body2', color: 'text.secondary' }}>
             Created by
           </Box>
-          {creatorID}
+          {creatorName}
         </Stack>
       </Stack>
     </>
@@ -190,7 +191,7 @@ export default function TourDetailsContent({ tour }) {
         },
         {
           label: 'Contact name',
-          value: creatorID,
+          value: creatorName,
           icon: <Iconify icon="solar:user-rounded-bold" />,
         },
         {
