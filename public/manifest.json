@@ -1,11 +1,11 @@
 {
     "name": "My React App",
-    "short_name": "ReactApp",
+    "short_name": "PathPals",
     "icons": [
       {
         "src": "PathPals.png",
         "type": "image/png",
-        "sizes": "192x192"
+        "sizes": "120x120"
       }
     ],
     "start_url": "/",
