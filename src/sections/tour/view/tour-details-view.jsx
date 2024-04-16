@@ -96,7 +96,8 @@ export default function TourDetailsView({ id }) {
         publish={publish}
         onChangePublish={handleChangePublish}
         publishOptions={TOUR_PUBLISH_OPTIONS}
-        isJoined={currentTour?.isRegistered}
+        isJoined={currentTour.isRegistered}
+        activityId={id}
       />
       {renderTabs}
 

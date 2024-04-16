@@ -12,6 +12,10 @@ import { RouterLink } from 'src/routes/components';
 
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import { useSnackbar } from 'notistack';
+import { useEffect, useState } from 'react';
+import { axiosSimple } from '@/utils/axios';
+import { endpoints } from '@/api';
 
 // ----------------------------------------------------------------------
 
@@ -24,8 +28,37 @@ export default function TourDetailsToolbar({
   onChangePublish,
   sx,
   isJoined,
+  activityId,
   ...other
 }) {
+  const { enqueueSnackbar } = useSnackbar()
+
+  const [curIsJoined, setCurIsJoined] = useState(isJoined)
+
+  const handleJoin = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const resp = await axiosSimple.post(endpoints.activity.join + "?activityID=" + activityId, null, httpConfig)
+      if (resp.data.status_code === 0) {
+        enqueueSnackbar(resp.data.status_msg)
+        setCurIsJoined(true)
+      } else {
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+      }
+    } catch(err) {
+      enqueueSnackbar(err.toString(), { variant: "error" })
+    }
+  }
+
+  useEffect(() => {
+    setCurIsJoined(isJoined)
+  }, [isJoined])
 
   return (
     <>
@@ -54,10 +87,11 @@ export default function TourDetailsToolbar({
           loading={!publish}
           loadingIndicator="Loading…"
           sx={{ textTransform: 'capitalize' }}
-          disabled={isJoined}
+          disabled={curIsJoined}
+          onClick={handleJoin}
         >
           {
-            isJoined ? 
+            curIsJoined ? 
             "Joined" :
             "Join Now"
           }
