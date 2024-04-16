@@ -46,6 +46,15 @@ const reducer = (state, action) => {
       },
     };
   }
+  if (action.type === 'UPDATE_USER') {
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        ...action.payload.updates,
+      },
+    };
+  }
   return state;
 };
 
@@ -228,6 +237,16 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
+  // UPDATE USER INFO
+  const updateUser = useCallback((updates) => {
+    dispatch({
+      type: 'UPDATE_USER',
+      payload: {
+        updates,
+      },
+    });
+  }, []);
+
   // ----------------------------------------------------------------------
 
   const checkAuthenticated = state.user ? 'authenticated' : 'unauthenticated';
@@ -245,8 +264,9 @@ export function AuthProvider({ children }) {
       register,
       logout,
       updateToken,
+      updateUser,
     }),
-    [login, logout, register, updateToken, state.user, status]
+    [login, logout, register, updateToken, updateUser, state.user, status]
   );
 
   return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;

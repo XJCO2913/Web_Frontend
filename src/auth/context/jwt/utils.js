@@ -1,5 +1,5 @@
 import { paths } from 'src/routes/paths';
-import axios from 'src/utils/axios';
+import axiosInstance, {axiosTest} from 'src/utils/axios';
 
 // ----------------------------------------------------------------------
 
@@ -64,13 +64,15 @@ export const tokenExpired = (exp) => {
 export const setSession = (token) => {
   if (token) {
     sessionStorage.setItem('token', token);
-    axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`;
+    axiosTest.defaults.headers.common.Authorization = `Bearer ${token}`;
 
     // This function below will handle when token is expired
     const { exp } = jwtDecode(token);
     tokenExpired(exp);
   } else {
     sessionStorage.removeItem('token');
-    delete axios.defaults.headers.common.Authorization;
+    delete axiosInstance.defaults.headers.common.Authorization;
+    delete axiosTest.defaults.headers.common.Authorization;
   }
 };

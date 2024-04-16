@@ -1,9 +1,9 @@
 import { useRef } from 'react';
 import PropTypes from 'prop-types';
-import { closeSnackbar, SnackbarProvider as NotistackProvider } from 'notistack';
+import { SnackbarProvider as NotistackProvider } from 'notistack';
 
 import Collapse from '@mui/material/Collapse';
-import IconButton from '@mui/material/IconButton';
+//import IconButton from '@mui/material/IconButton';
 
 import Iconify from '../iconify';
 import { useSettingsContext } from '../settings';
@@ -56,12 +56,12 @@ export default function SnackbarProvider({ children }) {
         warning: StyledNotistack,
         error: StyledNotistack,
       }}
-      // with close as default
-      action={(snackbarId) => (
-        <IconButton size="small" onClick={() => closeSnackbar(snackbarId)} sx={{ p: 0.5 }}>
-          <Iconify width={16} icon="mingcute:close-line" />
-        </IconButton>
-      )}
+    // with close as default
+    // action={(snackbarId) => (
+    //   <IconButton size="small" onClick={() => closeSnackbar(snackbarId)} sx={{ p: 0.5 }}>
+    //     <Iconify width={16} icon="mingcute:close-line" />
+    //   </IconButton>
+    // )}
     >
       {children}
     </NotistackProvider>
