@@ -24,7 +24,10 @@ export const endpoints = {
     },
     user: {
         changeAccount: '/user',
-        avatarUpload: '/user/avatar'
+        avatarUpload: '/user/avatar',
+        subscribe: '/user/subscribe',
+        cancelSubscribe: '/user/cancel',
+        refreshToken: '/user/refresh',
     },
     chat: '/chat',
     activity: {

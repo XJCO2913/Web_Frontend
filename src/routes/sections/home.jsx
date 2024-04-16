@@ -23,6 +23,9 @@ const TourEditPage = lazy(() => import('src/pages/home/tour/edit'));
 // Chat
 const ChatPage = lazy(() => import('src/pages/home/chat'));
 
+// Payment
+const PaymentPage = lazy(() => import('src/pages/payment'));
+
 // ----------------------------------------------------------------------
 
 export const homeRoutes = [
@@ -59,6 +62,9 @@ export const homeRoutes = [
         ],
       },
       { path: 'chat', element: <ChatPage /> },
+      {
+        path: 'payment', element: <PaymentPage />
+      }
     ],
   },
 ];

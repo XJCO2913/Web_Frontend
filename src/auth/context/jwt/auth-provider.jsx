@@ -37,6 +37,24 @@ const reducer = (state, action) => {
       user: null,
     };
   }
+  if (action.type === 'UPDATE_TOKEN') {
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        token: action.payload.token,
+      },
+    };
+  }
+  if (action.type === 'UPDATE_USER') {
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        ...action.payload.updates,
+      },
+    };
+  }
   return state;
 };
 
@@ -206,6 +224,27 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
+  // UPDATE TOKEN
+  const updateToken = useCallback(async (newToken) => {
+    setSession(newToken);
+    dispatch({
+      type: 'UPDATE_TOKEN',
+      payload: {
+        token: newToken,
+      },
+    });
+  }, []);
+
+  // UPDATE USER INFO
+  const updateUser = useCallback((updates) => {
+    dispatch({
+      type: 'UPDATE_USER',
+      payload: {
+        updates,
+      },
+    });
+  }, []);
+
   // ----------------------------------------------------------------------
 
   const checkAuthenticated = state.user ? 'authenticated' : 'unauthenticated';
@@ -223,8 +262,11 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      updateToken,
+      updateUser,
     }),
-    [initialize, login, logout, register, state.user, status]
+
+    [initialize, login, logout, register, updateToken, updateUser, state.user, status]
   );
 
   return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;
