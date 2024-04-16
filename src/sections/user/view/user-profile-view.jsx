@@ -98,7 +98,7 @@ export default function UserProfileView() {
 
   useEffect(() => {
     fetchMyActivities()
-  })
+  }, [])
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
