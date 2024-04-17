@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import _ from 'lodash';
 
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
@@ -14,9 +15,10 @@ import { MenuItem } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
 
 import { fData } from 'src/utils/format-number';
-import axiosInstance from 'src/utils/axios'
+import axiosInstance, { axiosTest } from 'src/utils/axios'
 import FormProvider, { RHFTextField, RHFUploadAvatar, RHFSelect } from 'src/components/hook-form';
 import { CityCascader } from 'src/components/city-cascader'
 import { useSnackbar } from 'src/components/snackbar';
@@ -52,12 +54,27 @@ export default function AccountGeneral() {
   const hasFormValueChanged = () => {
     return Object.keys(defaultValues).some(key => {
       if (key === 'photoURL') {
-        return false; // 返回 false 来跳过当前迭代，继续检查其他字段
+        return false; // 跳过此字段
       }
-      const isValueChanged = defaultValues[key] != watchAllFields[key];
-      return isValueChanged;
+
+      const defaultValue = defaultValues[key];
+      const watchedValue = watchAllFields[key];
+
+      // 对日期进行特殊处理
+      if (defaultValue instanceof Date && watchedValue instanceof Date) {
+        return defaultValue.getTime() !== watchedValue.getTime();
+      }
+
+      // 增加对对象深度比较的支持（可以使用Lodash的isEqual方法）
+      if (typeof defaultValue === 'object' && typeof watchedValue === 'object') {
+        return !_.isEqual(defaultValue, watchedValue);
+      }
+
+      // 对基本类型使用严格比较
+      return defaultValue !== watchedValue;
     });
   };
+
 
   const genderOptions = [
     { label: "Male", value: 0 },
@@ -108,15 +125,19 @@ export default function AccountGeneral() {
 
     // 如果用户更新了信息
     if (formChanged) {
+      const formattedBirthday = data.birthday ? dayjs(data.birthday).format('DD MMM YY HH:mm ZZ') : null;
       const formData = {
         username: data.username,
         gender: data.gender,
-        birthday: data.birthday,
+        birthday: formattedBirthday,
         region: data.region,
       };
+      console.log(formData.birthday)
       try {
-        const res = await axiosInstance.patch(`${endpoints.user.changeAccount}?userID=${user.userId}`, formData);
+        const res = await axiosTest.patch(`${endpoints.user.changeAccount}?userID=${user.userId}`, formData);
         if (res.data.status_code === 0) {
+          // 重新初始化表单或页面，无需等待异步操作
+          initialize();
           enqueueSnackbar('Update success!');
         }
       } catch (error) {
@@ -136,6 +157,8 @@ export default function AccountGeneral() {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         if (res.data.status_code === 0) {
+          // 重新初始化表单或页面，无需等待异步操作
+          initialize();
           enqueueSnackbar('Update success!');
         }
       } catch (error) {
@@ -149,9 +172,6 @@ export default function AccountGeneral() {
     if (!formChanged && !(avatarChanged && selectedFile)) {
       enqueueSnackbar('No changes detected.', { variant: 'warning' });
     }
-
-    // 重新初始化表单或页面，无需等待异步操作
-    initialize();
   });
 
   const handleDrop = useCallback(
@@ -236,7 +256,7 @@ export default function AccountGeneral() {
                     render={({ field, fieldState: { error } }) => (
                       <DatePicker
                         label={error ? error.message : "Birthday"}
-                        inputFormat="dd-MM-YYYY"
+                        inputFormat="DD-MM-YYYY"
                         maxDate={new Date()}
                         value={field.value === '' ? null : field.value}
                         onChange={(newValue) => {
