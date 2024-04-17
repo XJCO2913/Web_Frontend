@@ -13,7 +13,7 @@ const AMapPathDrawer = ({ path, style }) => {
     }).then(AMap => {
       const map = new AMap.Map(mapContainer.current, {
         viewMode: "3D",          // 使用3D视图模式
-        zoom: 13,                // 初始缩放级别
+        zoom: 16,                // 初始缩放级别
         center: path[0],         // 使用路径的第一个坐标作为地图中心点
       });
 

@@ -166,7 +166,7 @@ export default function HomeView() {
         let fieldName = '';
         if (file.type.match('image.*')) {
           fieldName = 'imageFile';
-        } else if (file.type === 'application/gpx+xml') {
+        } else if (file.type === 'text/xml') {
           fieldName = 'gpxFile';
         } else if (file.type.match('video.*')) {
           fieldName = 'videoFile';
@@ -174,7 +174,7 @@ export default function HomeView() {
         if (fieldName) {
           formData.append(fieldName, file);
         } else {
-          throw new Error('Invalid file format');
+          throw new Error('Invalid file format!');
         }
       }
 
@@ -183,12 +183,12 @@ export default function HomeView() {
         setSuccess(true)
         reset({ content: '', file: [] });
         setSnackbarInfo({ open: true, message: 'Post successfully created!', type: 'success' });
-        fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
       } else {
         setSuccess(false)
         setSnackbarInfo({ open: true, message: 'Post failed to create!', type: 'error' });
       }
-
+      // Inside your onSubmit function after the post is successful
+      fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
     } catch (error) {
       console.error(error);
       setSnackbarInfo({ open: true, message: error.message || 'An unexpected error occurred', type: 'error' });
@@ -239,7 +239,6 @@ export default function HomeView() {
     },
     [setValue, values.file, setSnackbarInfo]
   );
-
 
   const handleRemoveFile = useCallback(
     (inputFile) => {

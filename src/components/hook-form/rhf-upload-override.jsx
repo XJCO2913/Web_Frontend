@@ -21,7 +21,7 @@ export default function RHFUploadOverride({ name, multiple, helperText, ...other
             accept={{
               'image/*': [],
               'video/*': [],
-              'application/xml': []
+              'application/xml': ['.xml']
             }}
             files={field.value}
             error={!!error}
