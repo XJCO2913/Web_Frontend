@@ -17,7 +17,7 @@ import Alert from '@mui/material/Alert';
 import { useSettingsContext } from 'src/components/settings';
 import Carousel, { useCarousel, CarouselDots, CarouselArrows } from 'src/components/carousel';
 import FormProvider, { RHFUploadOverride } from 'src/components/hook-form';
-import axiosInstance from 'src/utils/axios';
+import axiosInstance, { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 
 import Moment from '../home-moment';
@@ -31,7 +31,7 @@ const fetchMoments = async (setMoments, setNextTime, nextTime, hasMore, setHasMo
 
   const time = nextTime || new Date().getTime();
   try {
-    const response = await axiosInstance.get(`${endpoints.moment.fetch}?latestTime=${time}`);
+    const response = await axiosTest.get(`${endpoints.moment.fetch}?latestTime=${time}`);
     if (response.data.Data.nextTime) {
       setMoments(prevMoments => [...prevMoments, ...response.data.Data.moments]);
       setNextTime(response.data.Data.nextTime);
@@ -72,8 +72,6 @@ export default function HomeView() {
     message: '',
     type: 'success',
   });
-
-
 
   const [success, setSuccess] = useState(false);
   const [content, setContent] = useState('');
