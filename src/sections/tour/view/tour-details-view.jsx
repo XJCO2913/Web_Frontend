@@ -7,7 +7,7 @@ import Container from '@mui/material/Container';
 
 import { paths } from 'src/routes/paths';
 
-import { _tours, TOUR_DETAILS_TABS, TOUR_PUBLISH_OPTIONS } from 'src/_mock';
+import { TOUR_DETAILS_TABS, TOUR_PUBLISH_OPTIONS } from 'src/_mock';
 
 import Label from 'src/components/label';
 import { useSettingsContext } from 'src/components/settings';
@@ -16,8 +16,8 @@ import TourDetailsToolbar from '../tour-details-toolbar';
 import TourDetailsContent from '../tour-details-content';
 import TourDetailsBookers from '../tour-details-bookers';
 import { useSnackbar } from 'notistack';
-import { axiosSimple } from '@/utils/axios';
-import { endpoints } from '@/api';
+import { axiosTest } from 'src/utils/axios';
+import { endpoints } from 'src/api';
 
 // ----------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ export default function TourDetailsView({ id }) {
           'Authorization': `Bearer ${token}`,
         }
       }
-      const resp = await axiosSimple.get(endpoints.activity.getById + "?activityID=" + id, httpConfig)
+      const resp = await axiosTest.get(endpoints.activity.getById + "?activityID=" + id, httpConfig)
       if (resp.data.status_code === 0) {
         setCurrentTour(resp.data.Data)
         setPublish('111')

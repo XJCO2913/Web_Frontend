@@ -17,7 +17,7 @@ import Alert from '@mui/material/Alert';
 import { useSettingsContext } from 'src/components/settings';
 import Carousel, { useCarousel, CarouselDots, CarouselArrows } from 'src/components/carousel';
 import FormProvider, { RHFUploadOverride } from 'src/components/hook-form';
-import axiosInstance from 'src/utils/axios';
+import axiosInstance, { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 
 import Moment from '../home-moment';
@@ -31,7 +31,7 @@ const fetchMoments = async (setMoments, setNextTime, nextTime, hasMore, setHasMo
 
   const time = nextTime || new Date().getTime();
   try {
-    const response = await axiosInstance.get(`${endpoints.moment.fetch}?latestTime=${time}`);
+    const response = await axiosTest.get(`${endpoints.moment.fetch}?latestTime=${time}`);
     if (response.data.Data.nextTime) {
       setMoments(prevMoments => [...prevMoments, ...response.data.Data.moments]);
       setNextTime(response.data.Data.nextTime);
@@ -72,8 +72,6 @@ export default function HomeView() {
     message: '',
     type: 'success',
   });
-
-
 
   const [success, setSuccess] = useState(false);
   const [content, setContent] = useState('');
@@ -168,7 +166,7 @@ export default function HomeView() {
         let fieldName = '';
         if (file.type.match('image.*')) {
           fieldName = 'imageFile';
-        } else if (file.type === 'application/gpx+xml') {
+        } else if (file.type === 'text/xml') {
           fieldName = 'gpxFile';
         } else if (file.type.match('video.*')) {
           fieldName = 'videoFile';
@@ -176,7 +174,7 @@ export default function HomeView() {
         if (fieldName) {
           formData.append(fieldName, file);
         } else {
-          throw new Error('Invalid file format');
+          throw new Error('Invalid file format!');
         }
       }
 
@@ -185,12 +183,10 @@ export default function HomeView() {
         setSuccess(true)
         reset({ content: '', file: [] });
         setSnackbarInfo({ open: true, message: 'Post successfully created!', type: 'success' });
-        fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
       } else {
         setSuccess(false)
         setSnackbarInfo({ open: true, message: 'Post failed to create!', type: 'error' });
       }
-
     } catch (error) {
       console.error(error);
       setSnackbarInfo({ open: true, message: error.message || 'An unexpected error occurred', type: 'error' });
@@ -241,7 +237,6 @@ export default function HomeView() {
     },
     [setValue, values.file, setSnackbarInfo]
   );
-
 
   const handleRemoveFile = useCallback(
     (inputFile) => {
@@ -362,4 +357,3 @@ export default function HomeView() {
     </>
   );
 }
-

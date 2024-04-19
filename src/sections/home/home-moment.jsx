@@ -17,19 +17,15 @@ import InputAdornment from '@mui/material/InputAdornment';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import AvatarGroup, { avatarGroupClasses } from '@mui/material/AvatarGroup';
 
-import { useAuthContext } from 'src/auth/hooks'
-
 import { fDate } from 'src/utils/format-time';
 import { fShortenNumber } from 'src/utils/format-number';
-
+import AMapPathDrawer from 'src/components/map'
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
 export default function Moment({ post }) {
-  const { user } = useAuthContext()
-
   const commentRef = useRef(null);
 
   const fileRef = useRef(null);
@@ -50,13 +46,13 @@ export default function Moment({ post }) {
     <CardHeader
       disableTypography
       avatar={
-        <Avatar src={user?.avatarUrl} alt={user?.username}>
-          {user?.username?.charAt(0).toUpperCase()}
+        <Avatar src={post.authorInfo?.avatarUrl} alt={post.authorInfo?.name}>
+          {post.authorInfo?.username?.charAt(0).toUpperCase()}
         </Avatar>
       }
       title={
         <Link color="inherit" variant="subtitle1">
-          {user?.username}
+          {post.authorInfo?.name}
         </Link>
       }
       subheader={
@@ -104,7 +100,6 @@ export default function Moment({ post }) {
     </Stack>
   );
 
-
   const renderInput = (
     <Stack
       spacing={2}
@@ -114,7 +109,7 @@ export default function Moment({ post }) {
         p: (theme) => theme.spacing(0, 3, 3, 3),
       }}
     >
-      <Avatar src={user?.avatarUrl} alt={user?.username} />
+      <Avatar src={post.authorInfo?.avatarUrl} alt={post.authorInfo?.name} />
       <InputBase
         fullWidth
         value={message}
@@ -216,6 +211,13 @@ export default function Moment({ post }) {
         post?.media_video && (
           <Box sx={{ p: 1 }}>
             <video controls src={post.media_video} style={{ width: '100%', borderRadius: '8px' }} />
+          </Box>
+        )
+      }
+      {
+        post?.media && (
+          <Box sx={{ p: 1 }}>
+            <AMapPathDrawer path={post.media} style={{ width: '100%', borderRadius: '8px' }}/>
           </Box>
         )
       }

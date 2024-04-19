@@ -5,17 +5,13 @@ import { useForm, Controller } from 'react-hook-form';
 import { useMemo, useEffect, useCallback, useState } from 'react';
 import { format } from "date-fns";
 
-import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import Avatar from '@mui/material/Avatar';
-import Switch from '@mui/material/Switch';
 import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
 
@@ -24,27 +20,23 @@ import { useRouter } from 'src/routes/hooks';
 
 import { useResponsive } from 'src/hooks/use-responsive';
 
-import { countries } from 'src/assets/data';
-import { _tags, _tourGuides, TOUR_SERVICE_OPTIONS } from 'src/_mock';
-
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, {
   RHFUpload,
   RHFTextField,
-  RHFAutocomplete,
   RHFMultiCheckbox,
 } from 'src/components/hook-form';
 import { Autocomplete, TextField } from '@mui/material';
-import { axiosSimple } from '@/utils/axios';
+import { axiosTest } from '@/utils/axios';
 import { endpoints } from '@/api';
 
 // ----------------------------------------------------------------------
 
 const ACTIVITY_TAGS = [
-  {tagID: '10001', tagName: 'refresher'},
-  {tagID: '10002', tagName: 'supplement'},
-  {tagID: '10003', tagName: 'sports-outfit'},
-  {tagID: '10004', tagName: 'medical-support'},
+  { tagID: '10001', tagName: 'refresher' },
+  { tagID: '10002', tagName: 'supplement' },
+  { tagID: '10003', tagName: 'sports-outfit' },
+  { tagID: '10004', tagName: 'medical-support' },
 ]
 
 export default function TourNewEditForm({ currentTour }) {
@@ -60,7 +52,7 @@ export default function TourNewEditForm({ currentTour }) {
   const NewTourSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
     description: Yup.string().required('Description is required'),
-    coverFile: Yup.array().min(1, 'Cover iamge is required'),
+    file: Yup.array().min(2, 'Cover iamge and xml file are required'),
     //
     // destination: Yup.string().required('Destination is required'),
     available: Yup.object().shape({
@@ -79,7 +71,7 @@ export default function TourNewEditForm({ currentTour }) {
     () => ({
       name: currentTour?.name || '',
       description: currentTour?.description || '',
-      coverFile: currentTour?.coverFile || [],
+      file: [],
       //
       level: currentTour?.level || [],
       destination: currentTour?.destination || '',
@@ -116,76 +108,98 @@ export default function TourNewEditForm({ currentTour }) {
 
   const onSubmit = handleSubmit(async (data) => {
     if (!acticityScale) {
-      return
+      return;
+    }
+
+    // 检查文件类型
+    const files = data.file;
+    let hasXML = false;
+    let hasImage = false;
+
+    if (files && files.length === 2) {
+      files.forEach(file => {
+        if (file.type === 'text/xml') {
+          hasXML = true;
+        } else if (file.type.match('image.*')) {
+          hasImage = true;
+        }
+      });
+    }
+
+    if (!hasXML || !hasImage) {
+      enqueueSnackbar('Please upload one XML file and one image file!', { variant: 'error' });
+      return;
     }
 
     try {
-      const formData = new FormData()
-      
-      // convert data to form-data
+      const formData = new FormData();
+
+      // Convert data to form-data
       for (const key in data) {
         if (key === 'available') {
-          formData.append('startDate',  format(new Date(data[key].startDate), 'yyyy-MM-dd'))
-          formData.append('endDate', format(new Date(data[key].endDate), 'yyyy-MM-dd'))
-          continue
-        } else if (key === 'coverFile') {
-          formData.append('coverFile', data[key][0])
-          continue
+          formData.append('startDate', format(new Date(data[key].startDate), 'yyyy-MM-dd'));
+          formData.append('endDate', format(new Date(data[key].endDate), 'yyyy-MM-dd'));
+          continue;
         } else if (key === 'tags') {
-          formData.append('tags', data['tags'].toString().replace(/,/g, '|'))
-          continue
+          formData.append('tags', data['tags'].toString().replace(/,/g, '|'));
+          continue;
         }
-
-        formData.append(key, data[key])
+        formData.append(key, data[key]);
       }
 
-      formData.forEach((value, key) => {
-        console.log(key, value);
+      // Append files to formData
+      files.forEach(file => {
+        let fieldName = '';
+        if (file.type.match('image.*')) {
+          fieldName = 'coverFile';
+        } else if (file.type === 'text/xml') {
+          fieldName = 'gpxFile';
+        }
+        formData.append(fieldName, file);
       });
 
-      const token = sessionStorage.getItem('token')
       const httpConfig = {
         headers: {
-          'Authorization': `Bearer ${'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTI1ODE3MjYsImlzQWRtaW4iOnRydWUsImlzT3JnYW5pc2VyIjp0cnVlLCJtZW1iZXJzaGlwVHlwZSI6MiwidXNlcklEIjoiMTIzMTIzMTIzIn0.ZO-E3pxNjhYbl_sbxoeSCV6tsCKOqLZq7L2UaDVD7uo'}`,
           'Content-Type': 'multipart/form-data'
         }
-      }
-      const resp = await axiosSimple.post(endpoints.activity.create, formData, httpConfig)
-      console.log(resp.data)
+      };
+
+      const resp = await axiosTest.post(endpoints.activity.create, formData, httpConfig);
+      console.log(resp.data);
 
       reset();
-      enqueueSnackbar(currentTour ? 'Update success!' : 'Create success!');
+      enqueueSnackbar(currentTour ? 'Update success!' : 'Create success!', { variant: 'success' });
       router.push(paths.home.tour.root);
     } catch (error) {
       console.error(error);
+      enqueueSnackbar('Failed to submit the data!', { variant: 'error' });
     }
   });
 
   const handleDrop = useCallback(
     (acceptedFiles) => {
-      const files = values.coverFile || [];
 
-      const newFiles = acceptedFiles.map((file) =>
+      const newFiles = acceptedFiles.map(file =>
         Object.assign(file, {
           preview: URL.createObjectURL(file),
         })
       );
 
-      setValue('coverFile', [...files, ...newFiles], { shouldValidate: true });
+      setValue('file', [...(values.file || []), ...newFiles], { shouldValidate: true });
     },
-    [setValue, values.coverFile]
+    [setValue, values.file]
   );
 
   const handleRemoveFile = useCallback(
     (inputFile) => {
-      const filtered = values.coverFile && values.coverFile?.filter((file) => file !== inputFile);
-      setValue('coverFile', filtered);
+      const filtered = values.file && values.file?.filter((file) => file !== inputFile);
+      setValue('file', filtered);
     },
-    [setValue, values.coverFile]
+    [setValue, values.file]
   );
 
   const handleRemoveAllFiles = useCallback(() => {
-    setValue('coverFile', []);
+    setValue('file', []);
   }, [setValue]);
 
   const renderDetails = (
@@ -213,7 +227,7 @@ export default function TourNewEditForm({ currentTour }) {
 
             <Stack spacing={1.5}>
               <Typography variant="subtitle2">Description</Typography>
-              <RHFTextField name="description" placeholder="Enther description of activity" multiline rows={5}/>
+              <RHFTextField name="description" placeholder="Enther description of activity" multiline rows={5} />
             </Stack>
 
             <Stack spacing={1.5}>
@@ -221,7 +235,7 @@ export default function TourNewEditForm({ currentTour }) {
               <RHFUpload
                 multiple
                 thumbnail
-                name="coverFile"
+                name="file"
                 onDrop={handleDrop}
                 onRemove={handleRemoveFile}
                 onRemoveAll={handleRemoveAllFiles}
@@ -255,29 +269,29 @@ export default function TourNewEditForm({ currentTour }) {
               <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
                 Activity Scale
               </Typography>
-            
-              <Autocomplete 
+
+              <Autocomplete
                 disablePortal
                 id="activityScale"
                 name="acticityScale"
                 options={['1~10 people', '11~30 people', '31~100 people']}
-                onChange={(event, newValue)=>{
+                onChange={(event, newValue) => {
                   switch (newValue) {
                     case '1~10 people':
                       setActivityScale('small')
-                      setValue('level', 'small', {shouldValidate: true})
+                      setValue('level', 'small', { shouldValidate: true })
                       break
-                    
+
                     case '11~30 people':
                       setActivityScale('medium')
-                      setValue('level', 'medium', {shouldValidate: true})
+                      setValue('level', 'medium', { shouldValidate: true })
                       break
 
                     case '31~100 people':
                       setActivityScale('large')
-                      setValue('level', 'large', {shouldValidate: true})
+                      setValue('level', 'large', { shouldValidate: true })
                       break
-                    
+
                     default:
                       if (!isActivityScaleError) {
                         setIsActivityScaleError(true)
@@ -285,8 +299,8 @@ export default function TourNewEditForm({ currentTour }) {
                   }
                 }}
                 renderInput={(params) => (
-                  <TextField 
-                    {...params} 
+                  <TextField
+                    {...params}
                     label="Scale"
                     error={isActivityScaleError}
                     helperText={isActivityScaleError ? "Scale is required" : null}
