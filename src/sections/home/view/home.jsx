@@ -187,8 +187,6 @@ export default function HomeView() {
         setSuccess(false)
         setSnackbarInfo({ open: true, message: 'Post failed to create!', type: 'error' });
       }
-      // Inside your onSubmit function after the post is successful
-      fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
     } catch (error) {
       console.error(error);
       setSnackbarInfo({ open: true, message: error.message || 'An unexpected error occurred', type: 'error' });
@@ -359,4 +357,3 @@ export default function HomeView() {
     </>
   );
 }
-

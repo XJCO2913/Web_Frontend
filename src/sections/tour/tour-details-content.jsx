@@ -1,8 +1,8 @@
 import { m } from 'framer-motion';
 import PropTypes from 'prop-types';
+import { useEffect, useState } from 'react';
 
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import Checkbox from '@mui/material/Checkbox';
@@ -11,44 +11,38 @@ import Typography from '@mui/material/Typography';
 import ListItemText from '@mui/material/ListItemText';
 
 import { fDate } from 'src/utils/format-time';
-
-import { TOUR_SERVICE_OPTIONS } from 'src/_mock';
-
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
 import Markdown from 'src/components/markdown';
 import { varTranHover } from 'src/components/animate';
 import Lightbox, { useLightBox } from 'src/components/lightbox';
-import { useEffect, useState } from 'react';
+import AMapPathDrawer from 'src/components/map'
 
 // ----------------------------------------------------------------------
 
 const ACTIVITY_TAGS = [
-  {tagID: '10001', tagName: 'Refresher'},
-  {tagID: '10002', tagName: 'Supplement'},
-  {tagID: '10003', tagName: 'Sports-outfit'},
-  {tagID: '10004', tagName: 'Medical-support'},
+  { tagID: '10001', tagName: 'Refresher' },
+  { tagID: '10002', tagName: 'Supplement' },
+  { tagID: '10003', tagName: 'Sports-outfit' },
+  { tagID: '10004', tagName: 'Medical-support' },
 ]
 
 export default function TourDetailsContent({ tour }) {
   const {
     name,
     coverUrl,
-    activityId,
-    participantsCount,
     description,
     startDate,
     endDate,
-    tags,
-    creatorID,
     numberLimit,
     creatorName,
+    media_gpx,
   } = tour;
 
   const [tagArr, setTagArr] = useState([])
 
   const slides = [
-    {src: coverUrl}
+    { src: coverUrl }
   ]
 
   const {
@@ -201,7 +195,7 @@ export default function TourDetailsContent({ tour }) {
         },
         {
           label: 'Contact phone',
-          value:'+86 18950785805',
+          value: '+86 18950785805',
           icon: <Iconify icon="solar:phone-bold" />,
         },
       ].map((item) => (
@@ -228,7 +222,10 @@ export default function TourDetailsContent({ tour }) {
 
   const renderContent = (
     <>
-      <Markdown children={description}/>
+      <Typography variant="h6" sx={{mb:2}}> Description</Typography>
+      <Markdown children={description} />
+
+      <Divider sx={{ borderStyle: 'dashed', mb:-6, mt:2 }} />
 
       <Stack spacing={2} mt={8}>
         <Typography variant="h6"> Services</Typography>
@@ -267,6 +264,24 @@ export default function TourDetailsContent({ tour }) {
           ))}
         </Box>
       </Stack>
+
+      <Divider sx={{ borderStyle: 'dashed', mb:-6, mt:2 }} />
+
+      <Stack spacing={2} mt={8}>
+        <Typography variant="h6"> Route View</Typography>
+
+        <Box
+          rowGap={2}
+          display="grid"
+          gridTemplateColumns={{
+            xs: 'repeat(1, 1fr)',
+            md: 'repeat(2, 1fr)',
+          }}
+          sx={{mb:-5}}
+        >
+          <AMapPathDrawer path={media_gpx} style={{ width: '100%', borderRadius: '8px' }} />
+        </Box>
+      </Stack>
     </>
   );
 
@@ -277,11 +292,11 @@ export default function TourDetailsContent({ tour }) {
       <Stack sx={{ maxWidth: 720, mx: 'auto' }}>
         {renderHead}
 
-        <Divider sx={{ borderStyle: 'dashed', my: 5 }} />
+        <Divider sx={{ borderStyle: 'dashed', my: 2 }} />
 
         {renderOverview}
 
-        <Divider sx={{ borderStyle: 'dashed', my: 5 }} />
+        <Divider sx={{ borderStyle: 'dashed', my: 2 }} />
 
         {renderContent}
       </Stack>
