@@ -28,6 +28,9 @@ export const endpoints = {
         subscribe: '/user/subscribe',
         cancelSubscribe: '/user/cancel',
         refreshToken: '/user/refresh',
+        follower: '/friend/follower',
+        followUser: '/friend/follow',
+        friend: '/friend/',
     },
     chat: '/chat',
     activity: {

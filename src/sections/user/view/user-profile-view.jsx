@@ -9,7 +9,7 @@ import { paths } from 'src/routes/paths';
 
 import { useAuthContext } from 'src/auth/hooks';
 
-import { _userAbout, _userFeeds, _userFriends, _userGallery, _userFollowers } from 'src/_mock';
+import { _userAbout, _userFeeds } from 'src/_mock';
 
 import Iconify from 'src/components/iconify';
 import { useSettingsContext } from 'src/components/settings';
@@ -20,7 +20,7 @@ import ProfileCover from '../profile-cover';
 import ProfileFriends from '../profile-friends';
 import ProfileGallery from '../profile-gallery';
 import ProfileFollowers from '../profile-followers';
-import { axiosSimple } from '@/utils/axios';
+import { axiosSimple, axiosTest } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { jwtDecode } from '@/auth/context/jwt/utils';
 import { useSnackbar } from 'notistack';
@@ -54,26 +54,18 @@ const TABS = [
 
 export default function UserProfileView() {
   const settings = useSettingsContext();
-
-  const {enqueueSnakebar} = useSnackbar()
-
+  const { enqueueSnakebar } = useSnackbar()
   const { user } = useAuthContext();
-
-  const [searchFriends, setSearchFriends] = useState('');
-
   const [currentTab, setCurrentTab] = useState('profile');
-
   const [joinedActivities, setJoinedActivities] = useState([])
+  const [follower, setFollower] = useState([]);
+  const [friend, setFriend] = useState([]);
 
   const handleChangeTab = useCallback((event, newValue) => {
     setCurrentTab(newValue);
   }, []);
 
-  const handleSearchFriends = useCallback((event) => {
-    setSearchFriends(event.target.value);
-  }, []);
-
-  const fetchMyActivities = async() => {
+  const fetchMyActivities = async () => {
     try {
       // prepare for request
       const token = sessionStorage.getItem('token')
@@ -89,15 +81,57 @@ export default function UserProfileView() {
       if (resp.data.status_code === 0) {
         setJoinedActivities(resp.data.Data)
       } else {
-        enqueueSnakebar(resp.data.status_msg, {variant: "error"})
+        enqueueSnakebar(resp.data.status_msg, { variant: "error" })
       }
-    } catch(err) {
-      enqueueSnakebar(err.toString(), {variant: "error"})
+    } catch (err) {
+      enqueueSnakebar(err.toString(), { variant: "error" })
+    }
+  }
+
+  const fetchFollower = async () => {
+    try {
+      const response = await axiosTest.get(endpoints.user.follower);
+      // Assuming that 'response.data.data' holds the array of users.
+      const followerData = response.data.Data.map((user) => {
+        // Here we generate data similar to the mock data provided.
+        // Replace the accessors like 'user.avatarUrl' with the correct paths from your API response.
+        return {
+          id: user.userId,
+          name: user.username, // Assuming you want to use the 'username' as the name.
+          region: user.region, // This will loop through your countries array.
+          avatarUrl: user.avatarUrl, // Replace with the correct path to the avatar URL in your user object.
+        };
+      });
+      setFollower(followerData);
+    } catch (error) {
+      console.error('Fetching follower failed:', error.response || error);
+    }
+  }
+
+  const fetchFriend = async () => {
+    try {
+      const response = await axiosTest.get(endpoints.user.friend);
+      // Assuming that 'response.data.data' holds the array of users.
+      const friendData = response.data.Data.map((user) => {
+        // Here we generate data similar to the mock data provided.
+        // Replace the accessors like 'user.avatarUrl' with the correct paths from your API response.
+        return {
+          id: user.userId,
+          name: user.username, // Assuming you want to use the 'username' as the name.
+          region: user.region, // This will loop through your countries array.
+          avatarUrl: user.avatarUrl, // Replace with the correct path to the avatar URL in your user object.
+        };
+      });
+      setFriend(friendData);
+    } catch (error) {
+      console.error('Fetching follower failed:', error.response || error);
     }
   }
 
   useEffect(() => {
     fetchMyActivities()
+    fetchFollower()
+    fetchFriend()
   }, [])
 
   return (
@@ -153,13 +187,11 @@ export default function UserProfileView() {
 
       {currentTab === 'profile' && <ProfileHome info={_userAbout} posts={_userFeeds} />}
 
-      {currentTab === 'followers' && <ProfileFollowers followers={_userFollowers} />}
+      {currentTab === 'followers' && <ProfileFollowers followers={follower} />}
 
       {currentTab === 'friends' && (
         <ProfileFriends
-          friends={_userFriends}
-          searchFriends={searchFriends}
-          onSearchFriends={handleSearchFriends}
+          friends={friend}
         />
       )}
 
