@@ -32,7 +32,7 @@ export const paths = {
     tour: {
       root: `${ROOTS.HOME}/tour`,
       new: `${ROOTS.HOME}/tour/new`,
-      details: `${ROOTS.HOME}/tour/${MOCK_ID}`,
+      details: (id) => `${ROOTS.HOME}/tour/${id}`,
       edit: `${ROOTS.HOME}/tour/${MOCK_ID}/edit`,
       demo: {
         details: `${ROOTS.HOME}/tour/${MOCK_ID}`,

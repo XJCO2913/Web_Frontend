@@ -14,6 +14,21 @@ import { useAuthContext } from '@/auth/hooks';
 export default function NavUpgrade() {
   const { user } = useAuthContext()
 
+  const getLabelProps = () => {
+    switch (user.membershipType) {
+      case 0:
+        return { text: 'Free', color: 'success' };
+      case 1:
+        return { text: 'Starter', color: 'warning' };
+      case 2:
+        return { text: 'Premium', color: 'error' };
+      default:
+        return { text: 'Unknown', color: 'grey' };
+    }
+  };
+
+  const { text, color } = getLabelProps();
+
   return (
     <Stack
       sx={{
@@ -29,7 +44,7 @@ export default function NavUpgrade() {
           </Avatar>
 
           <Label
-            color="success"
+            color={color}
             variant="filled"
             sx={{
               top: -6,
@@ -40,7 +55,7 @@ export default function NavUpgrade() {
               borderBottomLeftRadius: 2,
             }}
           >
-            Free
+            {text}
           </Label>
         </Box>
 
@@ -55,6 +70,6 @@ export default function NavUpgrade() {
           Upgrade to Pro
         </Button>
       </Stack>
-    </Stack>
+    </Stack >
   );
 }

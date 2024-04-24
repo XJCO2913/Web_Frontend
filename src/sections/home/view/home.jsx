@@ -14,11 +14,10 @@ import Snackbar from '@mui/material/Snackbar';
 import AlertTitle from '@mui/material/AlertTitle'
 import Alert from '@mui/material/Alert';
 
-import { _appFeatured } from 'src/_mock';
 import { useSettingsContext } from 'src/components/settings';
 import Carousel, { useCarousel, CarouselDots, CarouselArrows } from 'src/components/carousel';
 import FormProvider, { RHFUploadOverride } from 'src/components/hook-form';
-import { axiosTest } from 'src/utils/axios';
+import axiosInstance, { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api/index'
 
 import Moment from '../home-moment';
@@ -26,14 +25,13 @@ import CarouselItem from '../home-carousel'
 
 // ----------------------------------------------------------------------
 
+// 获取朋友圈
 const fetchMoments = async (setMoments, setNextTime, nextTime, hasMore, setHasMore) => {
   if (!hasMore) return;
 
   const time = nextTime || new Date().getTime();
   try {
     const response = await axiosTest.get(`${endpoints.moment.fetch}?latestTime=${time}`);
-    console.log(response)
-    console.log(response.data.Data.nextTime)
     if (response.data.Data.nextTime) {
       setMoments(prevMoments => [...prevMoments, ...response.data.Data.moments]);
       setNextTime(response.data.Data.nextTime);
@@ -46,6 +44,22 @@ const fetchMoments = async (setMoments, setNextTime, nextTime, hasMore, setHasMo
     }
   } catch (error) {
     console.error('Fetching moments failed:', error);
+  }
+};
+
+// 获取首页活动
+const fetchActivities = async (setActivities) => {
+  try {
+    const response = await axiosInstance.get(endpoints.activity.fetch);
+    const activitiesData = response.data.Data.Activities.map((activity) => ({
+      id: activity.ActivityID,
+      title: activity.Name,
+      description: activity.Description,
+      coverUrl: activity.CoverUrl,
+    }));
+    setActivities(activitiesData);
+  } catch (error) {
+    console.error('Fetching activities failed:', error.response || error);
   }
 };
 
@@ -62,14 +76,15 @@ export default function HomeView() {
   const [success, setSuccess] = useState(false);
   const [content, setContent] = useState('');
   const settings = useSettingsContext();
-  const list = _appFeatured;
   const [moments, setMoments] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [nextTime, setNextTime] = useState();
   const [shouldLoad, setShouldLoad] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
+    fetchActivities(setActivities);
   }, []);
 
   useEffect(() => {
@@ -151,7 +166,7 @@ export default function HomeView() {
         let fieldName = '';
         if (file.type.match('image.*')) {
           fieldName = 'imageFile';
-        } else if (file.type === 'application/gpx+xml') {
+        } else if (file.type === 'text/xml') {
           fieldName = 'gpxFile';
         } else if (file.type.match('video.*')) {
           fieldName = 'videoFile';
@@ -159,24 +174,19 @@ export default function HomeView() {
         if (fieldName) {
           formData.append(fieldName, file);
         } else {
-          throw new Error('Invalid file format');
+          throw new Error('Invalid file format!');
         }
       }
 
-      const response = await axiosTest.post(endpoints.moment.create, formData);
-      console.log(response)
+      const response = await axiosInstance.post(endpoints.moment.create, formData);
       if (response.data.status_code === 0) {
-        console.log(response)
         setSuccess(true)
         reset({ content: '', file: [] });
         setSnackbarInfo({ open: true, message: 'Post successfully created!', type: 'success' });
-        fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
       } else {
-        console.log(response)
         setSuccess(false)
         setSnackbarInfo({ open: true, message: 'Post failed to create!', type: 'error' });
       }
-
     } catch (error) {
       console.error(error);
       setSnackbarInfo({ open: true, message: error.message || 'An unexpected error occurred', type: 'error' });
@@ -228,7 +238,6 @@ export default function HomeView() {
     [setValue, values.file, setSnackbarInfo]
   );
 
-
   const handleRemoveFile = useCallback(
     (inputFile) => {
       setSuccess(false);
@@ -244,7 +253,6 @@ export default function HomeView() {
   }, [setValue, setSuccess]);
 
   const handleContentChange = (e) => {
-    // Reset the success state whenever the content changes
     setSuccess(false);
     // Assuming you are controlling content via React Hook Form
     setContent(e.target.value);
@@ -324,8 +332,8 @@ export default function HomeView() {
           <Grid xs={12} md={12}>
             <Card>
               <Carousel ref={carousel.carouselRef} {...carousel.carouselSettings}>
-                {list.map((app, index) => (
-                  <CarouselItem key={app.id} item={app} active={index === carousel.currentIndex} />
+                {activities.map((activity, index) => (
+                  <CarouselItem key={activity.id} item={activity} active={index === carousel.currentIndex} />
                 ))}
               </Carousel>
 
@@ -349,4 +357,3 @@ export default function HomeView() {
     </>
   );
 }
-

@@ -74,7 +74,6 @@ export default function JwtLoginView() {
   const onSubmit = handleSubmit(async (data) => {
     try {
       const result = await login?.(data.username, data.password);
-
       if (result.success) {
         router.push(PATH_AFTER_LOGIN);
       } else {
@@ -90,6 +89,7 @@ export default function JwtLoginView() {
         }
       }
     } catch (error) {
+      console.log(error)
       setErrorMsg('An unexpected error occurred. Please try again later.');
     }
   });

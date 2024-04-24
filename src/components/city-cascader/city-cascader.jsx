@@ -14,7 +14,7 @@ const StyledCascader = styled(Cascader)`
 `;
 
 // ----------------------------------------------------------------------
-export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldFetchData }, ref) => {
+export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldFetchData, valueArr, autoIP }, ref) => {
   // State hook for storing options for the cascader (provinces and cities).
   const [options, setOptions] = useState([]);
   // State hook for storing the currently selected location.
@@ -33,9 +33,16 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldF
     };
 
     loadProvinces();
+    if (valueArr && valueArr.length) {
+      setSelectedLocation(valueArr);
+      if (onChange) {
+        onChange(valueArr);
+      }
+    }
   }, [shouldFetchData]);
 
   // ----------------------------------------------------------------------
+
   // Effect hook to load provinces on component mount and fetch user's location.
   useEffect(() => {
     // A function that displays a prompt message
@@ -73,10 +80,10 @@ export const CityCascader = forwardRef(({ onChange, error, errorMessage, shouldF
       }
     };
 
-    if (shouldFetchData) {
+    if (autoIP && shouldFetchData) {
       fetchLocation();
     }
-  }, [shouldFetchData]);
+  }, [autoIP,shouldFetchData]);
 
   // ----------------------------------------------------------------------
   // Function to load city options dynamically when a province is selected.
@@ -158,6 +165,9 @@ CityCascader.propTypes = {
   error: PropTypes.bool,
   errorMessage: PropTypes.string,
   shouldFetchData: PropTypes.bool,
+  value: PropTypes.string,
+  autoIP: PropTypes.bool,
+  valueArr: PropTypes.array,
 };
 
 export default CityCascader;

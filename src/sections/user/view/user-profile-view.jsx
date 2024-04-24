@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
@@ -20,6 +20,10 @@ import ProfileCover from '../profile-cover';
 import ProfileFriends from '../profile-friends';
 import ProfileGallery from '../profile-gallery';
 import ProfileFollowers from '../profile-followers';
+import { axiosSimple } from '@/utils/axios';
+import { endpoints } from '@/api';
+import { jwtDecode } from '@/auth/context/jwt/utils';
+import { useSnackbar } from 'notistack';
 
 // ----------------------------------------------------------------------
 
@@ -40,9 +44,9 @@ const TABS = [
     icon: <Iconify icon="solar:users-group-rounded-bold" width={24} />,
   },
   {
-    value: 'gallery',
-    label: 'Gallery',
-    icon: <Iconify icon="solar:gallery-wide-bold" width={24} />,
+    value: 'activities',
+    label: 'Activities',
+    icon: <Iconify icon="solar:flag-bold-duotone" width={24} />,
   },
 ];
 
@@ -51,11 +55,15 @@ const TABS = [
 export default function UserProfileView() {
   const settings = useSettingsContext();
 
+  const {enqueueSnakebar} = useSnackbar()
+
   const { user } = useAuthContext();
 
   const [searchFriends, setSearchFriends] = useState('');
 
   const [currentTab, setCurrentTab] = useState('profile');
+
+  const [joinedActivities, setJoinedActivities] = useState([])
 
   const handleChangeTab = useCallback((event, newValue) => {
     setCurrentTab(newValue);
@@ -64,6 +72,33 @@ export default function UserProfileView() {
   const handleSearchFriends = useCallback((event) => {
     setSearchFriends(event.target.value);
   }, []);
+
+  const fetchMyActivities = async() => {
+    try {
+      // prepare for request
+      const token = sessionStorage.getItem('token')
+      const decodedToken = jwtDecode(token)
+      const userID = decodedToken.userID
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const resp = await axiosSimple.get(endpoints.activity.me.all + '?userID=' + userID, httpConfig)
+      if (resp.data.status_code === 0) {
+        setJoinedActivities(resp.data.Data)
+      } else {
+        enqueueSnakebar(resp.data.status_msg, {variant: "error"})
+      }
+    } catch(err) {
+      enqueueSnakebar(err.toString(), {variant: "error"})
+    }
+  }
+
+  useEffect(() => {
+    fetchMyActivities()
+  }, [])
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -128,7 +163,7 @@ export default function UserProfileView() {
         />
       )}
 
-      {currentTab === 'gallery' && <ProfileGallery gallery={_userGallery} />}
+      {currentTab === 'activities' && <ProfileGallery gallery={joinedActivities} />}
     </Container>
   );
 }
