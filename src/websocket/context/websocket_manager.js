@@ -1,3 +1,5 @@
+import { jwtDecode } from "@/auth/context/jwt/utils";
+
 export class WebSocketManager {
     constructor(url) {
         this.url = url
@@ -8,8 +10,16 @@ export class WebSocketManager {
         if (!this.socket || this.socket.readyState === WebSocket.CLOSED) {
             this.socket = new WebSocket(this.url);
             this.socket.onopen = () => {
-                this.socket.send("wo lai ye")
-                console.log('WebSocket Connected');
+                const token = sessionStorage.getItem("token")
+                const payload = jwtDecode(token)
+
+                const connectMsg = {
+                    "Type": "connect",
+                    "SenderID": payload.userID,
+                    "Data": {},
+                }
+
+                this.socket.send(JSON.stringify(connectMsg))
             };
             this.socket.onclose = () => {
                 console.log('WebSocket Disconnected');
@@ -41,5 +51,9 @@ export class WebSocketManager {
         }
 
         this.socket.send(msg)
+    }
+
+    changeOnMessage(newOnMessageFunc) {
+        this.socket.onmessage = newOnMessageFunc
     }
 }

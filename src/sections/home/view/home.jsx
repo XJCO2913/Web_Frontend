@@ -22,6 +22,8 @@ import { endpoints } from 'src/api/index'
 
 import Moment from '../home-moment';
 import CarouselItem from '../home-carousel'
+import { useWebSocketManager } from '@/websocket/context/websocket_provider';
+import { WebSocketManager } from '@/websocket/context/websocket_manager';
 
 // ----------------------------------------------------------------------
 
@@ -66,6 +68,7 @@ const fetchActivities = async (setActivities) => {
 // ----------------------------------------------------------------------
 
 export default function HomeView() {
+  const { wsManager, setWsManager } = useWebSocketManager()
 
   const [snackbarInfo, setSnackbarInfo] = useState({
     open: false,
@@ -85,6 +88,13 @@ export default function HomeView() {
   useEffect(() => {
     fetchMoments(setMoments, setNextTime, nextTime, hasMore, setHasMore);
     fetchActivities(setActivities);
+
+    if (wsManager === null) {
+      const ws = new WebSocketManager('ws://43.136.232.116:5000/ws')
+
+      setWsManager(ws)
+      ws.connect()
+    }
   }, []);
 
   useEffect(() => {
