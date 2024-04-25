@@ -24,6 +24,7 @@ import { axiosSimple } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { jwtDecode } from '@/auth/context/jwt/utils';
 import { useSnackbar } from 'notistack';
+import { useWebSocketManager } from '@/websocket/context/websocket_provider';
 
 // ----------------------------------------------------------------------
 
