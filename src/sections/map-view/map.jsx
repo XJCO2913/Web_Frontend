@@ -1,112 +1,92 @@
-import PropTypes from 'prop-types';
 import React, { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import AMapLoader from '@amap/amap-jsapi-loader';
+
+import { wgs2gcj, gcj2wgs } from './utils';
+import { useAuthContext } from '@/auth/hooks';
 
 function Map({ isTracking }) {
     const mapRef = useRef(null);
-    const AMapRef = useRef(null);
-    const lastPositionRef = useRef(null);
-    const polylineRef = useRef(null);
-    const userLocationCircleRef = useRef(null);
+    const { user } = useAuthContext()
 
-    // 地图初始化
+    const iconHTML = `
+    <div style="
+    width: 30px; 
+    height: 30px; 
+    border-radius: 50%; 
+    background-color: white; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #00A76F;  /* 蓝色边框 */
+    overflow: hidden;  /* 确保图片超出部分不会显示 */"
+    >
+    <img src="${user?.avatarUrl}" alt="User Icon" style="
+        width: 30px; 
+        height: 30px;
+        border-radius: 50%;  
+        object-fit: cover;
+        pointer-events: none;"
+    />
+   </div>`;
+
     useEffect(() => {
-        if (!mapRef.current) {
-            AMapLoader.load({
-                key: "e65a2fad806f1efcbe741afff844c30b",
-                version: "2.0",
-                plugins: ["AMap.Geolocation", "AMap.Scale"],
-            }).then(AMap => {
-                AMapRef.current = AMap;
-                initMap(AMap);
-            }).catch(e => {
-                console.log(e);
+        AMapLoader.load({
+            key: "e65a2fad806f1efcbe741afff844c30b",
+            version: "2.0",
+            plugins: ["AMap.Geolocation", "AMap.Scale"],
+        }).then((AMap) => {
+            const map = new AMap.Map("container", {
+                zoom: 20,
+                center: [103.984199, 30.763503],
+                mapStyle: "amap://styles/normal",
             });
-        }
-    }, []);
+            mapRef.current = map;
 
-    // 实时获取用户位置
-    // useEffect(() => {
-    //     const updatePosition = () => {
-    //         navigator.geolocation.getCurrentPosition(position => {
-    //             const { latitude, longitude } = position.coords;
-    //             lastPositionRef.current = [longitude, latitude];
-    //             console.log("User position:", longitude, latitude);
-    //             if (userLocationCircleRef.current) {
-    //                 userLocationCircleRef.current.setCenter(new AMapRef.current.LngLat(longitude, latitude));
-    //             }
-    //             if (isTracking) {
-    //                 drawPath();
-    //             }
-    //         }, (error) => {
-    //             console.error('Fail to get location', error);
-    //         }, {
-    //             enableHighAccuracy: true,
-    //             maximumAge: 0,
-    //             timeout: 5000,
-    //         });
-    //     };
-
-    //     const intervalId = setInterval(updatePosition, 2000); // 每2秒更新一次位置
-
-    //     return () => clearInterval(intervalId);
-    // }, [isTracking]);
-
-    const initMap = (AMap) => {
-        const map = new AMap.Map('container', {
-            zoom: 16,
-            center: [103.984199, 30.763503],
-            mapStyle: "amap://styles/normal",
-        });
-
-        AMap.plugin(["AMap.Geolocation", "AMap.Scale"], () => {
-            const geolocation = new AMap.Geolocation({
+            var geolocation = new AMap.Geolocation({
                 enableHighAccuracy: true,
                 timeout: 10000,
+                buttonPosition: 'RB',
                 zoomToAccuracy: true,
+                showMarker: true,
+                showCircle: false
             });
             map.addControl(geolocation);
-
-            geolocation.getCurrentPosition((status, result) => {
+            geolocation.getCurrentPosition(function (status, result) {
                 if (status === 'complete') {
-                    //map.setCenter(result.position);
-                    lastPositionRef.current = [result.position.lng, result.position.lat];
-                } else {
-                    console.error('Fail to locate', result.message);
+                    // 使用从GPS设备获取到的坐标进行转换
+                    convertFrom([result.position.lng, result.position.lat], 'gps');
                 }
             });
-        });
-        userLocationCircleRef.current = new AMap.Circle({
-            map: map,
-            center: map.getCenter(), 
-            radius: 100, 
-            strokeColor: 'red',
-            strokeOpacity: 0.9,
-            strokeWeight: 6,
-            fillColor: 'red',
-            fillOpacity: 0.35,
-        });
-        mapRef.current = map;
-    };
 
-    const drawPath = () => {
-        if (!mapRef.current || !AMapRef.current || !lastPositionRef.current) return;
-
-        const path = polylineRef.current ? polylineRef.current.getPath() : [];
-        path.push(lastPositionRef.current);
-
-        if (polylineRef.current) {
-            polylineRef.current.setPath(path);
-        } else {
-            polylineRef.current = new AMapRef.current.Polyline({
-                path: path,
-                strokeColor: "#00A76F",
-                strokeWeight: 5,
-                strokeOpacity: 1,
+            const locationMarker = new AMap.Marker({
+                position: map.getCenter(), // 初始位置设为地图中心
+                map: map,
+                content: iconHTML
             });
-            mapRef.current.add(polylineRef.current);
-        }
-    };
+
+            function convertFrom(lnglat) {
+                // 使用wgs2gcj进行坐标转换
+                const { lat, lng } = wgs2gcj(lnglat[1], lnglat[0]);
+
+                // 转换后的坐标设置为地图中心
+                const newCenter = new AMap.LngLat(lng, lat);
+                map("container", { zoom: 21 })
+                map.setCenter(newCenter);
+                locationMarker.setPosition(newCenter);
+            }
+
+        }).catch(e => {
+            console.log(e);
+        });
+
+        return () => {
+            if (mapRef.current) {
+                mapRef.current.destroy();
+                mapRef.current = null;
+            }
+        };
+    }, []);
 
     return <div id="container" style={{ width: '100%', height: '100%' }}></div>;
 }
