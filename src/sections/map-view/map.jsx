@@ -76,24 +76,25 @@ function Map({ isTracking }) {
                 if (status === 'complete') {
                     const { lat, lng } = wgs2gcj(result.position.getLat(), result.position.getLng());
                     const newCenter = new AMap.LngLat(lng, lat);
-                    map.setCenter(newCenter);
+                    mapRef.current.setCenter(newCenter);
                     geoMarker.setPosition(newCenter);
                 }
             });
 
-            const updatePosition = (data) => {
-                console.log(data.location_type)
-                const { position } = data;
-                const convertedPosition = wgs2gcj(position.lat, position.lng);
-                const newPos = new AMap.LngLat(convertedPosition.lng, convertedPosition.lat);
-                positionHistoryRef.current.push(newPos);
-                polylineRef.current.setPath(positionHistoryRef.current);
-                markerRef.current.setPosition(newPos);
-            };
-
             if (isTracking && geoLocationRef.current) {
-                navigator.geolocation.watchPosition();
-                geoLocationRef.current.on('complete', updatePosition);
+                navigator.geolocation.watchPosition((pos)=>{
+                    console.log("watch position")
+                    console.log(positionHistoryRef.current)
+                    const crd = pos.coords
+                    const convertedPosition = wgs2gcj(crd.latitude, crd.longitude)
+                    const newPos = new AMap.LngLat(convertedPosition.lng, convertedPosition.lat)
+                    positionHistoryRef.current.push(newPos)
+                    polylineRef.current.setPath(positionHistoryRef.current)
+                    markerRef.current.setPosition(newPos)
+                }, (err)=>{
+                    console.log("watchPosition error: ", err.toString())
+                });
+                //geoLocationRef.current.on('complete', updatePosition);
             } else if (geoLocationRef.current) {
                 geoLocationRef.current.clearWatch();
                 // 可选择在停止跟踪时清除轨迹
@@ -107,28 +108,6 @@ function Map({ isTracking }) {
             mapRef.current?.destroy();
         };
     }, [user?.avatarUrl, isTracking]);
-
-    // useEffect(() => {
-    //     const updatePosition = (data) => {
-    //         console.log(data.location_type)
-    //         const { position } = data;
-    //         const convertedPosition = wgs2gcj(position.lat, position.lng);
-    //         const newPos = new AMap.LngLat(convertedPosition.lng, convertedPosition.lat);
-    //         positionHistoryRef.current.push(newPos);
-    //         polylineRef.current.setPath(positionHistoryRef.current);
-    //         markerRef.current.setPosition(newPos);
-    //     };
-
-    //     if (isTracking && geoLocationRef.current) {
-    //         geoLocationRef.current.watchPosition();
-    //         geoLocationRef.current.on('complete', updatePosition);
-    //     } else if (geoLocationRef.current) {
-    //         geoLocationRef.current.clearWatch();
-    //         // 可选择在停止跟踪时清除轨迹
-    //         polylineRef.current.setPath([]);
-    //         positionHistoryRef.current = [];
-    //     }
-    // }, [isTracking]);
 
     return <div id="container" style={{ width: '100%', height: '100%' }}></div>;
 }
