@@ -92,8 +92,20 @@ function Map({ isTracking }) {
             };
 
             if (isTracking && geoLocationRef.current) {
-                navigator.geolocation.watchPosition();
-                geoLocationRef.current.on('complete', updatePosition);
+                navigator.geolocation.watchPosition((pos)=>{
+                    console.log("watch position")
+                    console.log(positionHistoryRef.current)
+                    const crd = pos.coords
+                    const convertedPosition = wgs2gcj(crd.latitude, crd.longitude)
+                    const newPos = new AMap.LngLat(convertedPosition.lng, convertedPosition.lat)
+
+                    positionHistoryRef.current.push(newPos)
+                    polylineRef.current.setPath(positionHistoryRef.current)
+                    markerRef.current.setPosition(newPos)
+                }, (err)=>{
+                    console.log("watchPosition error: ", err.toString())
+                });
+                //geoLocationRef.current.on('complete', updatePosition);
             } else if (geoLocationRef.current) {
                 geoLocationRef.current.clearWatch();
                 // 可选择在停止跟踪时清除轨迹
