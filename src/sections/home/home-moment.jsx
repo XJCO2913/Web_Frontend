@@ -22,15 +22,21 @@ import { fShortenNumber } from 'src/utils/format-number';
 import AMapPathDrawer from 'src/components/map'
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
+import { axiosSimple } from '@/utils/axios';
+import { endpoints } from '@/api';
+import { useSnackbar } from 'notistack';
 
 // ----------------------------------------------------------------------
 
 export default function Moment({ post }) {
+  const { enqueueSnackbar } = useSnackbar()
+
   const commentRef = useRef(null);
 
   const fileRef = useRef(null);
 
   const [message, setMessage] = useState('');
+  const [isLiked, setIsLiked] = useState(false)
 
   const handleChangeMessage = useCallback((event) => {
     setMessage(event.target.value);
@@ -41,6 +47,56 @@ export default function Moment({ post }) {
       commentRef.current.focus();
     }
   }, []);
+
+  const handleLike = async() => {
+    console.log('like')
+    
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const resp = await axiosSimple.post(endpoints.moment.like + '?momentId=' + post.id, null, httpConfig)
+      if (resp.data.status_code === 0) {
+        enqueueSnackbar(resp.data.status_msg)
+        setIsLiked(true)
+      } else {
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+        setIsLiked(false)
+      }
+    } catch(err) {
+      enqueueSnackbar(err.toString(), { variant: "error" })
+      setIsLiked(false)
+    }
+  }
+
+  const handleUnlike = async() => {
+    console.log("unlike")
+
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const resp = await axiosSimple.post(endpoints.moment.unlike + '?momentId=' + post.id, null, httpConfig)
+      if (resp.data.status_code === 0) {
+        enqueueSnackbar(resp.data.status_msg)
+        setIsLiked(false)
+      } else {
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+        setIsLiked(true)
+      }
+    } catch(err) {
+      enqueueSnackbar(err.toString(), { variant: "error" })
+      setIsLiked(true)
+    }
+  }
 
   const renderHead = (
     <CardHeader
@@ -150,10 +206,17 @@ export default function Moment({ post }) {
       <FormControlLabel
         control={
           <Checkbox
-            defaultChecked
             color="error"
             icon={<Iconify icon="solar:heart-bold" />}
             checkedIcon={<Iconify icon="solar:heart-bold" />}
+            checked={isLiked}
+            onChange={(event) => {
+              if (event.target.checked) {
+                handleLike()
+              } else {
+                handleUnlike()
+              }
+            }}
           />
         }
         label={fShortenNumber(post?.personLikes?.length)}
