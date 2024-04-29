@@ -44,6 +44,7 @@ export const endpoints = {
         create: '/moment/create',
         fetch: '/moment/feed',
         like: '/moment/like',
-        unlike: 'momment/unlike',
+        unlike: '/momment/unlike',
+        comment: '/moment/comment',
     },
 };

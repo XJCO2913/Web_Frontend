@@ -49,8 +49,6 @@ export default function Moment({ post }) {
   }, []);
 
   const handleLike = async() => {
-    console.log('like')
-    
     try {
       const token = sessionStorage.getItem('token')
       const httpConfig = {
@@ -59,7 +57,7 @@ export default function Moment({ post }) {
         }
       }
 
-      const resp = await axiosSimple.post(endpoints.moment.like + '?momentId=' + post.id, null, httpConfig)
+      const resp = await axiosSimple.post(endpoints.moment.like + '?momentID=' + post.id, null, httpConfig)
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg)
         setIsLiked(true)
@@ -74,8 +72,6 @@ export default function Moment({ post }) {
   }
 
   const handleUnlike = async() => {
-    console.log("unlike")
-
     try {
       const token = sessionStorage.getItem('token')
       const httpConfig = {
@@ -84,7 +80,7 @@ export default function Moment({ post }) {
         }
       }
 
-      const resp = await axiosSimple.post(endpoints.moment.unlike + '?momentId=' + post.id, null, httpConfig)
+      const resp = await axiosSimple.delete(endpoints.moment.unlike + '?momentID=' + post.id, httpConfig)
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg)
         setIsLiked(false)
@@ -95,6 +91,33 @@ export default function Moment({ post }) {
     } catch(err) {
       enqueueSnackbar(err.toString(), { variant: "error" })
       setIsLiked(true)
+    }
+  }
+
+  const handleSendComment = async() => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const data = {
+        momentID: post.id,
+        content: message,
+      }
+      console.log(data)
+      const resp = await axiosSimple.post(endpoints.moment.comment, data, httpConfig)
+      if (resp.data.status_code === 0) {
+        enqueueSnackbar(resp.data.status_msg)
+      } else {
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+      }
+    } catch(err) {
+      enqueueSnackbar(err.toString(), { variant: "error" })
+    } finally {
+      setMessage('')
     }
   }
 
@@ -174,12 +197,11 @@ export default function Moment({ post }) {
         onChange={handleChangeMessage}
         endAdornment={
           <InputAdornment position="end" sx={{ mr: 1 }}>
-            <IconButton size="small">
-              <Iconify icon="solar:gallery-add-bold" />
-            </IconButton>
-
-            <IconButton size="small">
-              <Iconify icon="eva:smiling-face-fill" />
+            <IconButton 
+              size="small"
+              onClick={handleSendComment}
+            >
+              <Iconify icon="bi:send-fill" />
             </IconButton>
           </InputAdornment>
         }
