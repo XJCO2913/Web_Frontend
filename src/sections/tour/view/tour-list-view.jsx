@@ -27,6 +27,7 @@ import TourFilters from '../tour-filters';
 import TourFiltersResult from '../tour-filters-result';
 import { axiosSimple } from '@/utils/axios';
 import { endpoints } from '@/api';
+import { useAuthContext } from '@/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -42,6 +43,8 @@ const defaultFilters = {
 
 export default function TourListView() {
   const settings = useSettingsContext();
+
+  const { user } = useAuthContext();
 
   const openFilters = useBoolean();
 
@@ -187,14 +190,16 @@ export default function TourListView() {
           { name: 'List' },
         ]}
         action={
-          <Button
-            component={RouterLink}
-            href={paths.home.tour.new}
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-          >
-            New Activity
-          </Button>
+          user?.isOrganiser ? (
+            <Button
+              component={RouterLink}
+              href={paths.home.tour.new}
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+            >
+              New Activity
+            </Button>
+          ) : null // 或者替换为 <div></div> 或其他 UI 组件
         }
         sx={{
           mb: { xs: 3, md: 5 },

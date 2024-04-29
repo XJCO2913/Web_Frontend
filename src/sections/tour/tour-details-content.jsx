@@ -222,10 +222,10 @@ export default function TourDetailsContent({ tour }) {
 
   const renderContent = (
     <>
-      <Typography variant="h6" sx={{mb:2}}> Description</Typography>
+      <Typography variant="h6" sx={{ mb: 2 }}> Description</Typography>
       <Markdown children={description} />
 
-      <Divider sx={{ borderStyle: 'dashed', mb:-6, mt:2 }} />
+      <Divider sx={{ borderStyle: 'dashed', mb: -6, mt: 2 }} />
 
       <Stack spacing={2} mt={8}>
         <Typography variant="h6"> Services</Typography>
@@ -265,23 +265,25 @@ export default function TourDetailsContent({ tour }) {
         </Box>
       </Stack>
 
-      <Divider sx={{ borderStyle: 'dashed', mb:-6, mt:2 }} />
+      <Divider sx={{ borderStyle: 'dashed', mb: -6, mt: 2 }} />
 
-      <Stack spacing={2} mt={8}>
-        <Typography variant="h6"> Route View</Typography>
+      {media_gpx && (
+        <Stack spacing={2} mt={8}>
+          <Typography variant="h6">Route View</Typography>
+          <Box
+            rowGap={2}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+            sx={{ mb: -2 }}
+          >
+            <AMapPathDrawer path={media_gpx} style={{ width: '100%', borderRadius: '8px' }} />
+          </Box>
+        </Stack>
+      )}
 
-        <Box
-          rowGap={2}
-          display="grid"
-          gridTemplateColumns={{
-            xs: 'repeat(1, 1fr)',
-            md: 'repeat(2, 1fr)',
-          }}
-          sx={{mb:-5}}
-        >
-          <AMapPathDrawer path={media_gpx} style={{ width: '100%', borderRadius: '8px' }} />
-        </Box>
-      </Stack>
     </>
   );
 
