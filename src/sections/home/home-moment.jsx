@@ -165,7 +165,9 @@ export default function Moment({ post }) {
     <Stack spacing={1.5} sx={{ px: 3, pb: 2 }}>
       {commentList?.map((comment) => (
         <Stack key={comment.id} direction="row" spacing={2}>
-          <Avatar alt={comment.author.name} src={comment.author.avatarUrl} />
+          <Avatar alt={comment.author.name} src={comment.author.avatarUrl}>
+            {comment.author.name.charAt(0).toUpperCase()}
+          </Avatar>
           <Paper
             sx={{
               p: 1.5,
@@ -202,7 +204,9 @@ export default function Moment({ post }) {
         p: (theme) => theme.spacing(0, 3, 3, 3),
       }}
     >
-      <Avatar src={user.avatarUrl} alt={user.username} />
+      <Avatar src={user.avatarUrl} alt={user.username} >
+        {user.username.charAt(0).toUpperCase()}
+      </Avatar>
       <InputBase
         fullWidth
         value={message}
@@ -269,7 +273,9 @@ export default function Moment({ post }) {
           }}
         >
           {personLikes?.map((person) => (
-            <Avatar key={person.name} alt={person.name} src={person.avatarUrl} />
+            <Avatar key={person.name} alt={person.name} src={person.avatarUrl} >
+              {person.name.charAt(0).toUpperCase()}
+            </Avatar>
           ))}
         </AvatarGroup>
       )}
