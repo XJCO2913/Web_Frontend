@@ -202,7 +202,7 @@ export default function Moment({ post }) {
         p: (theme) => theme.spacing(0, 3, 3, 3),
       }}
     >
-      <Avatar src={post.authorInfo?.avatarUrl} alt={post.authorInfo?.name} />
+      <Avatar src={user.avatarUrl} alt={user.username} />
       <InputBase
         fullWidth
         value={message}
