@@ -48,12 +48,6 @@ export function useNavData() {
           title: t('activity'),
           path: paths.home.tour.root,
           icon: ICONS.tour,
-          children: [
-            { title: t('list'), path: paths.home.tour.root },
-            { title: t('details'), path: paths.home.tour.demo.details },
-            { title: t('create'), path: paths.home.tour.new },
-            { title: t('edit'), path: paths.home.tour.demo.edit },
-          ],
         },
       ],
     },

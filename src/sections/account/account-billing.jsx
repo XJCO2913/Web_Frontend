@@ -19,8 +19,6 @@ export default function AccountBilling({ cards, plans }) {
 }
 
 AccountBilling.propTypes = {
-  addressBook: PropTypes.array,
   cards: PropTypes.array,
-  invoices: PropTypes.array,
   plans: PropTypes.array,
 };

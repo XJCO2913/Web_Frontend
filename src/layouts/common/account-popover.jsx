@@ -65,7 +65,7 @@ export default function AccountPopover() {
   };
 
   const getLabelProps = () => {
-    switch (user.membershipType) {
+    switch (user?.membershipType) {
       case 0:
         return { text: 'Free', color: 'success' };
       case 1:
