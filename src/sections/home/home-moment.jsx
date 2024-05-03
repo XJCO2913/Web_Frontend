@@ -25,10 +25,13 @@ import Iconify from 'src/components/iconify';
 import { axiosSimple } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { useSnackbar } from 'notistack';
+import { useAuthContext } from '@/auth/hooks';
 
 // ----------------------------------------------------------------------
 
 export default function Moment({ post }) {
+  const { user } = useAuthContext()
+
   const { enqueueSnackbar } = useSnackbar()
 
   const commentRef = useRef(null);
@@ -36,7 +39,9 @@ export default function Moment({ post }) {
   const fileRef = useRef(null);
 
   const [message, setMessage] = useState('');
-  const [isLiked, setIsLiked] = useState(false)
+  const [isLiked, setIsLiked] = useState(post.isLiked)
+  const [commentList, setCommentList] = useState(post.comments)
+  const [personLikes, setPersonLikes] = useState(post.personLikes)
 
   const handleChangeMessage = useCallback((event) => {
     setMessage(event.target.value);
@@ -61,6 +66,12 @@ export default function Moment({ post }) {
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg)
         setIsLiked(true)
+        setPersonLikes(prev => (
+          [...prev, {
+            name: user.username,
+            avatarUrl: user.avatarUrl,
+          }]
+        ))
       } else {
         enqueueSnackbar(resp.data.status_msg, { variant: "error" })
         setIsLiked(false)
@@ -84,6 +95,9 @@ export default function Moment({ post }) {
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg)
         setIsLiked(false)
+        setPersonLikes(prev => (
+          prev?.filter(person => person.name !== user.username)
+        ))
       } else {
         enqueueSnackbar(resp.data.status_msg, { variant: "error" })
         setIsLiked(true)
@@ -149,7 +163,7 @@ export default function Moment({ post }) {
 
   const renderCommentList = (
     <Stack spacing={1.5} sx={{ px: 3, pb: 2 }}>
-      {post?.comments?.map((comment) => (
+      {commentList?.map((comment) => (
         <Stack key={comment.id} direction="row" spacing={2}>
           <Avatar alt={comment.author.name} src={comment.author.avatarUrl} />
           <Paper
@@ -245,7 +259,7 @@ export default function Moment({ post }) {
         sx={{ mr: 1 }}
       />
 
-      {!!post?.personLikes?.length && (
+      {!!personLikes?.length && (
         <AvatarGroup
           sx={{
             [`& .${avatarGroupClasses.avatar}`]: {
@@ -254,7 +268,7 @@ export default function Moment({ post }) {
             },
           }}
         >
-          {post?.personLikes?.map((person) => (
+          {personLikes?.map((person) => (
             <Avatar key={person.name} alt={person.name} src={person.avatarUrl} />
           ))}
         </AvatarGroup>
