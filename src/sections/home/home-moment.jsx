@@ -104,7 +104,7 @@ export default function Moment({ post }) {
       }
 
       const data = {
-        momentID: post.id,
+        momentId: post.id,
         content: message,
       }
       console.log(data)
