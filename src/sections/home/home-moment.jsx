@@ -204,8 +204,8 @@ export default function Moment({ post }) {
         p: (theme) => theme.spacing(0, 3, 3, 3),
       }}
     >
-      <Avatar src={user.avatarUrl} alt={user.username} >
-        {user.username.charAt(0).toUpperCase()}
+      <Avatar src={user?.avatarUrl} alt={user?.username} >
+        {user?.username.charAt(0).toUpperCase()}
       </Avatar>
       <InputBase
         fullWidth
