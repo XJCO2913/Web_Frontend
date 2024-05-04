@@ -16,7 +16,6 @@ import Iconify from 'src/components/iconify';
 import Markdown from 'src/components/markdown';
 import { varTranHover } from 'src/components/animate';
 import Lightbox, { useLightBox } from 'src/components/lightbox';
-import AMapPathDrawer from 'src/components/map'
 
 // ----------------------------------------------------------------------
 
@@ -36,7 +35,6 @@ export default function TourDetailsContent({ tour }) {
     endDate,
     numberLimit,
     creatorName,
-    media_gpx,
   } = tour;
 
   const [tagArr, setTagArr] = useState([])
@@ -227,7 +225,7 @@ export default function TourDetailsContent({ tour }) {
 
       <Divider sx={{ borderStyle: 'dashed', mb: -6, mt: 2 }} />
 
-      <Stack spacing={2} mt={8}>
+      <Stack spacing={2} mt={8} mb={-7}>
         <Typography variant="h6"> Services</Typography>
 
         <Box
@@ -264,26 +262,6 @@ export default function TourDetailsContent({ tour }) {
           ))}
         </Box>
       </Stack>
-
-      <Divider sx={{ borderStyle: 'dashed', mb: -6, mt: 2 }} />
-
-      {media_gpx && (
-        <Stack spacing={2} mt={8}>
-          <Typography variant="h6">Route View</Typography>
-          <Box
-            rowGap={2}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              md: 'repeat(2, 1fr)',
-            }}
-            sx={{ mb: -2 }}
-          >
-            <AMapPathDrawer path={media_gpx} style={{ width: '100%', borderRadius: '8px' }} />
-          </Box>
-        </Stack>
-      )}
-
     </>
   );
 

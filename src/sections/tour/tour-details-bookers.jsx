@@ -6,16 +6,19 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
-import { alpha } from '@mui/material/styles';
-import IconButton from '@mui/material/IconButton';
 import ListItemText from '@mui/material/ListItemText';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
 
 import Iconify from 'src/components/iconify';
+import AMapPathDrawer from 'src/components/map'
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
-export default function TourDetailsBookers({ bookers }) {
+export default function TourDetailsBookers({ bookers, media_gpx }) {
   const [approved, setApproved] = useState([]);
+  const { user } = useAuthContext();
 
   const handleClick = useCallback(
     (item) => {
@@ -29,34 +32,58 @@ export default function TourDetailsBookers({ bookers }) {
   );
 
   return (
-    <Box
-      gap={3}
-      display="grid"
-      gridTemplateColumns={{
-        xs: 'repeat(1, 1fr)',
-        sm: 'repeat(2, 1fr)',
-        md: 'repeat(3, 1fr)',
-      }}
-    >
-      {bookers.map((booker) => (
-        <BookerItem
-          key={booker.userID}
-          booker={booker}
-          selected={approved.includes(booker.userID)}
-          onSelected={() => handleClick(booker.userID)}
-        />
-      ))}
-    </Box>
+    <>
+      {media_gpx && (
+        <Stack mb={3} spacing={1} mt={-2}>
+          <Typography variant="h6">Route View</Typography>
+          <Box
+            rowGap={2}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              md: 'repeat(2, 1fr)',
+            }}
+            sx={{ mb: -2 }}
+          >
+            <AMapPathDrawer path={media_gpx} style={{ width: '100%', borderRadius: '8px' }} />
+          </Box>
+        </Stack>
+      )}
+
+      <Divider sx={{ borderStyle: 'dashed', mb: 2, mt: 4 }} />
+
+      <Box
+        gap={3}
+        display="grid"
+        gridTemplateColumns={{
+          xs: 'repeat(1, 1fr)',
+          sm: 'repeat(2, 1fr)',
+          md: 'repeat(3, 1fr)',
+        }}
+      >
+        {bookers.map((booker) => (
+          <BookerItem
+            key={booker.userID}
+            booker={booker}
+            selected={approved.includes(booker.userID)}
+            onSelected={() => handleClick(booker.userID)}
+            user={user}
+          />
+        ))}
+      </Box>
+    </>
+
   );
 }
 
 TourDetailsBookers.propTypes = {
   bookers: PropTypes.array,
+  media_gpx: PropTypes.array,
 };
 
 // ----------------------------------------------------------------------
 
-function BookerItem({ booker, selected, onSelected }) {
+function BookerItem({ booker, selected, user }) {
   return (
     <Stack component={Card} direction="row" spacing={2} key={booker.userID} sx={{ p: 3 }}>
       <Avatar alt={booker.username} src={booker.avatarURL} sx={{ width: 48, height: 48 }} />
@@ -78,61 +105,29 @@ function BookerItem({ booker, selected, onSelected }) {
           }}
         />
 
-        <Stack spacing={1} direction="row">
-          {/* <IconButton
-            size="small"
-            color="error"
-            sx={{
-              borderRadius: 1,
-              bgcolor: (theme) => alpha(theme.palette.error.main, 0.08),
-              '&:hover': {
-                bgcolor: (theme) => alpha(theme.palette.error.main, 0.16),
-              },
-            }}
-          >
-            <Iconify width={18} icon="solar:phone-bold" />
-          </IconButton> */}
-
-          <IconButton
-            size="small"
-            color="info"
-            sx={{
-              borderRadius: 1,
-              bgcolor: (theme) => alpha(theme.palette.info.main, 0.08),
-              '&:hover': {
-                bgcolor: (theme) => alpha(theme.palette.info.main, 0.16),
-              },
-            }}
-          >
-            <Iconify width={18} icon="solar:chat-round-dots-bold" />
-          </IconButton>
-
-          {/* <IconButton
-            size="small"
-            color="primary"
-            sx={{
-              borderRadius: 1,
-              bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
-              '&:hover': {
-                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.16),
-              },
-            }}
-          >
-            <Iconify width={18} icon="fluent:mail-24-filled" />
-          </IconButton> */}
-        </Stack>
+        {user.username === booker.username && (
+          <Stack spacing={1} direction="row" sx={{ mb: -1 }}>
+            <Button
+              size="small"
+              variant={selected ? 'text' : 'outlined'}
+            >
+              upload
+            </Button>
+            <Button
+              size="small"
+              variant={selected ? 'text' : 'outlined'}
+            >
+              start now
+            </Button>
+          </Stack>
+        )}
       </Stack>
 
       <Button
         size="small"
         variant={selected ? 'text' : 'outlined'}
-        color={selected ? 'success' : 'inherit'}
-        startIcon={
-          selected ? <Iconify width={18} icon="eva:checkmark-fill" sx={{ mr: -0.75 }} /> : null
-        }
-        onClick={onSelected}
       >
-        {selected ? 'Approved' : 'Approve'}
+        {selected ? 'hide' : 'show'}
       </Button>
     </Stack>
   );
@@ -142,4 +137,5 @@ BookerItem.propTypes = {
   booker: PropTypes.object,
   onSelected: PropTypes.func,
   selected: PropTypes.bool,
+  user: PropTypes.object
 };
