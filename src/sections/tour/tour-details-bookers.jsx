@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -84,9 +84,23 @@ TourDetailsBookers.propTypes = {
 // ----------------------------------------------------------------------
 
 function BookerItem({ booker, selected, user }) {
+  const fileRef = useRef(null);
+
+  const handleAttach = () => {
+    if (fileRef.current) {
+      fileRef.current.click();
+    }
+  };
+
   return (
     <Stack component={Card} direction="row" spacing={2} key={booker.userID} sx={{ p: 3 }}>
       <Avatar alt={booker.username} src={booker.avatarURL} sx={{ width: 48, height: 48 }} />
+
+      <input
+        type="file"
+        style={{ display: 'none' }}
+        ref={fileRef}
+      />
 
       <Stack spacing={2} flexGrow={1}>
         <ListItemText
@@ -110,6 +124,7 @@ function BookerItem({ booker, selected, user }) {
             <Button
               size="small"
               variant={selected ? 'text' : 'outlined'}
+              onClick={handleAttach}
             >
               upload
             </Button>
