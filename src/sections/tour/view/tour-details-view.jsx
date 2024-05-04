@@ -45,8 +45,12 @@ export default function TourDetailsView({ id }) {
       const resp = await axiosTest.get(endpoints.activity.getById + "?activityID=" + id)
       if (resp.data.status_code === 0) {
         setCurrentTour(resp.data.Data)
-        setPath(wgs2gcj(currentTour?.media_gpx))
-        console.log(path)
+        console.log(resp.data.Data)
+
+        setPath(prev => (
+          [...prev, wgs2gcj(resp.data.Data.media_gpx)]
+        ))
+
         setPublish('111')
       } else {
         enqueueSnakebar(resp.data.status_msg, { variant: "error" })

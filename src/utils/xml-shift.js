@@ -48,13 +48,18 @@ function delta(lat, lng) {
 }
 
 export function wgs2gcj(coordinatesArray) {
+    console.log("sssfasdf")
+
     return coordinatesArray.map(([wgsLng, wgsLat]) => {
-        if (outOfChina(wgsLng, wgsLat)) {
-            return [wgsLng, wgsLat];
-        }
+        // if (outOfChina(wgsLng, wgsLat)) {
+        //     console.log(wgsLng,wgsLat)
+        //     console.log('out of china')
+
+        //     return [wgsLng, wgsLat];
+        // }
         var d = delta(wgsLng, wgsLat);
         console.log(wgsLng,wgsLat)
-        console.log(wgsLng + d.lng, wgsLat + d.lat)
+        //console.log(wgsLng + d.lng, wgsLat + d.lat)
         return [wgsLng + d.lng, wgsLat + d.lat];
     });
 }

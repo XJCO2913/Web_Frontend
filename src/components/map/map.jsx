@@ -6,6 +6,8 @@ const AMapPathDrawer = ({ path, style }) => {
   const mapContainer = useRef(null);
 
   useEffect(() => {
+    console.log("xxxxxxxx", path)
+
     AMapLoader.load({
       key: "e65a2fad806f1efcbe741afff844c30b",  // 使用你的API密钥
       version: "2.0",            // 使用高德地图JS API的2.0版本
@@ -18,7 +20,7 @@ const AMapPathDrawer = ({ path, style }) => {
       });
 
       const polyline = new AMap.Polyline({
-        path: path.map(point => new AMap.LngLat(...point)), // 将点数组转换为高德地图LngLat对象
+        path: path.map(point => new AMap.LngLat(point[0], point[1])), // 将点数组转换为高德地图LngLat对象
         strokeColor: '#00A76F',  // 线条颜色
         strokeOpacity: 1,
         strokeWeight: 3,
