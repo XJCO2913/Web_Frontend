@@ -48,22 +48,16 @@ function delta(lat, lng) {
 }
 
 export function wgs2gcj(coordinatesArray) {
-    console.log("sssfasdf")
-
     return coordinatesArray.map(([wgsLng, wgsLat]) => {
-        // if (outOfChina(wgsLng, wgsLat)) {
-        //     console.log(wgsLng,wgsLat)
-        //     console.log('out of china')
+        // 转换为浮点数
+        wgsLng = parseFloat(wgsLng);
+        wgsLat = parseFloat(wgsLat);
 
-        //     return [wgsLng, wgsLat];
-        // }
-        var d = delta(wgsLng, wgsLat);
-        console.log(wgsLng,wgsLat)
-        //console.log(wgsLng + d.lng, wgsLat + d.lat)
-        return [wgsLng + d.lng, wgsLat + d.lat];
+        var d = delta(wgsLat, wgsLng);
+        // 确保d.lng和d.lat也是数值类型
+        return [wgsLng + parseFloat(d.lng), wgsLat + parseFloat(d.lat)];
     });
 }
-
 
 export function gcj2wgs(gcjLat, gcjLng) {
     if (outOfChina(gcjLat, gcjLng)) {
