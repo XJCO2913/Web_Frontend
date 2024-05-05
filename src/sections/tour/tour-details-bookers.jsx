@@ -13,6 +13,7 @@ import Divider from '@mui/material/Divider';
 import Iconify from 'src/components/iconify';
 import AMapPathDrawer from 'src/components/map'
 import { useAuthContext } from 'src/auth/hooks';
+import { wgs2gcj } from 'src/utils/xml-shift'
 
 // ----------------------------------------------------------------------
 
@@ -244,16 +245,10 @@ const _mockData = [
 ]
 
 function convertDataToPaths(data, color) {
-  const coords = data.map(point =>
-    point.map(str => {
-      const num = parseFloat(str);
-      if (isNaN(num)) {
-        throw new Error("Invalid coordinate data");
-      }
-      return num;
-    })
-  );
-  
+  // 假设data是一个数组，其中每个元素也是一个包含两个字符串的数组（经度和纬度）
+  const convertedData = wgs2gcj(data); // 使用wgs2gcj函数转换全部坐标点
+  const coords = convertedData.map(([lng, lat]) => [lng, lat]); // 将转换后的坐标重新格式化（这一步可能实际上是多余的，取决于你具体的需求）
+
   return [{ coords, color }];
 }
 
@@ -266,7 +261,7 @@ export default function TourDetailsBookers({ bookers, media_gpx }) {
 
   useEffect(() => {
     if (media_gpx) {
-      setCurrentPath(media_gpx);
+      setCurrentPath(oldPaths => [...oldPaths, media_gpx]);
     }
   }, [media_gpx]);
 
@@ -275,7 +270,7 @@ export default function TourDetailsBookers({ bookers, media_gpx }) {
   const handlePathChange = (newPath) => {
     setCurrentPath(current => [
       ...current,
-      convertDataToPaths(newPath, '#FF0000')  // 假设你想使用红色作为新路径的颜色
+      ...convertDataToPaths(newPath, '#FF0000')  // 假设你想使用红色作为新路径的颜色
     ]);
   };
 
@@ -289,8 +284,6 @@ export default function TourDetailsBookers({ bookers, media_gpx }) {
     },
     [approved]
   );
-
-  console.log(currentPath)
 
   return (
     <>
@@ -307,10 +300,7 @@ export default function TourDetailsBookers({ bookers, media_gpx }) {
             sx={{ mb: -2 }}
           >
             <AMapPathDrawer
-              paths={[{
-                coords: currentPath,
-                color: '#00A76F'
-              }]}
+              paths={currentPath}
               style={{ width: '100%', borderRadius: '8px' }}
             />
           </Box>
@@ -328,7 +318,7 @@ export default function TourDetailsBookers({ bookers, media_gpx }) {
           md: 'repeat(3, 1fr)',
         }}
       >
-        {bookers.map((booker) => (
+        {bookers.map((booker, index) => (
           <BookerItem
             key={booker.userID}
             booker={booker}
@@ -336,6 +326,7 @@ export default function TourDetailsBookers({ bookers, media_gpx }) {
             onSelected={() => handleClick(booker.userID)}
             user={user}
             onChangePath={() => handlePathChange(_mockData)}
+            index={index}
           />
         ))}
       </Box>
@@ -351,7 +342,7 @@ TourDetailsBookers.propTypes = {
 
 // ----------------------------------------------------------------------
 
-function BookerItem({ booker, selected, user, onChangePath }) {
+function BookerItem({ booker, selected, user, onChangePath, index }) {
   const fileRef = useRef(null);
 
   const handleAttach = () => {
@@ -360,9 +351,14 @@ function BookerItem({ booker, selected, user, onChangePath }) {
     }
   };
 
+  const getColor = (index) => {
+    // 简单的示例：第一个用户红色，第二个用户蓝色
+    return index === 0 ? 'red' : 'blue';
+  };
+
   return (
-    <Stack component={Card} direction="row" spacing={2} key={booker.userID} sx={{ p: 3 }}>
-      <Avatar alt={booker.username} src={booker.avatarURL} sx={{ width: 48, height: 48 }} />
+    <Stack component={Card} direction="row" spacing={2} key={booker?.userID} sx={{ p: 3 }}>
+      <Avatar alt={booker?.username} src={booker?.avatarURL} sx={{ width: 48, height: 48 }} />
 
       <input
         type="file"
@@ -372,11 +368,18 @@ function BookerItem({ booker, selected, user, onChangePath }) {
 
       <Stack spacing={2} flexGrow={1}>
         <ListItemText
-          primary={booker.username}
+          primary={booker?.username}
           secondary={
             <Stack direction="row" alignItems="center" spacing={0.5}>
+              <div style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: getColor(index), // 使用函数获取颜色
+                marginRight: '5px',
+              }} />
               <Iconify icon="solar:buildings-2-bold-duotone" width={16} />
-              {booker.region}
+              {booker?.region}
             </Stack>
           }
           secondaryTypographyProps={{
@@ -387,7 +390,7 @@ function BookerItem({ booker, selected, user, onChangePath }) {
           }}
         />
 
-        {user.username === booker.username && (
+        {user?.username === booker?.username && (
           <Stack spacing={1} direction="row" sx={{ mb: -1 }}>
             <Button
               size="small"
@@ -423,4 +426,5 @@ BookerItem.propTypes = {
   selected: PropTypes.bool,
   user: PropTypes.object,
   onChangePath: PropTypes.func,
+  index: PropTypes.number,
 };
