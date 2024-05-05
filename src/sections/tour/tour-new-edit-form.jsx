@@ -126,10 +126,10 @@ export default function TourNewEditForm({ currentTour }) {
       });
     }
 
-    if (!hasXML || !hasImage) {
-      enqueueSnackbar('Please upload one XML file and one image file!', { variant: 'error' });
-      return;
-    }
+    // if (!hasXML || !hasImage) {
+    //   enqueueSnackbar('Please upload one XML file and one image file!', { variant: 'error' });
+    //   return;
+    // }
 
     try {
       const formData = new FormData();
@@ -152,7 +152,7 @@ export default function TourNewEditForm({ currentTour }) {
         let fieldName = '';
         if (file.type.match('image.*')) {
           fieldName = 'coverFile';
-        } else if (file.type === 'text/xml') {
+        } else {
           fieldName = 'gpxFile';
         }
         formData.append(fieldName, file);

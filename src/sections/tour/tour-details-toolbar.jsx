@@ -16,6 +16,7 @@ import { useSnackbar } from 'notistack';
 import { useEffect, useState } from 'react';
 import { axiosSimple } from '@/utils/axios';
 import { endpoints } from '@/api';
+import { jwtDecode } from '@/auth/context/jwt/utils';
 
 // ----------------------------------------------------------------------
 
@@ -38,6 +39,14 @@ export default function TourDetailsToolbar({
   const handleJoin = async () => {
     try {
       const token = sessionStorage.getItem('token')
+
+      // only membership can join in activity
+      const payload = jwtDecode(token)
+      if (payload.membershipType != '1' && payload.membershipType != '2') {
+        enqueueSnackbar("Only membership can join in activities!", { variant: "error" })
+        return
+      }
+
       const httpConfig = {
         headers: {
           'Authorization': `Bearer ${token}`,
