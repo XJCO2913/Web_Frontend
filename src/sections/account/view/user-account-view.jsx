@@ -55,7 +55,7 @@ const organizerPlans = [
     price: 0,
   },
   {
-    subscription: 'Organiser',
+    subscription: 'Organizer',
     price: 4.99,
   },
 ];

@@ -31,6 +31,7 @@ export const endpoints = {
         follower: '/friend/follower',
         followUser: '/friend/follow',
         friend: '/friend/',
+        applyOrg: '/org/apply',
     },
     chat: '/chat',
     activity: {

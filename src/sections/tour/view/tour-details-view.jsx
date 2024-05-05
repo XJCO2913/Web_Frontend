@@ -45,11 +45,10 @@ export default function TourDetailsView({ id }) {
       const resp = await axiosTest.get(`${endpoints.activity.getById}?activityID=${id}`);
       if (resp.data.status_code === 0) {
         setCurrentTour(resp.data.Data);
-        
-        // 假设 wgs2gcj 返回的是数组并且 media_gpx 也是数组
+
         const convertedPath = wgs2gcj(resp.data.Data.media_gpx);
         setPath(prev => [...prev, ...convertedPath]);
-  
+
         setPublish('111');
       } else {
         enqueueSnakebar(resp.data.status_msg, { variant: "error" });
@@ -58,11 +57,10 @@ export default function TourDetailsView({ id }) {
       enqueueSnakebar(err.toString(), { variant: "error" });
     }
   };
-  
+
   useEffect(() => {
     fetchCurrentTour();
-  }, []);  // 确保依赖项为空数组表示仅在组件挂载时执行
-  
+  }, []);
 
   const renderTabs = (
     <Tabs
