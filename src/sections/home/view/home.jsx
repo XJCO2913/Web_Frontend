@@ -67,6 +67,21 @@ const fetchActivities = async (setActivities) => {
 
 // ----------------------------------------------------------------------
 
+const MOCK_ACTIVITY = [
+  {
+    id: '8f12781c-f4e5-11ee-877a-0242ac150006',
+    title: 'Cycling',
+    description: `Let's go cycling together on the Tianfu Greenway in Chengdu.`,
+    coverUrl: '/c1.jpg',
+  },
+  {
+    id: 'aff0902e-f4e4-11ee-877a-0242ac150006',
+    title: 'Marathon',
+    description: 'Marathon',
+    coverUrl: '/c2.jpg',
+  }
+]
+
 export default function HomeView() {
   const { wsManager, setWsManager } = useWebSocketManager()
 
@@ -342,7 +357,7 @@ export default function HomeView() {
           <Grid xs={12} md={12}>
             <Card>
               <Carousel ref={carousel.carouselRef} {...carousel.carouselSettings}>
-                {activities.map((activity, index) => (
+                {MOCK_ACTIVITY.map((activity, index) => (
                   <CarouselItem key={activity.id} item={activity} active={index === carousel.currentIndex} />
                 ))}
               </Carousel>
