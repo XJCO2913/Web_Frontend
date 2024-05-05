@@ -18,7 +18,7 @@ import TourDetailsBookers from '../tour-details-bookers';
 import { useSnackbar } from 'src/components/snackbar';
 import { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api';
-import { wgs2gcj, gcj2wgs } from 'src/utils/xml-shift'
+import { wgs2gcj } from 'src/utils/xml-shift'
 
 // ----------------------------------------------------------------------
 

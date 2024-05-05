@@ -26,6 +26,7 @@ import { axiosSimple } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { useSnackbar } from 'notistack';
 import { useAuthContext } from '@/auth/hooks';
+import { wgs2gcj } from 'src/utils/xml-shift'
 
 // ----------------------------------------------------------------------
 
@@ -322,7 +323,7 @@ export default function Moment({ post }) {
       {
         post?.media && (
           <Box sx={{ p: 1 }}>
-            <AMapPathDrawer path={post.media} style={{ width: '100%', borderRadius: '8px' }}/>
+            <AMapPathDrawer path={wgs2gcj(post.media)} style={{ width: '100%', borderRadius: '8px' }}/>
           </Box>
         )
       }
