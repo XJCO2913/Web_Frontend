@@ -101,6 +101,7 @@ export default function UserProfileView() {
           name: user.username, // Assuming you want to use the 'username' as the name.
           region: user.region, // This will loop through your countries array.
           avatarUrl: user.avatarUrl, // Replace with the correct path to the avatar URL in your user object.
+          isFollowed: user.isFollowed,
         };
       });
       setFollower(followerData);

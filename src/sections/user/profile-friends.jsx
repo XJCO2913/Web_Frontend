@@ -19,32 +19,50 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
 export default function ProfileFriends({ friends }) {
 
-  return (
-    <>
-      <Stack
-        spacing={2}
-        justifyContent="space-between"
-        direction={{ xs: 'column', sm: 'row' }}
-        sx={{ my: 5 }}
-      >
-        <Typography variant="h4">Friends</Typography>
-      </Stack>
+  if (friends.length === 0) {
+    return (
+      <>
+        <Stack
+          spacing={2}
+          justifyContent="space-between"
+          direction={{ xs: 'column', sm: 'row' }}
+          sx={{ my: 5 }}
+        >
+          <Typography variant="h4">Friends</Typography>
+        </Stack>
 
-      <Box
-        gap={3}
-        display="grid"
-        gridTemplateColumns={{
-          xs: 'repeat(1, 1fr)',
-          sm: 'repeat(2, 1fr)',
-          md: 'repeat(3, 1fr)',
-        }}
-      >
-        {friends.map((friend) => (
-          <FriendCard key={friend.id} friend={friend} />
-        ))}
-      </Box>
-    </>
-  );
+        <Typography>You Do Not Have Any Friends.</Typography>
+      </>
+    )
+  }
+  else {
+    return (
+      <>
+        <Stack
+          spacing={2}
+          justifyContent="space-between"
+          direction={{ xs: 'column', sm: 'row' }}
+          sx={{ my: 5 }}
+        >
+          <Typography variant="h4">Friends</Typography>
+        </Stack>
+
+        <Box
+          gap={3}
+          display="grid"
+          gridTemplateColumns={{
+            xs: 'repeat(1, 1fr)',
+            sm: 'repeat(2, 1fr)',
+            md: 'repeat(3, 1fr)',
+          }}
+        >
+          {friends.map((friend) => (
+            <FriendCard key={friend.id} friend={friend} />
+          ))}
+        </Box>
+      </>
+    );
+  }
 }
 
 ProfileFriends.propTypes = {
