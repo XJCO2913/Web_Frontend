@@ -28,7 +28,7 @@ export default function TourDetailsView({ id }) {
 
   const [currentTab, setCurrentTab] = useState('content');
   const [currentTour, setCurrentTour] = useState({})
-  const [path, setPath] = useState([])
+  const [path, setPath] = useState()
 
   const [publish, setPublish] = useState(null);
 
@@ -45,10 +45,10 @@ export default function TourDetailsView({ id }) {
       const resp = await axiosTest.get(`${endpoints.activity.getById}?activityID=${id}`);
       if (resp.data.status_code === 0) {
         setCurrentTour(resp.data.Data);
-
+  
         const convertedPath = wgs2gcj(resp.data.Data.media_gpx);
-        setPath(prev => [...prev, ...convertedPath]);
-
+        setPath({ coords: convertedPath, color: '#00A76F' });
+  
         setPublish('111');
       } else {
         enqueueSnakebar(resp.data.status_msg, { variant: "error" });
@@ -57,6 +57,7 @@ export default function TourDetailsView({ id }) {
       enqueueSnakebar(err.toString(), { variant: "error" });
     }
   };
+  
 
   useEffect(() => {
     fetchCurrentTour();

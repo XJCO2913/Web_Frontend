@@ -54,7 +54,7 @@ export default function Moment({ post }) {
     }
   }, []);
 
-  const handleLike = async() => {
+  const handleLike = async () => {
     try {
       const token = sessionStorage.getItem('token')
       const httpConfig = {
@@ -77,13 +77,13 @@ export default function Moment({ post }) {
         enqueueSnackbar(resp.data.status_msg, { variant: "error" })
         setIsLiked(false)
       }
-    } catch(err) {
+    } catch (err) {
       enqueueSnackbar(err.toString(), { variant: "error" })
       setIsLiked(false)
     }
   }
 
-  const handleUnlike = async() => {
+  const handleUnlike = async () => {
     try {
       const token = sessionStorage.getItem('token')
       const httpConfig = {
@@ -103,13 +103,13 @@ export default function Moment({ post }) {
         enqueueSnackbar(resp.data.status_msg, { variant: "error" })
         setIsLiked(true)
       }
-    } catch(err) {
+    } catch (err) {
       enqueueSnackbar(err.toString(), { variant: "error" })
       setIsLiked(true)
     }
   }
 
-  const handleSendComment = async() => {
+  const handleSendComment = async () => {
     try {
       const token = sessionStorage.getItem('token')
       const httpConfig = {
@@ -129,7 +129,7 @@ export default function Moment({ post }) {
       } else {
         enqueueSnackbar(resp.data.status_msg, { variant: "error" })
       }
-    } catch(err) {
+    } catch (err) {
       enqueueSnackbar(err.toString(), { variant: "error" })
     } finally {
       setMessage('')
@@ -216,7 +216,7 @@ export default function Moment({ post }) {
         onChange={handleChangeMessage}
         endAdornment={
           <InputAdornment position="end" sx={{ mr: 1 }}>
-            <IconButton 
+            <IconButton
               size="small"
               onClick={handleSendComment}
             >
@@ -323,7 +323,13 @@ export default function Moment({ post }) {
       {
         post?.media && (
           <Box sx={{ p: 1 }}>
-            <AMapPathDrawer path={wgs2gcj(post.media)} style={{ width: '100%', borderRadius: '8px' }}/>
+            <AMapPathDrawer
+              paths={[{
+                coords: wgs2gcj(post.media), // 确保这返回一个坐标数组
+                color: '#00A76F' // 静态颜色定义
+              }]}
+              style={{ width: '100%', borderRadius: '8px' }}
+            />
           </Box>
         )
       }
