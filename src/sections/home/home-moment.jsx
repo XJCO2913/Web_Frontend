@@ -125,6 +125,15 @@ export default function Moment({ post }) {
       const resp = await axiosSimple.post(endpoints.moment.comment, data, httpConfig)
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg)
+        setCommentList(prev => [...prev, {
+          id: "temp",
+          author: {
+            name: user.username,
+            avatarUrl: user.avatarUrl,
+          },
+          createdAt: new Date(),
+          message: message,
+        }])
       } else {
         enqueueSnackbar(resp.data.status_msg, { variant: "error" })
       }
@@ -217,7 +226,7 @@ export default function Moment({ post }) {
           <InputAdornment position="end" sx={{ mr: 1 }}>
             <IconButton 
               size="small"
-              onClick={handleSendComment}
+              onClick={async()=>{await handleSendComment()}}
             >
               <Iconify icon="bi:send-fill" />
             </IconButton>
