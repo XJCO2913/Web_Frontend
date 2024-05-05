@@ -21,11 +21,11 @@ import axiosInstance, { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api/index';
 import { useSnackbar } from 'src/components/snackbar';
 
-export default function AccountOrganiserPlan({ plans }) {
+export default function AccountorganizerPlan({ plans }) {
   const { enqueueSnackbar } = useSnackbar();
   const { user, updateToken, updateUser } = useAuthContext();
-  const [organiser, setOrganiser] = useState(user?.isOrganiser ? 1 : 0);
-  const [selectedPlan, setSelectedPlan] = useState(plans[organiser]?.subscription || 'member');
+  const [organizer, setorganizer] = useState(user?.isOrganiser ? 1 : 0);
+  const [selectedPlan, setSelectedPlan] = useState(plans[organizer]?.subscription || 'member');
   const isBasicPlan = selectedPlan === 'member';
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -51,9 +51,11 @@ export default function AccountOrganiserPlan({ plans }) {
 
   const upgradePlan = useCallback(async () => {
     const targetType = plans.findIndex(plan => plan.subscription === selectedPlan);
+    console.log(organizer);
+    console.log(targetType);
 
-    if (targetType === organiser) {
-      enqueueSnackbar("Your are already an organiser.", { variant: "info" });
+    if (targetType === organizer) {
+      enqueueSnackbar("Your are already an organizer.", { variant: "info" });
       return;
     }
 
@@ -63,22 +65,18 @@ export default function AccountOrganiserPlan({ plans }) {
     }
 
     try {
-      const res = await axiosTest.post(`${endpoints.user.subscribe}?userID=${user.userId}&membershipType=${targetType}`);
-
+      const res = await axiosTest.post(endpoints.user.applyOrg);
       if (res.data.status_code === 0) {
-        const resToken = await axiosInstance.post(endpoints.user.refreshToken);
-        updateToken(resToken.data.Data.newToken);
-        setOrganiser(targetType);
-        updateUser({ membershipType: targetType });
-        enqueueSnackbar("Upgrade plan successfully!", { variant: "success" });
+        await axiosInstance.post(endpoints.user.refreshToken);
+        enqueueSnackbar("Apply successfully! Waiting for admin's approval.", { variant: "success" });
       } else {
-        enqueueSnackbar("Failed to upgrade plan: " + res.data.message, { variant: "error" });
+        enqueueSnackbar("Failed to apply: " + res.data.message, { variant: "error" });
       }
     } catch (error) {
       console.log(error);
-      enqueueSnackbar("Upgrade plan failed!", { variant: "error" });
+      enqueueSnackbar("Apply failed!", { variant: "error" });
     }
-  }, [selectedPlan, plans, user, updateToken, enqueueSnackbar, updateUser]);
+  }, [selectedPlan, user, updateToken, enqueueSnackbar, updateUser]);
 
   const renderPlans = plans.map((plan, index) => (
     <Grid xs={12} md={4} key={plan.subscription}>
@@ -95,7 +93,7 @@ export default function AccountOrganiserPlan({ plans }) {
           }),
         }}
       >
-        {organiser === index && (
+        {organizer === index && (
           <Label
             color="info"
             startIcon={<Iconify icon="eva:star-fill" />}
@@ -107,7 +105,7 @@ export default function AccountOrganiserPlan({ plans }) {
 
         <Box sx={{ width: 48, height: 48 }}>
           {plan.subscription === 'member' && <PlanStarterIcon />}
-          {plan.subscription === 'Organiser' && <PlanPremiumIcon />}
+          {plan.subscription === 'Organizer' && <PlanPremiumIcon />}
         </Box>
 
         <Box
@@ -120,8 +118,6 @@ export default function AccountOrganiserPlan({ plans }) {
         >
           {plan.subscription}
         </Box>
-
-        
       </Stack>
     </Grid>
   ));
@@ -130,7 +126,7 @@ export default function AccountOrganiserPlan({ plans }) {
     <>
       <Card>
         <Box display="flex" alignItems="center">
-          <CardHeader title="Apply to an Organiser" />
+          <CardHeader title="Apply to an organizer" />
           <IconButton
             aria-describedby={id}
             onClick={handleClick}
@@ -167,7 +163,7 @@ export default function AccountOrganiserPlan({ plans }) {
             }}
           >
             <Typography sx={{ p: 1, borderRadius: '50%', display: 'flex', height: 150, width: 300, fontSize: 12, }}>
-              Rules about Organiser:<br />
+              Rules about organizer:<br />
               1. If you want to be an organizer, you have to be a member.<br />
               2. Organizer permissions will expire simultaneously when the member expires!
             </Typography>
@@ -201,13 +197,13 @@ export default function AccountOrganiserPlan({ plans }) {
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Stack spacing={1.5} direction="row" justifyContent="flex-end" sx={{ p: 3 }}>
-          <Button variant="contained" onClick={upgradePlan} disabled={isBasicPlan}>Upgrade Plan</Button>
+          <Button variant="contained" onClick={upgradePlan} disabled={isBasicPlan}>Apply</Button>
         </Stack>
       </Card>
     </>
   );
 }
 
-AccountOrganiserPlan.propTypes = {
+AccountorganizerPlan.propTypes = {
   plans: PropTypes.array,
 };

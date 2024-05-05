@@ -18,7 +18,7 @@ const AMapPathDrawer = ({ path, style }) => {
       });
 
       const polyline = new AMap.Polyline({
-        path: path.map(point => new AMap.LngLat(...point)), // 将点数组转换为高德地图LngLat对象
+        path: path,
         strokeColor: '#00A76F',  // 线条颜色
         strokeOpacity: 1,
         strokeWeight: 3,

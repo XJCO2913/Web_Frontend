@@ -22,10 +22,4 @@ export default defineConfig({
   preview: {
     port: 5173,
   },
-  optimizeDeps: {
-    exclude: ['js-big-decimal']
-  },
-  optimizeDeps: {
-    exclude: ['js-big-decimal']
-  },
 });

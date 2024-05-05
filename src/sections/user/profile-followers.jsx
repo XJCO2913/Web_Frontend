@@ -15,21 +15,17 @@ import { endpoints } from 'src/api';
 // ----------------------------------------------------------------------
 
 export default function ProfileFollowers({ followers }) {
-  const [followed, setFollowed] = useState([]);
-
   const handleClick = useCallback(
-    async (item) => {
-      const isSelected = followed.includes(item);
-
+    async (followerId, isCurrentlyFollowed) => {
       try {
-        // Assuming '/api/follow' is the endpoint and it expects a POST request with user ID and follow status
-        const response = await axiosTest.post(`${endpoints.user.followUser}?followingId=${item}`);
-        // Assuming the backend confirms the action in the response
-        if (response.status === 200) {
-          const selected = isSelected
-            ? followed.filter((value) => value !== item)
-            : [...followed, item];
-          setFollowed(selected);
+        const action = isCurrentlyFollowed ? 'unfollow' : 'follow';
+        const response = await axiosTest.post(`${endpoints.user.followUser}`, {
+          followingId: followerId,
+          action: action
+        });
+        if (response.status_code === 0) {
+          // Optionally update the follower list state if needed, or let a parent component handle it
+          console.log('Follow status updated successfully');
         } else {
           console.error('Failed to update follow status:', response.data);
         }
@@ -37,49 +33,36 @@ export default function ProfileFollowers({ followers }) {
         console.error('Error updating follow status:', error.response || error);
       }
     },
-    [followed]
+    []
   );
 
   if (followers.length === 0) {
     return (
       <>
-        <Typography variant="h4" sx={{ my: 5 }}>
-          Followers
-        </Typography>
-
+        <Typography variant="h4" sx={{ my: 5 }}>Followers</Typography>
         <Typography>You Do Not Have Any Followers.</Typography>
       </>
-    )
-  }
-  else {
+    );
+  } else {
     return (
       <>
-        <Typography variant="h4" sx={{ my: 5 }}>
-          Followers
-        </Typography>
-
+        <Typography variant="h4" sx={{ my: 5 }}>Followers</Typography>
         <Box
           gap={3}
           display="grid"
-          gridTemplateColumns={{
-            xs: 'repeat(1, 1fr)',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)',
-          }}
+          gridTemplateColumns={{ xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }}
         >
           {followers.map((follower) => (
             <FollowerItem
               key={follower.id}
               follower={follower}
-              selected={followed.includes(follower.id)}
-              onSelected={() => handleClick(follower.id)}
+              onSelected={() => handleClick(follower.userId, follower.isFollowed)}
             />
           ))}
         </Box>
       </>
     );
   }
-
 }
 
 ProfileFollowers.propTypes = {
@@ -88,8 +71,8 @@ ProfileFollowers.propTypes = {
 
 // ----------------------------------------------------------------------
 
-function FollowerItem({ follower, selected, onSelected }) {
-  const { name, region, avatarUrl } = follower;
+function FollowerItem({ follower, onSelected }) {
+  const { name, region, avatarUrl, isFollowed } = follower;
 
   return (
     <Card
@@ -126,15 +109,15 @@ function FollowerItem({ follower, selected, onSelected }) {
 
       <Button
         size="small"
-        variant={selected ? 'text' : 'outlined'}
-        color={selected ? 'success' : 'inherit'}
+        variant={isFollowed ? 'text' : 'outlined'}
+        color={isFollowed ? 'success' : 'inherit'}
         startIcon={
-          selected ? <Iconify width={18} icon="eva:checkmark-fill" sx={{ mr: -0.75 }} /> : null
+          isFollowed ? <Iconify width={18} icon="eva:checkmark-fill" sx={{ mr: -0.75 }} /> : null
         }
         onClick={onSelected}
         sx={{ flexShrink: 0, ml: 1.5 }}
       >
-        {selected ? 'Followed' : 'Follow'}
+        {isFollowed ? 'Followed' : 'Follow'}
       </Button>
     </Card>
   );
