@@ -14,6 +14,9 @@ import Iconify from 'src/components/iconify';
 import AMapPathDrawer from 'src/components/map'
 import { useAuthContext } from 'src/auth/hooks';
 import { wgs2gcj } from 'src/utils/xml-shift'
+import { axiosTest } from 'src/utils/axios';
+import { endpoints } from 'src/api/index';
+import { useSnackbar } from 'src/components/snackbar';
 
 // ----------------------------------------------------------------------
 
@@ -244,6 +247,23 @@ const _mockData = [
   ]
 ]
 
+// ----------------------------------------------------------------------
+
+const colors = [
+  "#FF6633", "#FFB399", "#FF33FF", "#FFFF99", "#00B3E6",
+  "#E6B333", "#3366E6", "#999966", "#99FF99", "#B34D4D",
+  "#80B300", "#809900", "#E6B3B3", "#6680B3", "#66991A",
+  "#FF99E6", "#CCFF1A", "#FF1A66", "#E6331A", "#33FFCC",
+  "#66994D", "#B366CC", "#4D8000", "#B33300", "#CC80CC",
+  "#66664D", "#991AFF", "#E666FF", "#4DB3FF", "#1AB399",
+  "#E666B3", "#33991A", "#CC9999", "#B3B31A", "#00E680",
+  "#4D8066", "#809980", "#E6FF80", "#1AFF33", "#999933",
+  "#FF3380", "#CCCC00", "#66E64D", "#4D80CC", "#9900B3",
+  "#E64D66", "#4DB380", "#FF4D4D", "#99E6E6", "#6666FF"
+];
+
+// ----------------------------------------------------------------------
+
 function convertDataToPaths(data, color) {
   // 假设data是一个数组，其中每个元素也是一个包含两个字符串的数组（经度和纬度）
   const convertedData = wgs2gcj(data); // 使用wgs2gcj函数转换全部坐标点
@@ -252,25 +272,48 @@ function convertDataToPaths(data, color) {
   return [{ coords, color }];
 }
 
+async function fetchRouteData(bookerId, activityId) {
+  try {
+    const response = await axiosTest.get(endpoints.activity.getUserRoute, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ userID: bookerId, activityID: activityId })
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    return await response.json(); // 解析 JSON 数据
+  } catch (error) {
+    console.error('Failed to fetch route data:', error);
+  }
+}
+
+
 // ----------------------------------------------------------------------
 
-export default function TourDetailsBookers({ bookers, media_gpx }) {
+export default function TourDetailsBookers({ bookers, path, id }) {
   const [approved, setApproved] = useState([]);
   const [currentPath, setCurrentPath] = useState([]);
+  const [fetchData, setFetchData] = useState();
+  const [color, setColor] = useState();
   const { user } = useAuthContext();
 
   useEffect(() => {
-    if (media_gpx) {
-      setCurrentPath(oldPaths => [...oldPaths, media_gpx]);
+    if (path) {
+      setCurrentPath(oldPaths => [...oldPaths, path]);
     }
-  }, [media_gpx]);
+  }, [path]);
 
   console.log(typeof currentPath.coords)
 
-  const handlePathChange = (newPath) => {
+  const handlePathChange = (newPath, color) => {
     setCurrentPath(current => [
       ...current,
-      ...convertDataToPaths(newPath, '#FF0000')  // 假设你想使用红色作为新路径的颜色
+      ...convertDataToPaths(newPath, color)  // 假设你想使用红色作为新路径的颜色
     ]);
   };
 
@@ -325,8 +368,11 @@ export default function TourDetailsBookers({ bookers, media_gpx }) {
             selected={approved.includes(booker.userID)}
             onSelected={() => handleClick(booker.userID)}
             user={user}
-            onChangePath={() => handlePathChange(_mockData)}
+            onChangePath={() => handlePathChange(fetchData, color)}
             index={index}
+            activityID={id}
+            setFetchData={setFetchData}
+            setColor={setColor}
           />
         ))}
       </Box>
@@ -337,13 +383,15 @@ export default function TourDetailsBookers({ bookers, media_gpx }) {
 
 TourDetailsBookers.propTypes = {
   bookers: PropTypes.array,
-  media_gpx: PropTypes.object,
+  path: PropTypes.object,
+  id: PropTypes.string,
 };
 
 // ----------------------------------------------------------------------
 
-function BookerItem({ booker, selected, user, onChangePath, index }) {
+function BookerItem({ booker, selected, user, onChangePath, index, activityID, setFetchData, setColor}) {
   const fileRef = useRef(null);
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleAttach = () => {
     if (fileRef.current) {
@@ -351,9 +399,46 @@ function BookerItem({ booker, selected, user, onChangePath, index }) {
     }
   };
 
+  const handleUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      enqueueSnackbar('No file selected', { variant: 'error' });
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("gpxData", file);
+    formData.append("activityId", activityID);
+  
+    try {
+      const response = await axiosTest.post(endpoints.activity.upload, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+  
+      if (response.status === 200) {
+        enqueueSnackbar('File uploaded successfully', { variant: 'success' });
+      } else {
+        throw new Error('Failed to upload file');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      enqueueSnackbar('Error uploading file: ' + error.message, { variant: 'error' });
+    }
+  };
+
+  const handleChangePath = async () => {
+    const data = await fetchRouteData(booker.userID, activityID);
+    if (data) {
+      setFetchData(data); // 更新状态或上级组件传递的函数，用于更新数据
+    }
+    setColor(getColor(index));
+    onChangePath();
+  };
+
   const getColor = (index) => {
-    // 简单的示例：第一个用户红色，第二个用户蓝色
-    return index === 0 ? 'red' : 'blue';
+    return colors[index % colors.length]; // 使用模运算确保不会超出数组范围
   };
 
   return (
@@ -362,8 +447,10 @@ function BookerItem({ booker, selected, user, onChangePath, index }) {
 
       <input
         type="file"
+        accept=".xml"
         style={{ display: 'none' }}
         ref={fileRef}
+        onChange={handleUpload}
       />
 
       <Stack spacing={2} flexGrow={1}>
@@ -394,16 +481,18 @@ function BookerItem({ booker, selected, user, onChangePath, index }) {
           <Stack spacing={1} direction="row" sx={{ mb: -1 }}>
             <Button
               size="small"
-              variant={selected ? 'text' : 'outlined'}
+              variant={'outlined'}
               onClick={handleAttach}
             >
               upload
             </Button>
+
             <Button
               size="small"
               variant={selected ? 'text' : 'outlined'}
+              onClick={handleChangePath}
             >
-              start now
+              {selected ? 'hide' : 'show'}
             </Button>
           </Stack>
         )}
@@ -412,7 +501,6 @@ function BookerItem({ booker, selected, user, onChangePath, index }) {
       <Button
         size="small"
         variant={selected ? 'text' : 'outlined'}
-        onClick={onChangePath}
       >
         {selected ? 'hide' : 'show'}
       </Button>
@@ -427,4 +515,7 @@ BookerItem.propTypes = {
   user: PropTypes.object,
   onChangePath: PropTypes.func,
   index: PropTypes.number,
+  activityID: PropTypes.string,
+  setFetchData: PropTypes.func,
+  setColor: PropTypes.func,
 };

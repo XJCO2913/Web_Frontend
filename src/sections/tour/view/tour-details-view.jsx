@@ -104,7 +104,7 @@ export default function TourDetailsView({ id }) {
 
       {currentTour && currentTab === 'content' && <TourDetailsContent tour={currentTour} />}
 
-      {currentTab === 'bookers' && <TourDetailsBookers bookers={currentTour?.participants} media_gpx={path} />}
+      {currentTab === 'bookers' && <TourDetailsBookers bookers={currentTour?.participants} path={path} id={id}/>}
     </Container>
   );
 }

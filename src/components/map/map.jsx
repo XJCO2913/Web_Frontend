@@ -2,11 +2,8 @@ import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import AMapLoader from '@amap/amap-jsapi-loader';
 
-import { useAuthContext } from '@/auth/hooks';
-
 const AMapPathDrawer = ({ paths, style }) => {
   const mapContainer = useRef(null);
-  const { user } = useAuthContext();
 
   const getIconHTML = (avatarUrl) => `
         <div style="
@@ -31,16 +28,15 @@ const AMapPathDrawer = ({ paths, style }) => {
     AMapLoader.load({
       key: "e65a2fad806f1efcbe741afff844c30b",  // 使用你的API密钥
       version: "2.0",            // 使用高德地图JS API的2.0版本
-      plugins: []                // 根据需要添加插件
+      plugins: ['Marker']        // 添加Marker插件
     }).then(AMap => {
       const map = new AMap.Map(mapContainer.current, {
         viewMode: "3D",          // 使用3D视图模式
         zoom: 16,                // 初始缩放级别
-        center: paths[0]?.coords[0],         // 使用路径的第一个坐标作为地图中心点
+        center: paths.length ? paths[0].coords[0] : [0, 0], // 默认中心点
       });
 
-      // 为每条路径创建一个 polyline
-      paths.forEach((path, index) => {
+      paths.forEach((path) => {
         const polyline = new AMap.Polyline({
           path: path.coords,
           strokeColor: path.color,
@@ -50,12 +46,12 @@ const AMapPathDrawer = ({ paths, style }) => {
         });
         polyline.setMap(map);
 
-        // 在添加第二条路径时添加 Marker
-        if (index === 1) {
-          const geoMarker = new AMap.Marker({
-            position: path.coords[0], // 可以选择路径的起点作为 Marker 的位置
+        // 检查是否存在用户头像，如果存在则创建带头像的标记
+        if (path.user && path.user.avatarUrl) {
+          const marker = new AMap.Marker({
+            position: path.coords[0], // 标记在路径起点
             map: map,
-            content: getIconHTML(user?.avatarUrl)
+            content: getIconHTML(path.user.avatarUrl)
           });
         }
       });
@@ -69,7 +65,13 @@ const AMapPathDrawer = ({ paths, style }) => {
 };
 
 AMapPathDrawer.propTypes = {
-  paths: PropTypes.array,
+  paths: PropTypes.arrayOf(PropTypes.shape({
+    coords: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number)).isRequired,
+    color: PropTypes.string.isRequired,
+    user: PropTypes.shape({
+      avatarUrl: PropTypes.string
+    })
+  })),
   style: PropTypes.object
 };
 

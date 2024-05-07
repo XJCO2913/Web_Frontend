@@ -42,7 +42,9 @@ export const endpoints = {
         getById: '/activity',
         me: {
             all: '/activity/user'
-        }
+        },
+        getUserRoute: '/activity/route',
+        upload: '/activity/route'
     },
     moment: {
         create: '/moment/create',
