@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useRef, useEffect } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -134,6 +134,7 @@ export default function TourDetailsBookers({ bookers, path, id }) {
             onChangePath={handlePathChange}
             index={index}
             activityID={id}
+            initialFollowStatus={booker.isFollowed}
           />
         ))}
       </Box>
@@ -150,10 +151,31 @@ TourDetailsBookers.propTypes = {
 
 // ----------------------------------------------------------------------
 
-function BookerItem({ booker, user, onChangePath, index, activityID }) {
+function BookerItem({ booker, user, onChangePath, index, activityID, initialFollowStatus }) {
   const fileRef = useRef(null);
   const [buttonText, setButtonText] = useState('show');
   const { enqueueSnackbar } = useSnackbar();
+  const [isFollowed, setIsFollowed] = useState(initialFollowStatus);
+
+  const handleClick = useCallback(
+    async (followerId) => {
+      try {
+        const url = `${endpoints.user.followUser}?followingId=${followerId}`;
+        const response = await axiosTest.post(url);
+        if (response.data.status_code === 0) {
+          setIsFollowed(true);
+          enqueueSnackbar('Follow user successfully!', { variant: 'success' });
+        } else {
+          console.error('Failed to follow:', response.data);
+          enqueueSnackbar('Failed to follow user!', { variant: 'error' });
+        }
+      } catch (error) {
+        console.error('Error during follow operation:', error.response || error);
+        enqueueSnackbar('Failed to follow user!', { variant: 'error' });
+      }
+    },
+    []
+  );
 
   const handleAttach = () => {
     if (fileRef.current) {
@@ -237,9 +259,19 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
                 marginRight: '-5px',
                 marginLeft: '5px',
               }} />
-              <IconButton size="small">
-                <Iconify icon="ic:round-add" width={20}/>
-              </IconButton>
+              {user?.username !== booker?.username && (
+                <IconButton
+                  size="small"
+                  onClick={!isFollowed ? () => handleClick(booker.userID) : undefined}
+                >
+                  {isFollowed ? (
+                    <Iconify icon="ic:baseline-check" width={20} />
+                  ) : (
+                    <Iconify icon="ic:round-add" width={20} />
+                  )}
+                </IconButton>
+              )}
+
             </Stack>
           }
           secondary={
@@ -283,10 +315,10 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
 
 BookerItem.propTypes = {
   booker: PropTypes.object,
-  onSelected: PropTypes.func,
   selected: PropTypes.bool,
   user: PropTypes.object,
   onChangePath: PropTypes.func,
   index: PropTypes.number,
   activityID: PropTypes.string,
+  initialFollowStatus: PropTypes.bool,
 };
