@@ -1,15 +1,10 @@
-import { useRef } from 'react';
 import PropTypes from 'prop-types';
 
-import Fab from '@mui/material/Fab';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
-import { alpha } from '@mui/material/styles';
-import InputBase from '@mui/material/InputBase';
 import Grid from '@mui/material/Unstable_Grid2';
 import CardHeader from '@mui/material/CardHeader';
 
@@ -34,14 +29,14 @@ export default function ProfileHome({ info, posts }) {
         divider={<Divider orientation="vertical" flexItem sx={{ borderStyle: 'dashed' }} />}
       >
         <Stack width={1}>
-          {fNumber(info.totalFollowers)}
+          {fNumber(user?.followers)}
           <Box component="span" sx={{ color: 'text.secondary', typography: 'body2' }}>
             Follower
           </Box>
         </Stack>
 
         <Stack width={1}>
-          {fNumber(info.totalFollowing)}
+          {fNumber(user?.followings)}
           <Box component="span" sx={{ color: 'text.secondary', typography: 'body2' }}>
             Following
           </Box>

@@ -157,7 +157,6 @@ export default function UserProfileView() {
         }}
       >
         <ProfileCover
-          role={_userAbout.role}
           name={user?.username}
           avatarUrl={user?.avatarUrl}
           coverUrl={_userAbout.coverUrl}
