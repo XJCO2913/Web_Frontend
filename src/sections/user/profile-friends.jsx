@@ -7,55 +7,46 @@ import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import { alpha } from '@mui/material/styles';
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import InputAdornment from '@mui/material/InputAdornment';
 
 import { _socials } from 'src/_mock';
 
 import Iconify from 'src/components/iconify';
-import SearchNotFound from 'src/components/search-not-found';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 
 // ----------------------------------------------------------------------
 
-export default function ProfileFriends({ friends, searchFriends, onSearchFriends }) {
-  const dataFiltered = applyFilter({
-    inputData: friends,
-    query: searchFriends,
-  });
+export default function ProfileFriends({ friends }) {
 
-  const notFound = !dataFiltered.length && !!searchFriends;
+  if (friends.length === 0) {
+    return (
+      <>
+        <Stack
+          spacing={2}
+          justifyContent="space-between"
+          direction={{ xs: 'column', sm: 'row' }}
+          sx={{ my: 5 }}
+        >
+          <Typography variant="h4">Friends</Typography>
+        </Stack>
 
-  return (
-    <>
-      <Stack
-        spacing={2}
-        justifyContent="space-between"
-        direction={{ xs: 'column', sm: 'row' }}
-        sx={{ my: 5 }}
-      >
-        <Typography variant="h4">Friends</Typography>
+        <Typography>You Do Not Have Any Friends.</Typography>
+      </>
+    )
+  }
+  else {
+    return (
+      <>
+        <Stack
+          spacing={2}
+          justifyContent="space-between"
+          direction={{ xs: 'column', sm: 'row' }}
+          sx={{ my: 5 }}
+        >
+          <Typography variant="h4">Friends</Typography>
+        </Stack>
 
-        <TextField
-          value={searchFriends}
-          onChange={onSearchFriends}
-          placeholder="Search friends..."
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ width: { xs: 1, sm: 260 } }}
-        />
-      </Stack>
-
-      {notFound ? (
-        <SearchNotFound query={searchFriends} sx={{ mt: 10 }} />
-      ) : (
         <Box
           gap={3}
           display="grid"
@@ -65,13 +56,13 @@ export default function ProfileFriends({ friends, searchFriends, onSearchFriends
             md: 'repeat(3, 1fr)',
           }}
         >
-          {dataFiltered.map((friend) => (
+          {friends.map((friend) => (
             <FriendCard key={friend.id} friend={friend} />
           ))}
         </Box>
-      )}
-    </>
-  );
+      </>
+    );
+  }
 }
 
 ProfileFriends.propTypes = {
@@ -167,14 +158,3 @@ FriendCard.propTypes = {
   friend: PropTypes.object,
 };
 
-// ----------------------------------------------------------------------
-
-function applyFilter({ inputData, query }) {
-  if (query) {
-    return inputData.filter(
-      (friend) => friend.name.toLowerCase().indexOf(query.toLowerCase()) !== -1
-    );
-  }
-
-  return inputData;
-}

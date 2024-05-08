@@ -12,6 +12,7 @@ import CustomBreadcrumbs from 'src/components/custom-breadcrumbs';
 
 import AccountGeneral from '../account-general';
 import AccountBilling from '../account-billing';
+import AccountOrganizer from '../account-organizer';
 
 // ----------------------------------------------------------------------
 
@@ -25,6 +26,11 @@ const TABS = [
     value: 'billing',
     label: 'Billing',
     icon: <Iconify icon="solar:bill-list-bold" width={24} />,
+  },
+  {
+    value: 'organizer',
+    label: 'Organizer',
+    icon: <Iconify icon="wpf:administrator" width={24} />,
   }
 ];
 
@@ -40,6 +46,17 @@ const userPlans = [
   {
     subscription: 'premium',
     price: 9.99,
+  },
+];
+
+const organizerPlans = [
+  {
+    subscription: 'member',
+    price: 0,
+  },
+  {
+    subscription: 'Organizer',
+    price: 4.99,
   },
 ];
 
@@ -97,6 +114,12 @@ export default function AccountView() {
         <AccountBilling
           plans={userPlans}
           cards={userPayment}
+        />
+      )}
+
+      {currentTab === 'organizer' && (
+        <AccountOrganizer
+          plans={organizerPlans}
         />
       )}
     </Container>

@@ -67,8 +67,7 @@ export function RHFUpload({ name, multiple, helperText, ...other }) {
           <Upload
             multiple
             accept={{
-              'image/*': [],
-              'application/xml': ['.xml']
+              
             }}
             files={field.value}
             error={!!error}

@@ -65,19 +65,19 @@ export default function AccountPopover() {
   };
 
   const getLabelProps = () => {
-    switch (user.membershipType) {
+    switch (user?.membershipType) {
       case 0:
-        return { text: 'Free', color: 'success' };
+        return { text: 'Free', colorCustom: 'success' };
       case 1:
-        return { text: 'Starter', color: 'warning' };
+        return { text: 'Starter', colorCustom: 'warning' };
       case 2:
-        return { text: 'Premium', color: 'error' };
+        return { text: 'Premium', colorCustom: 'error' };
       default:
-        return { text: 'Unknown', color: 'grey' };
+        return { text: 'Unknown', colorCustom: 'primary' };
     }
   };
 
-  const { text, color } = getLabelProps();
+  const { text, colorCustom } = getLabelProps();
 
   // const handleClickItem = (path) => {
   //   popover.onClose();
@@ -133,7 +133,7 @@ export default function AccountPopover() {
           </Typography>
 
           <Label
-            color={color}
+            color={colorCustom}
             variant="filled"
             sx={{
               px: 1,

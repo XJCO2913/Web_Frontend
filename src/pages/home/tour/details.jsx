@@ -14,7 +14,7 @@ export default function TourDetailsPage() {
   return (
     <>
       <Helmet>
-        <title> Analytics</title>
+        <title> Activity List</title>
       </Helmet>
 
       <TourDetailsView id={`${id}`} />

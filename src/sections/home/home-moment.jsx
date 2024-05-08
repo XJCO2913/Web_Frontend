@@ -22,15 +22,27 @@ import { fShortenNumber } from 'src/utils/format-number';
 import AMapPathDrawer from 'src/components/map'
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
+import { axiosSimple } from '@/utils/axios';
+import { endpoints } from '@/api';
+import { useSnackbar } from 'notistack';
+import { useAuthContext } from '@/auth/hooks';
+import { wgs2gcj } from 'src/utils/xml-shift'
 
 // ----------------------------------------------------------------------
 
 export default function Moment({ post }) {
+  const { user } = useAuthContext()
+
+  const { enqueueSnackbar } = useSnackbar()
+
   const commentRef = useRef(null);
 
   const fileRef = useRef(null);
 
   const [message, setMessage] = useState('');
+  const [isLiked, setIsLiked] = useState(post.isLiked)
+  const [commentList, setCommentList] = useState(post.comments)
+  const [personLikes, setPersonLikes] = useState(post.personLikes)
 
   const handleChangeMessage = useCallback((event) => {
     setMessage(event.target.value);
@@ -41,6 +53,97 @@ export default function Moment({ post }) {
       commentRef.current.focus();
     }
   }, []);
+
+  const handleLike = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const resp = await axiosSimple.post(endpoints.moment.like + '?momentID=' + post.id, null, httpConfig)
+      if (resp.data.status_code === 0) {
+        enqueueSnackbar(resp.data.status_msg)
+        setIsLiked(true)
+        setPersonLikes(prev => (
+          [...prev, {
+            name: user.username,
+            avatarUrl: user.avatarUrl,
+          }]
+        ))
+      } else {
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+        setIsLiked(false)
+      }
+    } catch (err) {
+      enqueueSnackbar(err.toString(), { variant: "error" })
+      setIsLiked(false)
+    }
+  }
+
+  const handleUnlike = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const resp = await axiosSimple.delete(endpoints.moment.unlike + '?momentID=' + post.id, httpConfig)
+      if (resp.data.status_code === 0) {
+        enqueueSnackbar(resp.data.status_msg)
+        setIsLiked(false)
+        setPersonLikes(prev => (
+          prev?.filter(person => person.name !== user.username)
+        ))
+      } else {
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+        setIsLiked(true)
+      }
+    } catch (err) {
+      enqueueSnackbar(err.toString(), { variant: "error" })
+      setIsLiked(true)
+    }
+  }
+
+  const handleSendComment = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const data = {
+        momentId: post.id,
+        content: message,
+      }
+      console.log(data)
+      const resp = await axiosSimple.post(endpoints.moment.comment, data, httpConfig)
+      if (resp.data.status_code === 0) {
+        enqueueSnackbar(resp.data.status_msg)
+        setCommentList(prev => [...prev, {
+          id: "temp",
+          author: {
+            name: user.username,
+            avatarUrl: user.avatarUrl,
+          },
+          createdAt: new Date(),
+          message: message,
+        }])
+      } else {
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+      }
+    } catch (err) {
+      enqueueSnackbar(err.toString(), { variant: "error" })
+    } finally {
+      setMessage('')
+    }
+  }
 
   const renderHead = (
     <CardHeader
@@ -70,9 +173,11 @@ export default function Moment({ post }) {
 
   const renderCommentList = (
     <Stack spacing={1.5} sx={{ px: 3, pb: 2 }}>
-      {post?.comments?.map((comment) => (
+      {commentList?.map((comment) => (
         <Stack key={comment.id} direction="row" spacing={2}>
-          <Avatar alt={comment.author.name} src={comment.author.avatarUrl} />
+          <Avatar alt={comment.author.name} src={comment.author.avatarUrl}>
+            {comment.author.name.charAt(0).toUpperCase()}
+          </Avatar>
           <Paper
             sx={{
               p: 1.5,
@@ -109,7 +214,9 @@ export default function Moment({ post }) {
         p: (theme) => theme.spacing(0, 3, 3, 3),
       }}
     >
-      <Avatar src={post.authorInfo?.avatarUrl} alt={post.authorInfo?.name} />
+      <Avatar src={user?.avatarUrl} alt={user?.username} >
+        {user?.username.charAt(0).toUpperCase()}
+      </Avatar>
       <InputBase
         fullWidth
         value={message}
@@ -118,12 +225,11 @@ export default function Moment({ post }) {
         onChange={handleChangeMessage}
         endAdornment={
           <InputAdornment position="end" sx={{ mr: 1 }}>
-            <IconButton size="small">
-              <Iconify icon="solar:gallery-add-bold" />
-            </IconButton>
-
-            <IconButton size="small">
-              <Iconify icon="eva:smiling-face-fill" />
+            <IconButton
+              size="small"
+              onClick={async()=>{await handleSendComment()}}
+            >
+              <Iconify icon="bi:send-fill" />
             </IconButton>
           </InputAdornment>
         }
@@ -150,17 +256,24 @@ export default function Moment({ post }) {
       <FormControlLabel
         control={
           <Checkbox
-            defaultChecked
             color="error"
             icon={<Iconify icon="solar:heart-bold" />}
             checkedIcon={<Iconify icon="solar:heart-bold" />}
+            checked={isLiked}
+            onChange={(event) => {
+              if (event.target.checked) {
+                handleLike()
+              } else {
+                handleUnlike()
+              }
+            }}
           />
         }
         label={fShortenNumber(post?.personLikes?.length)}
         sx={{ mr: 1 }}
       />
 
-      {!!post?.personLikes?.length && (
+      {!!personLikes?.length && (
         <AvatarGroup
           sx={{
             [`& .${avatarGroupClasses.avatar}`]: {
@@ -169,8 +282,10 @@ export default function Moment({ post }) {
             },
           }}
         >
-          {post?.personLikes?.map((person) => (
-            <Avatar key={person.name} alt={person.name} src={person.avatarUrl} />
+          {personLikes?.map((person) => (
+            <Avatar key={person.name} alt={person.name} src={person.avatarUrl} >
+              {person.name.charAt(0).toUpperCase()}
+            </Avatar>
           ))}
         </AvatarGroup>
       )}
@@ -217,7 +332,13 @@ export default function Moment({ post }) {
       {
         post?.media && (
           <Box sx={{ p: 1 }}>
-            <AMapPathDrawer path={post.media} style={{ width: '100%', borderRadius: '8px' }}/>
+            <AMapPathDrawer
+              paths={[{
+                coords: wgs2gcj(post.media), // 确保这返回一个坐标数组
+                color: '#00A76F' // 静态颜色定义
+              }]}
+              style={{ width: '100%', borderRadius: '8px' }}
+            />
           </Box>
         )
       }

@@ -152,7 +152,7 @@ export default function TourNewEditForm({ currentTour }) {
         let fieldName = '';
         if (file.type.match('image.*')) {
           fieldName = 'coverFile';
-        } else if (file.type === 'text/xml') {
+        } else {
           fieldName = 'gpxFile';
         }
         formData.append(fieldName, file);

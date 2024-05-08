@@ -30,7 +30,7 @@ export default function CarouselItem({ item, active }) {
       alt={title}
       src={coverUrl}
       overlay={`linear-gradient(to bottom, ${alpha(theme.palette.grey[900], 0)} 0%, ${theme.palette.grey[900]
-        } 75%)`}
+        } 100%)`}
       sx={{
         width: 1,
         height: {

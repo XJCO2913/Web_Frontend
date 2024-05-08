@@ -15,9 +15,10 @@ import { useSettingsContext } from 'src/components/settings';
 import TourDetailsToolbar from '../tour-details-toolbar';
 import TourDetailsContent from '../tour-details-content';
 import TourDetailsBookers from '../tour-details-bookers';
-import { useSnackbar } from 'notistack';
+import { useSnackbar } from 'src/components/snackbar';
 import { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api';
+import { wgs2gcj } from 'src/utils/xml-shift'
 
 // ----------------------------------------------------------------------
 
@@ -27,6 +28,7 @@ export default function TourDetailsView({ id }) {
 
   const [currentTab, setCurrentTab] = useState('content');
   const [currentTour, setCurrentTour] = useState({})
+  const [path, setPath] = useState()
 
   const [publish, setPublish] = useState(null);
 
@@ -38,29 +40,28 @@ export default function TourDetailsView({ id }) {
     setPublish(newValue);
   }, []);
 
-  const fetchCurrentTour = async() => {
+  const fetchCurrentTour = async () => {
     try {
-      const token = sessionStorage.getItem('token')
-      const httpConfig = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-      const resp = await axiosTest.get(endpoints.activity.getById + "?activityID=" + id, httpConfig)
+      const resp = await axiosTest.get(`${endpoints.activity.getById}?activityID=${id}`);
       if (resp.data.status_code === 0) {
-        setCurrentTour(resp.data.Data)
-        setPublish('111')
+        setCurrentTour(resp.data.Data);
+  
+        const convertedPath = wgs2gcj(resp.data.Data.media_gpx);
+        setPath({ coords: convertedPath, color: '#00A76F' });
+  
+        setPublish('111');
       } else {
-        enqueueSnakebar(resp.data.status_msg, {variant: "error"})
+        enqueueSnakebar(resp.data.status_msg, { variant: "error" });
       }
-    } catch(err) {
-      enqueueSnakebar(err.toString(), {variant: "error"})
+    } catch (err) {
+      enqueueSnakebar(err.toString(), { variant: "error" });
     }
-  }
+  };
+  
 
   useEffect(() => {
-    fetchCurrentTour()
-  }, [])
+    fetchCurrentTour();
+  }, []);
 
   const renderTabs = (
     <Tabs
@@ -103,7 +104,7 @@ export default function TourDetailsView({ id }) {
 
       {currentTour && currentTab === 'content' && <TourDetailsContent tour={currentTour} />}
 
-      {currentTab === 'bookers' && <TourDetailsBookers bookers={currentTour?.participants} />}
+      {currentTab === 'bookers' && <TourDetailsBookers bookers={currentTour?.participants} path={path} id={id}/>}
     </Container>
   );
 }

@@ -18,7 +18,6 @@ const UserAccountPage = lazy(() => import('src/pages/home/user/account'));
 const TourDetailsPage = lazy(() => import('src/pages/home/tour/details'));
 const TourListPage = lazy(() => import('src/pages/home/tour/list'));
 const TourCreatePage = lazy(() => import('src/pages/home/tour/new'));
-const TourEditPage = lazy(() => import('src/pages/home/tour/edit'));
 
 // Chat
 const ChatPage = lazy(() => import('src/pages/home/chat'));
@@ -58,7 +57,6 @@ export const homeRoutes = [
           { path: 'list', element: <TourListPage /> },
           { path: ':id', element: <TourDetailsPage /> },
           { path: 'new', element: <TourCreatePage /> },
-          { path: ':id/edit', element: <TourEditPage /> },
         ],
       },
       { path: 'chat', element: <ChatPage /> },

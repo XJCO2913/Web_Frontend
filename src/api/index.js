@@ -28,6 +28,10 @@ export const endpoints = {
         subscribe: '/user/subscribe',
         cancelSubscribe: '/user/cancel',
         refreshToken: '/user/refresh',
+        follower: '/friend/follower',
+        followUser: '/friend/follow',
+        friend: '/friend/',
+        applyOrg: '/org/apply',
     },
     chat: '/chat',
     activity: {
@@ -38,10 +42,16 @@ export const endpoints = {
         getById: '/activity',
         me: {
             all: '/activity/user'
-        }
+        },
+        getUserRoute: '/activity/route',
+        upload: '/activity/route'
     },
     moment: {
         create: '/moment/create',
-        fetch: '/moment/feed'
+        fetch: '/moment/feed',
+        like: '/moment/like',
+        unlike: '/moment/unlike',
+        comment: '/moment/comment',
+        me: '/moment/me'
     },
 };

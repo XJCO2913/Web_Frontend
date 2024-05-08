@@ -21,6 +21,7 @@ import { SettingsDrawer, SettingsProvider } from 'src/components/settings';
 // import { CheckoutProvider } from 'src/sections/checkout/context';
 
 import { AuthProvider } from 'src/auth/context/jwt';
+import { WebSocketProvider } from './websocket/context/websocket_provider';
 // import { AuthProvider } from 'src/auth/context/auth0';
 // import { AuthProvider } from 'src/auth/context/amplify';
 // import { AuthProvider } from 'src/auth/context/firebase';
@@ -44,27 +45,29 @@ export default function App() {
     useScrollToTop();
 
     return (
-        <AuthProvider>
-            <SettingsProvider
-                defaultSettings={{
-                    themeMode: 'light', // 'light' | 'dark'
-                    themeDirection: 'ltr', //  'rtl' | 'ltr'
-                    themeContrast: 'default', // 'default' | 'bold'
-                    themeLayout: 'horizontal', // 'vertical' | 'horizontal' | 'mini'
-                    themeColorPresets: 'default', // 'default' | 'cyan' | 'purple' | 'blue' | 'orange' | 'red'
-                    themeStretch: false,
-                }}
-            >
-                <ThemeProvider>
-                    <MotionLazy>
-                        <SnackbarProvider>
-                            <SettingsDrawer />
-                            <ProgressBar />
-                            <Router />
-                        </SnackbarProvider>
-                    </MotionLazy>
-                </ThemeProvider>
-            </SettingsProvider>
-        </AuthProvider>
+        <WebSocketProvider>
+            <AuthProvider>
+                <SettingsProvider
+                    defaultSettings={{
+                        themeMode: 'light', // 'light' | 'dark'
+                        themeDirection: 'ltr', //  'rtl' | 'ltr'
+                        themeContrast: 'default', // 'default' | 'bold'
+                        themeLayout: 'horizontal', // 'vertical' | 'horizontal' | 'mini'
+                        themeColorPresets: 'default', // 'default' | 'cyan' | 'purple' | 'blue' | 'orange' | 'red'
+                        themeStretch: false,
+                    }}
+                >
+                    <ThemeProvider>
+                        <MotionLazy>
+                            <SnackbarProvider>
+                                <SettingsDrawer />
+                                <ProgressBar />
+                                <Router />
+                            </SnackbarProvider>
+                        </MotionLazy>
+                    </ThemeProvider>
+                </SettingsProvider>
+            </AuthProvider>
+        </WebSocketProvider>
     );
 }
