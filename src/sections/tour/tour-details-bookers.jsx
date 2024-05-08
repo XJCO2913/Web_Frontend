@@ -9,6 +9,7 @@ import Avatar from '@mui/material/Avatar';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
 
 import Iconify from 'src/components/iconify';
 import AMapPathDrawer from 'src/components/map'
@@ -91,7 +92,7 @@ export default function TourDetailsBookers({ bookers, path, id }) {
       }
     });
   };
-  
+
   return (
     <>
       {currentPath && (
@@ -196,13 +197,13 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
       if (fetchedData) {
         onChangePath(fetchedData.route, getColor(index), {
           avatarUrl: fetchedData.avatarUrl,
-          userID:booker.userID
+          userID: booker.userID
         }, true); // 添加路径
       }
     } else {
       setButtonText('show');
       onChangePath(null, null, {
-        userID:booker.userID
+        userID: booker.userID
       }, false);
     }
   };
@@ -225,18 +226,24 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
 
       <Stack spacing={2} flexGrow={1}>
         <ListItemText
-          primary={booker?.username
-          }
-
-          secondary={
+          primary={
             <Stack direction="row" alignItems="center" spacing={0.5}>
+              {booker?.username}
               <div style={{
                 width: '10px',
                 height: '10px',
                 borderRadius: '50%',
-                backgroundColor: getColor(index), // 使用函数获取颜色
-                marginRight: '5px',
+                backgroundColor: getColor(index),
+                marginRight: '-5px',
+                marginLeft: '5px',
               }} />
+              <IconButton size="small">
+                <Iconify icon="ic:round-add" width={20}/>
+              </IconButton>
+            </Stack>
+          }
+          secondary={
+            <Stack direction="row" alignItems="center" spacing={0.5}>
               <Iconify icon="solar:buildings-2-bold-duotone" width={16} />
               {booker?.region}
             </Stack>
@@ -253,7 +260,7 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
           <Stack spacing={1} direction="row" sx={{ mb: -1 }}>
             <Button
               size="small"
-              variant={'outlined'}
+              variant="outlined"
               onClick={handleAttach}
             >
               upload
@@ -262,9 +269,10 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
         )}
       </Stack>
 
+
       <Button
         size="small"
-        variant={'outlined'}
+        variant="outlined"
         onClick={handleChangePath}
       >
         {buttonText}
