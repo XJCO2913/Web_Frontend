@@ -52,5 +52,6 @@ export const endpoints = {
         like: '/moment/like',
         unlike: '/moment/unlike',
         comment: '/moment/comment',
+        me: '/moment/me'
     },
 };

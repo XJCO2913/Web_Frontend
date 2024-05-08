@@ -61,6 +61,7 @@ export default function UserProfileView() {
   const [joinedActivities, setJoinedActivities] = useState([])
   const [follower, setFollower] = useState([]);
   const [friend, setFriend] = useState([]);
+  const [moments, setMoments] = useState(null)
 
   const handleChangeTab = useCallback((event, newValue) => {
     setCurrentTab(newValue);
@@ -130,10 +131,31 @@ export default function UserProfileView() {
     }
   }
 
+  const fetchMyMoments = async () => {
+    try {
+      const token = sessionStorage.getItem('token')
+      const httpConfig = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      }
+
+      const resp = await axiosSimple.get(endpoints.moment.me, httpConfig)
+      if (resp.data.status_code === 0) {
+        setMoments(resp.data.Data.moments)
+      } else {
+        enqueueSnakebar(resp.data.status_msg, { variant: "error" })
+      }
+    } catch(err) {
+      enqueueSnakebar(err.toString(), { variant: "error" })
+    }
+  }
+
   useEffect(() => {
     fetchMyActivities()
     fetchFollower()
     fetchFriend()
+    fetchMyMoments()
   }, [])
 
   return (
@@ -157,7 +179,6 @@ export default function UserProfileView() {
         }}
       >
         <ProfileCover
-          role={_userAbout.role}
           name={user?.username}
           avatarUrl={user?.avatarUrl}
           coverUrl={_userAbout.coverUrl}
@@ -187,7 +208,7 @@ export default function UserProfileView() {
         </Tabs>
       </Card>
 
-      {currentTab === 'profile' && <ProfileHome info={_userAbout} posts={_userFeeds} />}
+      {currentTab === 'profile' && <ProfileHome info={_userAbout} posts={moments} />}
 
       {currentTab === 'followers' && <ProfileFollowers followers={follower} />}
 
