@@ -13,6 +13,8 @@ import { fDate } from 'src/utils/format-time';
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
 import { useAuthContext } from '@/auth/hooks';
+import AMapPathDrawer from 'src/components/map'
+import { wgs2gcj } from 'src/utils/xml-shift'
 
 // ----------------------------------------------------------------------
 
@@ -55,12 +57,36 @@ export default function ProfilePostItem({ post }) {
           p: (theme) => theme.spacing(3, 3, 2, 3),
         }}
       >
-        {post.message}
+        {post.content}
       </Typography>
 
-      <Box sx={{ p: 1 }}>
-        <Image alt={post.media} src={post.media} ratio="16/9" sx={{ borderRadius: 1.5 }} />
-      </Box>
+      {
+        post?.imageUrl && (
+          <Box sx={{ p: 1 }}>
+            <Image alt="Post image" src={post.imageUrl} style={{ width: '100%', borderRadius: '8px' }} />
+          </Box>
+        )
+      }
+      {
+        post?.videoUrl && (
+          <Box sx={{ p: 1 }}>
+            <video controls src={post.videoUrl} style={{ width: '100%', borderRadius: '8px' }} />
+          </Box>
+        )
+      }
+      {
+        post?.gpxRoute && (
+          <Box sx={{ p: 1 }}>
+            <AMapPathDrawer
+              paths={[{
+                coords: wgs2gcj(post?.gpxRoute), // 确保这返回一个坐标数组
+                color: '#00A76F' // 静态颜色定义
+              }]}
+              style={{ width: '100%', borderRadius: '8px' }}
+            />
+          </Box>
+        )
+      }
     </Card>
   );
 }

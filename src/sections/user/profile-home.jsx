@@ -112,7 +112,7 @@ export default function ProfileHome({ info, posts }) {
 
       <Grid xs={12} md={8}>
         <Stack spacing={3}>
-          {posts.map((post) => (
+          {posts?.map((post) => (
             <ProfilePostItem key={post.id} post={post} />
           ))}
         </Stack>
