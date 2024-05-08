@@ -18,7 +18,7 @@ import TourDetailsBookers from '../tour-details-bookers';
 import { useSnackbar } from 'src/components/snackbar';
 import { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api';
-import { wgs2gcj, gcj2wgs } from 'src/utils/xml-shift'
+import { wgs2gcj } from 'src/utils/xml-shift'
 
 // ----------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ export default function TourDetailsView({ id }) {
 
   const [currentTab, setCurrentTab] = useState('content');
   const [currentTour, setCurrentTour] = useState({})
-  const [path, setPath] = useState([])
+  const [path, setPath] = useState()
 
   const [publish, setPublish] = useState(null);
 
@@ -45,10 +45,10 @@ export default function TourDetailsView({ id }) {
       const resp = await axiosTest.get(`${endpoints.activity.getById}?activityID=${id}`);
       if (resp.data.status_code === 0) {
         setCurrentTour(resp.data.Data);
-
+  
         const convertedPath = wgs2gcj(resp.data.Data.media_gpx);
-        setPath(prev => [...prev, ...convertedPath]);
-
+        setPath({ coords: convertedPath, color: '#00A76F' });
+  
         setPublish('111');
       } else {
         enqueueSnakebar(resp.data.status_msg, { variant: "error" });
@@ -57,6 +57,7 @@ export default function TourDetailsView({ id }) {
       enqueueSnakebar(err.toString(), { variant: "error" });
     }
   };
+  
 
   useEffect(() => {
     fetchCurrentTour();
@@ -103,7 +104,7 @@ export default function TourDetailsView({ id }) {
 
       {currentTour && currentTab === 'content' && <TourDetailsContent tour={currentTour} />}
 
-      {currentTab === 'bookers' && <TourDetailsBookers bookers={currentTour?.participants} media_gpx={path} />}
+      {currentTab === 'bookers' && <TourDetailsBookers bookers={currentTour?.participants} path={path} id={id}/>}
     </Container>
   );
 }
