@@ -35,17 +35,31 @@ const colors = [
 
 // ----------------------------------------------------------------------
 
-function convertDataToPaths(data, color) {
+function convertDataToPaths(data, color, user = null) {
   const convertedData = wgs2gcj(data);
   const coords = convertedData.map(([lng, lat]) => [lng, lat]);
+  const path = {
+    coords,
+    color,
+    user
+  };
 
-  return [{ coords, color }];
+  return [path];
 }
 
 async function fetchRouteData(bookerId, activityId) {
   try {
     const response = await axiosTest.get(`${endpoints.activity.getUserRoute}?activityID=${activityId}&userID=${bookerId}`);
-    return await response.data.Data.route;
+    if (response.status === 200 && response.data.status_code === 0) {
+      // Assuming the route and avatar URL are always available on successful fetch
+      return {
+        route: response.data.Data.route,
+        avatarUrl: response.data.Data.avatarUrl
+      };
+    } else {
+      console.error('Failed to fetch route data with status:', response.data.status_msg);
+      return null;  // Return null or throw an error based on your error handling strategy
+    }
   } catch (error) {
     console.error('Failed to fetch route data:', error);
   }
@@ -64,10 +78,10 @@ export default function TourDetailsBookers({ bookers, path, id }) {
     }
   }, [path]);
 
-  const handlePathChange = (newPath, color) => {
+  const handlePathChange = (newPath, color, user) => {
     setCurrentPath(current => [
       ...current,
-      ...convertDataToPaths(newPath, color)
+      ...convertDataToPaths(newPath, color, user)
     ]);
   };
 
@@ -141,7 +155,7 @@ TourDetailsBookers.propTypes = {
 
 // ----------------------------------------------------------------------
 
-function BookerItem({ booker, selected, user, onChangePath, index, activityID}) {
+function BookerItem({ booker, selected, user, onChangePath, index, activityID }) {
   const fileRef = useRef(null);
   const { enqueueSnackbar } = useSnackbar();
 
@@ -157,18 +171,18 @@ function BookerItem({ booker, selected, user, onChangePath, index, activityID}) 
       enqueueSnackbar('No file selected', { variant: 'error' });
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("gpxData", file);
     formData.append("activityId", activityID);
-  
+
     try {
       const response = await axiosTest.post(endpoints.activity.upload, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-  
+
       if (response.status === 200) {
         enqueueSnackbar('XML uploaded successfully!', { variant: 'success' });
       } else {
@@ -181,8 +195,12 @@ function BookerItem({ booker, selected, user, onChangePath, index, activityID}) 
   };
 
   const handleChangePath = async () => {
-    const data = await fetchRouteData(booker.userID, activityID);
-    onChangePath(data, getColor(index));
+    const fetchedData = await fetchRouteData(booker.userID, activityID);
+    if (fetchedData) {
+      onChangePath(fetchedData.route, getColor(index), {
+        avatarUrl: fetchedData.avatarUrl  // Pass the avatar URL along with the route data
+      });
+    }
   };
 
   const getColor = (index) => {
@@ -203,7 +221,9 @@ function BookerItem({ booker, selected, user, onChangePath, index, activityID}) 
 
       <Stack spacing={2} flexGrow={1}>
         <ListItemText
-          primary={booker?.username}
+          primary={booker?.username
+          }
+          
           secondary={
             <Stack direction="row" alignItems="center" spacing={0.5}>
               <div style={{
@@ -247,12 +267,12 @@ function BookerItem({ booker, selected, user, onChangePath, index, activityID}) 
       </Stack>
 
       <Button
-              size="small"
-              variant={selected ? 'text' : 'outlined'}
-              onClick={handleChangePath}
-            >
-              {selected ? 'hide' : 'show'}
-            </Button>
+        size="small"
+        variant={selected ? 'text' : 'outlined'}
+        onClick={handleChangePath}
+      >
+        {selected ? 'hide' : 'show'}
+      </Button>
     </Stack>
   );
 }

@@ -5,20 +5,20 @@ import AMapLoader from '@amap/amap-jsapi-loader';
 const AMapPathDrawer = ({ paths, style }) => {
   const mapContainer = useRef(null);
 
-  const getIconHTML = (avatarUrl) => `
+  const getIconHTML = (avatarUrl, color) => `
         <div style="
-        width: 35px; 
-        height: 35px; 
+        width: 40px; 
+        height: 40px; 
         border-radius: 50%; 
         background-color: white; 
         display: flex;
         justify-content: center;
         align-items: center;
-        border: 2px solid red;
+        border: 2px solid ${color};
         overflow: hidden;">
             <img src="${avatarUrl}" alt="User Icon" style="
-                width: 35px; 
-                height: 35px;
+                width: 40px; 
+                height: 40px;
                 border-radius: 50%;  
                 object-fit: cover;
                 pointer-events: none;"/>
@@ -51,7 +51,7 @@ const AMapPathDrawer = ({ paths, style }) => {
           const marker = new AMap.Marker({
             position: path.coords[0], // 标记在路径起点
             map: map,
-            content: getIconHTML(path.user.avatarUrl)
+            content: getIconHTML(path.user.avatarUrl, path.color)
           });
         }
       });
