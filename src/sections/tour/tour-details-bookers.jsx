@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -68,7 +68,6 @@ async function fetchRouteData(bookerId, activityId) {
 // ----------------------------------------------------------------------
 
 export default function TourDetailsBookers({ bookers, path, id }) {
-  const [approved, setApproved] = useState([]);
   const [currentPath, setCurrentPath] = useState([]);
   const { user } = useAuthContext();
 
@@ -78,24 +77,21 @@ export default function TourDetailsBookers({ bookers, path, id }) {
     }
   }, [path]);
 
-  const handlePathChange = (newPath, color, user) => {
-    setCurrentPath(current => [
-      ...current,
-      ...convertDataToPaths(newPath, color, user)
-    ]);
+  const handlePathChange = (newPath, color, user, shouldAdd = true) => {
+    setCurrentPath(current => {
+      if (shouldAdd) {
+        // 添加路径
+        return [
+          ...current,
+          ...convertDataToPaths(newPath, color, user)
+        ];
+      } else {
+        // 删除路径
+        return current.filter(path => path.user?.userID !== user?.userID);
+      }
+    });
   };
-
-  const handleClick = useCallback(
-    (item) => {
-      const selected = approved.includes(item)
-        ? approved.filter((value) => value !== item)
-        : [...approved, item];
-
-      setApproved(selected);
-    },
-    [approved]
-  );
-
+  
   return (
     <>
       {currentPath && (
@@ -133,8 +129,6 @@ export default function TourDetailsBookers({ bookers, path, id }) {
           <BookerItem
             key={booker.userID}
             booker={booker}
-            selected={approved.includes(booker.userID)}
-            onSelected={() => handleClick(booker.userID)}
             user={user}
             onChangePath={handlePathChange}
             index={index}
@@ -155,8 +149,9 @@ TourDetailsBookers.propTypes = {
 
 // ----------------------------------------------------------------------
 
-function BookerItem({ booker, selected, user, onChangePath, index, activityID }) {
+function BookerItem({ booker, user, onChangePath, index, activityID }) {
   const fileRef = useRef(null);
+  const [buttonText, setButtonText] = useState('show');
   const { enqueueSnackbar } = useSnackbar();
 
   const handleAttach = () => {
@@ -195,16 +190,25 @@ function BookerItem({ booker, selected, user, onChangePath, index, activityID })
   };
 
   const handleChangePath = async () => {
-    const fetchedData = await fetchRouteData(booker.userID, activityID);
-    if (fetchedData) {
-      onChangePath(fetchedData.route, getColor(index), {
-        avatarUrl: fetchedData.avatarUrl  // Pass the avatar URL along with the route data
-      });
+    if (buttonText === 'show') {
+      setButtonText('hide');
+      const fetchedData = await fetchRouteData(booker.userID, activityID);
+      if (fetchedData) {
+        onChangePath(fetchedData.route, getColor(index), {
+          avatarUrl: fetchedData.avatarUrl,
+          userID:booker.userID
+        }, true); // 添加路径
+      }
+    } else {
+      setButtonText('show');
+      onChangePath(null, null, {
+        userID:booker.userID
+      }, false);
     }
   };
 
   const getColor = (index) => {
-    return colors[index % colors.length]; // 使用模运算确保不会超出数组范围
+    return colors[index % colors.length];
   };
 
   return (
@@ -223,7 +227,7 @@ function BookerItem({ booker, selected, user, onChangePath, index, activityID })
         <ListItemText
           primary={booker?.username
           }
-          
+
           secondary={
             <Stack direction="row" alignItems="center" spacing={0.5}>
               <div style={{
@@ -254,24 +258,16 @@ function BookerItem({ booker, selected, user, onChangePath, index, activityID })
             >
               upload
             </Button>
-
-            <Button
-              size="small"
-              variant={selected ? 'text' : 'outlined'}
-              onClick={handleChangePath}
-            >
-              {selected ? 'hide' : 'show'}
-            </Button>
           </Stack>
         )}
       </Stack>
 
       <Button
         size="small"
-        variant={selected ? 'text' : 'outlined'}
+        variant={'outlined'}
         onClick={handleChangePath}
       >
-        {selected ? 'hide' : 'show'}
+        {buttonText}
       </Button>
     </Stack>
   );
