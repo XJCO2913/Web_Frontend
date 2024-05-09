@@ -35,7 +35,7 @@ export default function NotificationsPopover() {
   const handleChangeTab = useCallback((event, newValue) => {
     setCurrentTab(newValue);
   }, []);
-  const {user} = useAuthContext()
+  const { user } = useAuthContext()
 
   const [notifications, setNotifications] = useState([]);
   const [totalMsgNum, setTotalMsgNum] = useState(0);
@@ -60,13 +60,20 @@ export default function NotificationsPopover() {
     },
   ];
 
-  // const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
-
   const fetchNotify = async () => {
     try {
       const response = await axiosTest.get(endpoints.user.notify); // Adjust the URL to your actual API endpoint
+      // Check if there are any notifications
+      if (response.data.Data.length === 0) {
+        setTotalMsgNum(0);
+        setTotalApl(0);
+        setTotalRut(0);
+        return null; // Return null if no notifications
+      }
+
       const now = new Date();
       const formattedData = response.data.Data.map(notification => {
+        console.log(notification)
         // Calculate time difference in seconds and convert to human-readable format
         const createdAt = new Date(notification.createdAt);
         const secondsAgo = Math.floor((now - createdAt) / 1000);
@@ -85,30 +92,33 @@ export default function NotificationsPopover() {
         }
 
         let title = '';
-        if (notification.type === 1) {
+        if (notification.type == 1) {
           const action = notification.orgResult ? "approved" : "denied";
           title = `<p><strong>Admin</strong><br/> You've been ${action} as an organizer!`;
-        } else if (notification.type === 2) {
+        } else if (notification.type == 2) {
           title = `<p><strong>${notification.sender.username}</strong> shared a route with you`;
         }
 
         return {
           id: notification.notificationId,
           avatarUrl: notification.sender.avatarUrl,
-          type: notification.type === 1 ? 'application' : 'route',
+          type: notification.type == 1 ? 'application' : 'route',
           createdAt: timeString,
           title: title,
           route: notification.route
         };
       });
+
       setNotifications(formattedData);
+      console.log(formattedData)
       setTotalMsgNum(formattedData.length);
-      setTotalApl(formattedData.filter(notification => notification.type === 1).length);
-      setTotalRut(formattedData.filter(notification => notification.type === 2).length);
+      setTotalApl(formattedData.filter(notification => notification.type === "application").length);
+      setTotalRut(formattedData.filter(notification => notification.type == "route").length);
     } catch (error) {
       console.error('Error fetching notifications:', error.response || error);
     }
   }
+
 
   useEffect(() => {
     fetchNotify()
@@ -161,12 +171,18 @@ export default function NotificationsPopover() {
   const renderList = (
     <Scrollbar>
       <List disablePadding>
-        {notifications?.length > 0 && notifications.map((notification) => (
+        {notifications.filter(notification => {
+          if (currentTab === 'all') return true; // 显示所有通知
+          if (currentTab === 'route' && notification.type === 'route') return true; // 显示类型为 route 的通知
+          if (currentTab === 'application' && notification.type === 'application') return true; // 显示类型为 application 的通知
+          return false;
+        }).map((notification) => (
           <NotificationItem key={notification.id} notification={notification} />
         ))}
       </List>
     </Scrollbar>
   );
+  
 
   return (
     <>
@@ -209,7 +225,13 @@ export default function NotificationsPopover() {
 
         <Divider />
 
-        {renderList}
+        {notifications && notifications.length > 0 ? (
+          renderList
+        ) : (
+          <Typography sx={{ display: 'flex', alignItems: 'center', height: '100%', justifyContent: 'center' }}>
+            You do not have any notifications
+          </Typography>
+        )}
       </Drawer>
     </>
   );
