@@ -13,9 +13,6 @@ import Typography from '@mui/material/Typography';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 import { useResponsive } from 'src/hooks/use-responsive';
-
-import { _notifications } from 'src/_mock';
-
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import Scrollbar from 'src/components/scrollbar';
@@ -24,63 +21,7 @@ import { axiosTest } from 'src/utils/axios';
 import { endpoints } from 'src/api';
 
 import NotificationItem from './notification-item';
-
-// ----------------------------------------------------------------------
-
-const TABS = [
-  {
-    value: 'all',
-    label: 'All',
-    count: 22,
-  },
-  {
-    value: 'route',
-    label: 'Route',
-    count: 12,
-  },
-  {
-    value: 'application',
-    label: 'Application',
-    count: 10,
-  },
-];
-
-// ----------------------------------------------------------------------
-
-const notifications = [...Array(9)].map((_, index) => ({
-  // id: _mock.id(index),
-  avatarUrl: [
-    // _mock.image.avatar(1),
-    // _mock.image.avatar(2),
-    // _mock.image.avatar(3),
-    // _mock.image.avatar(4),
-    // _mock.image.avatar(5),
-    null,
-    null,
-    null,
-    null,
-    null,
-  ][index],
-  type: ['route', 'application'][
-    index
-  ],
-  // createdAt: _mock.time(index),
-  title:
-    (index === 0 && `<p><strong>Deja Brady</strong> sent you a friend request</p>`) ||
-    (index === 1 &&
-      `<p><strong>Jayvon Hull</strong> mentioned you in <strong><a href='#'>Minimal UI</a></strong></p>`) ||
-    (index === 2 &&
-      `<p><strong>Lainey Davidson</strong> added file to <strong><a href='#'>File Manager</a></strong></p>`) ||
-    (index === 3 &&
-      `<p><strong>Angelique Morse</strong> added new tags to <strong><a href='#'>File Manager<a/></strong></p>`) ||
-    (index === 4 &&
-      `<p><strong>Giana Brandt</strong> request a payment of <strong>$200</strong></p>`) ||
-    (index === 5 && `<p>Your order is placed waiting for shipping</p>`) ||
-    (index === 6 && `<p>Delivery processing your order is being shipped</p>`) ||
-    (index === 7 && `<p>You have new message 5 unread messages</p>`) ||
-    (index === 8 && `<p>You have new mail`) ||
-    '',
-}));
+import { useAuthContext } from 'src/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -94,8 +35,30 @@ export default function NotificationsPopover() {
   const handleChangeTab = useCallback((event, newValue) => {
     setCurrentTab(newValue);
   }, []);
+  const {user} = useAuthContext()
 
   const [notifications, setNotifications] = useState([]);
+  const [totalMsgNum, setTotalMsgNum] = useState(0);
+  const [totalRut, setTotalRut] = useState(0);
+  const [totalApl, setTotalApl] = useState(0);
+
+  const TABS = [
+    {
+      value: 'all',
+      label: 'All',
+      count: totalMsgNum,
+    },
+    {
+      value: 'route',
+      label: 'Route',
+      count: totalRut,
+    },
+    {
+      value: 'application',
+      label: 'Application',
+      count: totalApl,
+    },
+  ];
 
   // const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
 
@@ -103,7 +66,6 @@ export default function NotificationsPopover() {
     try {
       const response = await axiosTest.get(endpoints.user.notify); // Adjust the URL to your actual API endpoint
       const now = new Date();
-
       const formattedData = response.data.Data.map(notification => {
         // Calculate time difference in seconds and convert to human-readable format
         const createdAt = new Date(notification.createdAt);
@@ -124,29 +86,25 @@ export default function NotificationsPopover() {
 
         let title = '';
         if (notification.type === 1) {
-          title = `${notification.sender.username} shared a map data with you`;
+          const action = notification.orgResult ? "approved" : "denied";
+          title = `<p><strong>Admin</strong><br/> You've been ${action} as an organizer!`;
         } else if (notification.type === 2) {
-          const action = notification.route.includes("denied") ? "denied" : "approved"; // Check the route for determining the action
-          title = `You've been ${action} as an organizer`;
+          title = `<p><strong>${notification.sender.username}</strong> shared a route with you`;
         }
-
-        console.log({
-          avatarUrl: notification.sender.avatarUrl,
-          type: notification.type === 1 ? 'application' : 'route',
-          createdAt: timeString,
-          title: title
-        })
 
         return {
           id: notification.notificationId,
           avatarUrl: notification.sender.avatarUrl,
           type: notification.type === 1 ? 'application' : 'route',
           createdAt: timeString,
-          title: title
+          title: title,
+          route: notification.route
         };
       });
-
-      setNotifications(formattedData);  // Assuming you have a state or a way to store the notifications in your frontend
+      setNotifications(formattedData);
+      setTotalMsgNum(formattedData.length);
+      setTotalApl(formattedData.filter(notification => notification.type === 1).length);
+      setTotalRut(formattedData.filter(notification => notification.type === 2).length);
     } catch (error) {
       console.error('Error fetching notifications:', error.response || error);
     }
@@ -203,7 +161,7 @@ export default function NotificationsPopover() {
   const renderList = (
     <Scrollbar>
       <List disablePadding>
-        {notifications.map((notification) => (
+        {notifications?.length > 0 && notifications.map((notification) => (
           <NotificationItem key={notification.id} notification={notification} />
         ))}
       </List>
@@ -220,7 +178,7 @@ export default function NotificationsPopover() {
         color={drawer.value ? 'primary' : 'default'}
         onClick={drawer.onTrue}
       >
-        <Badge badgeContent={3} color="error">
+        <Badge badgeContent={user.newNotificationCnt} color="error">
           <Iconify icon="solar:bell-bing-bold-duotone" width={24} />
         </Badge>
       </IconButton>
