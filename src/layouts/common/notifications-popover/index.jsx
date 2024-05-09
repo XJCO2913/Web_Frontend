@@ -194,7 +194,7 @@ export default function NotificationsPopover() {
         color={drawer.value ? 'primary' : 'default'}
         onClick={drawer.onTrue}
       >
-        <Badge badgeContent={user.newNotificationCnt} color="error">
+        <Badge badgeContent={user?.newNotificationCnt} color="error">
           <Iconify icon="solar:bell-bing-bold-duotone" width={24} />
         </Badge>
       </IconButton>
