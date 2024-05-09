@@ -24,7 +24,6 @@ import { axiosSimple, axiosTest } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { jwtDecode } from '@/auth/context/jwt/utils';
 import { useSnackbar } from 'notistack';
-import { useWebSocketManager } from '@/websocket/context/websocket_provider';
 
 // ----------------------------------------------------------------------
 
@@ -158,6 +157,17 @@ export default function UserProfileView() {
     fetchMyMoments()
   }, [])
 
+  const handleFollowChange = useCallback((followerId, newFollowStatus) => {
+    setFollower(currentFollowers =>
+      currentFollowers.map(follower =>
+        follower.id === followerId ? { ...follower, isFollowed: newFollowStatus } : follower
+      )
+    );
+
+    fetchFriend()
+
+  }, [fetchFriend]);
+
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <CustomBreadcrumbs
@@ -210,7 +220,7 @@ export default function UserProfileView() {
 
       {currentTab === 'profile' && <ProfileHome info={_userAbout} posts={moments} />}
 
-      {currentTab === 'followers' && <ProfileFollowers followers={follower} />}
+      {currentTab === 'followers' && <ProfileFollowers followers={follower} onFollowChange={handleFollowChange} />}
 
       {currentTab === 'friends' && (
         <ProfileFriends
