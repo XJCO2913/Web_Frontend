@@ -14,7 +14,7 @@ import { endpoints } from 'src/api';
 
 // ----------------------------------------------------------------------
 
-export default function ProfileFollowers({ followers }) {
+export default function ProfileFollowers({ followers, onFollowChange }) {
   if (followers.length === 0) {
     return (
       <>
@@ -36,6 +36,7 @@ export default function ProfileFollowers({ followers }) {
               key={follower.id}
               follower={follower}
               initialFollowStatus={follower.isFollowed}
+              onFollowChange={onFollowChange}
             />
           ))}
         </Box>
@@ -46,11 +47,12 @@ export default function ProfileFollowers({ followers }) {
 
 ProfileFollowers.propTypes = {
   followers: PropTypes.array,
+  onFollowChange: PropTypes.func,
 };
 
 // ----------------------------------------------------------------------
 
-function FollowerItem({ follower, initialFollowStatus }) {
+function FollowerItem({ follower, initialFollowStatus, onFollowChange }) {
   const { name, region, avatarUrl } = follower;
   const [isFollowed, setIsFollowed] = useState(initialFollowStatus);
 
@@ -62,6 +64,7 @@ function FollowerItem({ follower, initialFollowStatus }) {
         setIsFollowed(true);
         if (response.data.status_code === 0) {
           // Optionally update the follower list state if needed, or let a parent component handle it
+          onFollowChange(followerId, true); 
           console.log('Follow status updated successfully');
         } else {
           console.error('Failed to update follow status:', response.data);
@@ -70,7 +73,7 @@ function FollowerItem({ follower, initialFollowStatus }) {
         console.error('Error updating follow status:', error.response || error);
       }
     },
-    []
+    [onFollowChange]
   );
 
   return (
@@ -127,4 +130,5 @@ FollowerItem.propTypes = {
   onSelected: PropTypes.func,
   selected: PropTypes.bool,
   initialFollowStatus: PropTypes.bool,
+  onFollowChange: PropTypes.func,
 };
