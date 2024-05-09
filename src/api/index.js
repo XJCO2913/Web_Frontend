@@ -32,6 +32,7 @@ export const endpoints = {
         followUser: '/friend/follow',
         friend: '/friend/',
         applyOrg: '/org/apply',
+        notify: '/notify/pull',
     },
     chat: '/chat',
     activity: {

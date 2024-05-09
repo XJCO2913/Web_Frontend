@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
         const decodedToken = jwtDecode(token);
         const userID = decodedToken.userID;
         // Make an API call to get the user's information
-        const response = await axiosInstance.get(`${endpoints.auth.me}?userID=${userID}`);
+        const response = await axiosTest.get(`${endpoints.auth.me}?userID=${userID}`);
         const userInfo = response.data.Data;
         dispatch({
           type: 'INITIAL',
@@ -118,8 +118,7 @@ export function AuthProvider({ children }) {
     };
 
     try {
-      const response = await axiosInstance.post(endpoints.auth.login, data);
-      console.log(response)
+      const response = await axiosTest.post(endpoints.auth.login, data);
       // Check whether user login successfully
       if (response.data.status_code === 0) {
         const { token, userInfo } = response.data.Data;

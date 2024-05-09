@@ -189,18 +189,18 @@ function BookerItem({ booker, user, onChangePath, index, activityID, initialFoll
       enqueueSnackbar('No file selected', { variant: 'error' });
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("gpxData", file);
     formData.append("activityId", activityID);
-
+  
     try {
       const response = await axiosTest.post(endpoints.activity.upload, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-
+  
       if (response.status === 200) {
         enqueueSnackbar('XML uploaded successfully!', { variant: 'success' });
       } else {
@@ -209,8 +209,10 @@ function BookerItem({ booker, user, onChangePath, index, activityID, initialFoll
     } catch (error) {
       console.error('Error uploading file:', error);
       enqueueSnackbar('Error uploading file: ' + error.message, { variant: 'error' });
+    } finally {
+      event.target.value = null;
     }
-  };
+  };  
 
   const handleChangePath = async () => {
     if (buttonText === 'show') {
