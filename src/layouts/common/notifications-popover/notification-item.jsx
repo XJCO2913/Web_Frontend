@@ -35,10 +35,10 @@ export default function NotificationItem({ notification }) {
           <Box
             component="img"
             src={`/assets/icons/notification/${
-              (notification.type === 'order' && 'ic_order') ||
+              (notification.type === 'route' && 'ic_order') ||
               (notification.type === 'chat' && 'ic_chat') ||
               (notification.type === 'mail' && 'ic_mail') ||
-              (notification.type === 'delivery' && 'ic_delivery')
+              (notification.type === 'application' && 'ic_delivery')
             }.svg`}
             sx={{ width: 24, height: 24 }}
           />
@@ -68,7 +68,7 @@ export default function NotificationItem({ notification }) {
             />
           }
         >
-          {fToNow(notification.createdAt)}
+          {notification.createdAt}
           {notification.category}
         </Stack>
       }

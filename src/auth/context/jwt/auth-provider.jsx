@@ -119,7 +119,6 @@ export function AuthProvider({ children }) {
 
     try {
       const response = await axiosInstance.post(endpoints.auth.login, data);
-      console.log(response)
       // Check whether user login successfully
       if (response.data.status_code === 0) {
         const { token, userInfo } = response.data.Data;

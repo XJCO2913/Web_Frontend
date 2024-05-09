@@ -9,7 +9,7 @@ import { paths } from 'src/routes/paths';
 
 import { useAuthContext } from 'src/auth/hooks';
 
-import { _userAbout, _userFeeds } from 'src/_mock';
+import { _userAbout } from 'src/_mock';
 
 import Iconify from 'src/components/iconify';
 import { useSettingsContext } from 'src/components/settings';
