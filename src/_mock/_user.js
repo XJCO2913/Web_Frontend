@@ -22,7 +22,7 @@ export const _userAbout = {
   totalFollowers: _mock.number.nativeL(1),
   totalFollowing: _mock.number.nativeL(2),
   quote:
-    'Tart I love sugar plum I love oat cake. Sweet roll caramels I love jujubes. Topping cake wafer..',
+    'Gourp 8 only has 4 people.',
   socialLinks: {
     facebook: `https://www.facebook.com/caitlyn.kerluke`,
     instagram: `https://www.instagram.com/caitlyn.kerluke`,

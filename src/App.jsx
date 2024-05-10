@@ -1,7 +1,7 @@
 import 'src/global.css';
 
 // i18n
-// import 'src/locales/i18n';
+import 'src/locales/i18n';
 
 // ----------------------------------------------------------------------
 
@@ -9,7 +9,7 @@ import Router from 'src/routes/sections';
 
 import ThemeProvider from 'src/theme';
 
-// import { LocalizationProvider } from 'src/locales';
+import { LocalizationProvider } from 'src/locales';
 
 import { useScrollToTop } from 'src/hooks/use-scroll-to-top';
 
@@ -22,10 +22,6 @@ import { SettingsDrawer, SettingsProvider } from 'src/components/settings';
 
 import { AuthProvider } from 'src/auth/context/jwt';
 import { WebSocketProvider } from './websocket/context/websocket_provider';
-// import { AuthProvider } from 'src/auth/context/auth0';
-// import { AuthProvider } from 'src/auth/context/amplify';
-// import { AuthProvider } from 'src/auth/context/firebase';
-// import { AuthProvider } from 'src/auth/context/supabase';
 
 // ----------------------------------------------------------------------
 
@@ -47,26 +43,28 @@ export default function App() {
     return (
         <WebSocketProvider>
             <AuthProvider>
-                <SettingsProvider
-                    defaultSettings={{
-                        themeMode: 'light', // 'light' | 'dark'
-                        themeDirection: 'ltr', //  'rtl' | 'ltr'
-                        themeContrast: 'default', // 'default' | 'bold'
-                        themeLayout: 'horizontal', // 'vertical' | 'horizontal' | 'mini'
-                        themeColorPresets: 'default', // 'default' | 'cyan' | 'purple' | 'blue' | 'orange' | 'red'
-                        themeStretch: false,
-                    }}
-                >
-                    <ThemeProvider>
-                        <MotionLazy>
-                            <SnackbarProvider>
-                                <SettingsDrawer />
-                                <ProgressBar />
-                                <Router />
-                            </SnackbarProvider>
-                        </MotionLazy>
-                    </ThemeProvider>
-                </SettingsProvider>
+                <LocalizationProvider>
+                    <SettingsProvider
+                        defaultSettings={{
+                            themeMode: 'light', // 'light' | 'dark'
+                            themeDirection: 'ltr', //  'rtl' | 'ltr'
+                            themeContrast: 'default', // 'default' | 'bold'
+                            themeLayout: 'horizontal', // 'vertical' | 'horizontal' | 'mini'
+                            themeColorPresets: 'default', // 'default' | 'cyan' | 'purple' | 'blue' | 'orange' | 'red'
+                            themeStretch: false,
+                        }}
+                    >
+                        <ThemeProvider>
+                            <MotionLazy>
+                                <SnackbarProvider>
+                                    <SettingsDrawer />
+                                    <ProgressBar />
+                                    <Router />
+                                </SnackbarProvider>
+                            </MotionLazy>
+                        </ThemeProvider>
+                    </SettingsProvider>
+                </LocalizationProvider>
             </AuthProvider>
         </WebSocketProvider>
     );

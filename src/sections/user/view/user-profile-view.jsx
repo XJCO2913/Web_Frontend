@@ -78,7 +78,7 @@ export default function UserProfileView() {
         }
       }
 
-      const resp = await axiosSimple.get(endpoints.activity.me.all + '?userID=' + userID, httpConfig)
+      const resp = await axiosTest.get(endpoints.activity.me.all + '?userID=' + userID, httpConfig)
       if (resp.data.status_code === 0) {
         setJoinedActivities(resp.data.Data)
       } else {
@@ -139,7 +139,7 @@ export default function UserProfileView() {
         }
       }
 
-      const resp = await axiosSimple.get(endpoints.moment.me, httpConfig)
+      const resp = await axiosTest.get(endpoints.moment.me, httpConfig)
       if (resp.data.status_code === 0) {
         setMoments(resp.data.Data.moments)
       } else {

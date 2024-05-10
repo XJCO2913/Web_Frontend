@@ -31,6 +31,7 @@
     "date-fns": "^2.30.0",
     "events": "^3.3.0",
     "framer-motion": "^11.0.8",
+    "i18next-browser-languagedetector": "^7.2.1",
     "lodash": "^4.17.21",
     "mapbox-gl": "^3.2.0",
     "moment": "^2.30.1",

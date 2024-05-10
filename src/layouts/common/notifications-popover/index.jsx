@@ -228,7 +228,7 @@ export default function NotificationsPopover() {
           renderList
         ) : (
           <Typography sx={{ display: 'flex', alignItems: 'center', height: '100%', justifyContent: 'center' }}>
-            You do not have any notifications
+            You do not have any notifications.
           </Typography>
         )}
       </Drawer>
