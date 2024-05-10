@@ -22,7 +22,7 @@ import { fShortenNumber } from 'src/utils/format-number';
 import AMapPathDrawer from 'src/components/map'
 import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
-import { axiosSimple } from '@/utils/axios';
+import { axiosTest } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { useSnackbar } from 'notistack';
 import { useAuthContext } from '@/auth/hooks';
@@ -40,9 +40,10 @@ export default function Moment({ post }) {
   const fileRef = useRef(null);
 
   const [message, setMessage] = useState('');
-  const [isLiked, setIsLiked] = useState(post.isLiked)
-  const [commentList, setCommentList] = useState(post.comments)
-  const [personLikes, setPersonLikes] = useState(post.personLikes)
+  const [isLiked, setIsLiked] = useState(post?.isLiked)
+  const [commentList, setCommentList] = useState(post?.comments)
+  const [personLikes, setPersonLikes] = useState(post?.personLikes)
+  const [likeCount, setLikeCount] = useState(post?.personLikes?.length || 0);
 
   const handleChangeMessage = useCallback((event) => {
     setMessage(event.target.value);
@@ -56,49 +57,37 @@ export default function Moment({ post }) {
 
   const handleLike = async () => {
     try {
-      const token = sessionStorage.getItem('token')
-      const httpConfig = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-
-      const resp = await axiosSimple.post(endpoints.moment.like + '?momentID=' + post.id, null, httpConfig)
+      const resp = await axiosTest.post(endpoints.moment.like + '?momentID=' + post.id);
       if (resp.data.status_code === 0) {
-        enqueueSnackbar(resp.data.status_msg)
-        setIsLiked(true)
+        enqueueSnackbar(resp.data.status_msg);
+        setIsLiked(true);
         setPersonLikes(prev => (
           [...prev, {
             name: user.username,
             avatarUrl: user.avatarUrl,
           }]
-        ))
+        ));
+        setLikeCount(prevCount => prevCount + 1);
       } else {
-        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
-        setIsLiked(false)
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" });
+        setIsLiked(false);
       }
     } catch (err) {
-      enqueueSnackbar(err.toString(), { variant: "error" })
-      setIsLiked(false)
+      enqueueSnackbar(err.toString(), { variant: "error" });
+      setIsLiked(false);
     }
-  }
+  };
 
   const handleUnlike = async () => {
     try {
-      const token = sessionStorage.getItem('token')
-      const httpConfig = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-
-      const resp = await axiosSimple.delete(endpoints.moment.unlike + '?momentID=' + post.id, httpConfig)
+      const resp = await axiosTest.delete(endpoints.moment.unlike + '?momentID=' + post.id)
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg)
         setIsLiked(false)
         setPersonLikes(prev => (
           prev?.filter(person => person.name !== user.username)
         ))
+        setLikeCount(prevCount => prevCount - 1);
       } else {
         enqueueSnackbar(resp.data.status_msg, { variant: "error" })
         setIsLiked(true)
@@ -123,7 +112,7 @@ export default function Moment({ post }) {
         content: message,
       }
       console.log(data)
-      const resp = await axiosSimple.post(endpoints.moment.comment, data, httpConfig)
+      const resp = await axiosTest.post(endpoints.moment.comment, data, httpConfig)
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg)
         setCommentList(prev => [...prev, {
@@ -227,7 +216,7 @@ export default function Moment({ post }) {
           <InputAdornment position="end" sx={{ mr: 1 }}>
             <IconButton
               size="small"
-              onClick={async()=>{await handleSendComment()}}
+              onClick={async () => { await handleSendComment() }}
             >
               <Iconify icon="bi:send-fill" />
             </IconButton>
@@ -269,7 +258,7 @@ export default function Moment({ post }) {
             }}
           />
         }
-        label={fShortenNumber(post?.personLikes?.length)}
+        label={fShortenNumber(likeCount)}
         sx={{ mr: 1 }}
       />
 
