@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useCallback, useState, useRef, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -230,6 +231,16 @@ function BookerItem({ booker, user, onChangePath, index, activityID, initialFoll
     return colors[index % colors.length];
   };
 
+  const handleDownload = () => {
+    const fileName = `download-${uuidv4()}.xml`;
+    const link = document.createElement('a');
+    link.href = '/example.xml';
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   return (
     <Stack component={Card} direction="row" spacing={2} key={booker?.userID} sx={{ p: 3 }}>
       <Avatar alt={booker?.username} src={booker?.avatarURL} sx={{ width: 48, height: 48 }} />
@@ -296,6 +307,7 @@ function BookerItem({ booker, user, onChangePath, index, activityID, initialFoll
             <Button
               size="small"
               variant="outlined"
+              onClick={handleDownload}
             >
               dowload
             </Button>

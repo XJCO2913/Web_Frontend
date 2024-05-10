@@ -20,7 +20,7 @@ import ProfileCover from '../profile-cover';
 import ProfileFriends from '../profile-friends';
 import ProfileGallery from '../profile-gallery';
 import ProfileFollowers from '../profile-followers';
-import { axiosSimple, axiosTest } from '@/utils/axios';
+import { axiosTest } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { jwtDecode } from '@/auth/context/jwt/utils';
 import { useSnackbar } from 'notistack';
