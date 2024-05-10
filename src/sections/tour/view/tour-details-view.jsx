@@ -7,7 +7,7 @@ import Container from '@mui/material/Container';
 
 import { paths } from 'src/routes/paths';
 
-import { TOUR_DETAILS_TABS, TOUR_PUBLISH_OPTIONS } from 'src/_mock';
+import { TOUR_DETAILS_TABS } from 'src/_mock';
 
 import Label from 'src/components/label';
 import { useSettingsContext } from 'src/components/settings';
@@ -36,19 +36,15 @@ export default function TourDetailsView({ id }) {
     setCurrentTab(newValue);
   }, []);
 
-  const handleChangePublish = useCallback((newValue) => {
-    setPublish(newValue);
-  }, []);
-
   const fetchCurrentTour = async () => {
     try {
       const resp = await axiosTest.get(`${endpoints.activity.getById}?activityID=${id}`);
       if (resp.data.status_code === 0) {
         setCurrentTour(resp.data.Data);
-  
+
         const convertedPath = wgs2gcj(resp.data.Data.media_gpx);
         setPath({ coords: convertedPath, color: '#00A76F' });
-  
+
         setPublish('111');
       } else {
         enqueueSnakebar(resp.data.status_msg, { variant: "error" });
@@ -57,7 +53,10 @@ export default function TourDetailsView({ id }) {
       enqueueSnakebar(err.toString(), { variant: "error" });
     }
   };
-  
+
+  const refreshActivity = useCallback(() => {
+    fetchCurrentTour();
+  }, []);
 
   useEffect(() => {
     fetchCurrentTour();
@@ -93,18 +92,16 @@ export default function TourDetailsView({ id }) {
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       <TourDetailsToolbar
         backLink={paths.home.tour.root}
-        liveLink="#"
         publish={publish}
-        onChangePublish={handleChangePublish}
-        publishOptions={TOUR_PUBLISH_OPTIONS}
         isJoined={currentTour.isRegistered}
         activityId={id}
+        onJoinSuccess={refreshActivity}
       />
       {renderTabs}
 
       {currentTour && currentTab === 'content' && <TourDetailsContent tour={currentTour} />}
 
-      {currentTab === 'bookers' && <TourDetailsBookers bookers={currentTour?.participants} path={path} id={id}/>}
+      {currentTab === 'bookers' && <TourDetailsBookers bookers={currentTour?.participants} path={path} id={id} />}
     </Container>
   );
 }

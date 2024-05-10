@@ -25,7 +25,7 @@ import TourSort from '../tour-sort';
 import TourSearch from '../tour-search';
 import TourFilters from '../tour-filters';
 import TourFiltersResult from '../tour-filters-result';
-import { axiosSimple } from '@/utils/axios';
+import { axiosTest } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { useAuthContext } from '@/auth/hooks';
 
@@ -68,7 +68,7 @@ export default function TourListView() {
     }
   }
   const fetchAllActivities = async () => {
-    const resp = await axiosSimple.get(endpoints.activity.all, httpConfig)
+    const resp = await axiosTest.get(endpoints.activity.all, httpConfig)
     setActivities(resp.data.Data)
   }
 
@@ -199,7 +199,7 @@ export default function TourListView() {
             >
               New Activity
             </Button>
-          ) : null // 或者替换为 <div></div> 或其他 UI 组件
+          ) : null
         }
         sx={{
           mb: { xs: 3, md: 5 },
