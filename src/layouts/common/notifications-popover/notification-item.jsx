@@ -65,7 +65,7 @@ export default function NotificationItem({ notification }) {
       <Stack spacing={1} direction="row" sx={{ mt: 1.5 }}>
         <AMapPathDrawer
           paths={[{
-            coords: wgs2gcj(notification?.route),
+            coords: notification?.route,
             color: '#00A76F'
           }]}
           style={{ width: '100%', borderRadius: '8px' }}
