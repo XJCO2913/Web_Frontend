@@ -73,7 +73,6 @@ export default function NotificationsPopover() {
 
       const now = new Date();
       const formattedData = response.data.Data.map(notification => {
-        console.log(notification)
         // Calculate time difference in seconds and convert to human-readable format
         const createdAt = new Date(notification.createdAt);
         const secondsAgo = Math.floor((now - createdAt) / 1000);

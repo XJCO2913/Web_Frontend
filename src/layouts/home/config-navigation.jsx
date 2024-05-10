@@ -12,7 +12,6 @@ const icon = (name) => (
 const ICONS = {
   home: icon('ic_label'),
   user: icon('ic_user'),
-  chat: icon('ic_chat'),
   tour: icon('ic_tour'),
 };
 // ----------------------------------------------------------------------
@@ -35,14 +34,8 @@ export function useNavData() {
           icon: ICONS.user,
           children: [
             { title: t('profile'), path: paths.home.user.root },
-            { title: t('list'), path: paths.home.user.list },
             { title: t('account'), path: paths.home.user.account },
           ],
-        },
-        {
-          title: t('chat'),
-          path: paths.home.chat,
-          icon: ICONS.chat,
         },
         {
           title: t('activity'),

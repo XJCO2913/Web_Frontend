@@ -18,10 +18,8 @@ export const paths = {
   // HOME
   home: {
     root: ROOTS.HOME,
-    chat: `${ROOTS.HOME}/chat`,
     user: {
       root: `${ROOTS.HOME}/user`,
-      list: `${ROOTS.HOME}/user/list`,
       profile: `${ROOTS.HOME}/user/profile`,
       account: `${ROOTS.HOME}/user/account`,
     },

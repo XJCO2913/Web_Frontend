@@ -62,7 +62,7 @@ async function fetchRouteData(bookerId, activityId) {
       return null;  // Return null or throw an error based on your error handling strategy
     }
   } catch (error) {
-    console.error('Failed to fetch route data:', error);
+    return null
   }
 }
 
@@ -98,20 +98,10 @@ export default function TourDetailsBookers({ bookers, path, id }) {
       {currentPath && (
         <Stack mb={3} spacing={1} mt={-2}>
           <Typography variant="h6">Route View</Typography>
-          <Box
-            rowGap={2}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              md: 'repeat(2, 1fr)',
-            }}
-            sx={{ mb: -2 }}
-          >
-            <AMapPathDrawer
-              paths={currentPath}
-              style={{ width: '100%', borderRadius: '8px' }}
-            />
-          </Box>
+          <AMapPathDrawer
+            paths={currentPath}
+            style={{ width: '100%', borderRadius: '8px' }}
+          />
         </Stack>
       )}
 
@@ -189,18 +179,18 @@ function BookerItem({ booker, user, onChangePath, index, activityID, initialFoll
       enqueueSnackbar('No file selected', { variant: 'error' });
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("gpxData", file);
     formData.append("activityId", activityID);
-  
+
     try {
       const response = await axiosTest.post(endpoints.activity.upload, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-  
+
       if (response.status === 200) {
         enqueueSnackbar('XML uploaded successfully!', { variant: 'success' });
       } else {
@@ -212,23 +202,27 @@ function BookerItem({ booker, user, onChangePath, index, activityID, initialFoll
     } finally {
       event.target.value = null;
     }
-  };  
+  };
 
   const handleChangePath = async () => {
     if (buttonText === 'show') {
-      setButtonText('hide');
       const fetchedData = await fetchRouteData(booker.userID, activityID);
+      if (fetchedData === null) {
+        enqueueSnackbar('User does not have any route data!', { variant: 'warning' });
+        return; // 直接返回，不执行后续操作
+      }
       if (fetchedData) {
         onChangePath(fetchedData.route, getColor(index), {
           avatarUrl: fetchedData.avatarUrl,
           userID: booker.userID
         }, true); // 添加路径
+        setButtonText('hide');
       }
     } else {
       setButtonText('show');
       onChangePath(null, null, {
         userID: booker.userID
-      }, false);
+      }, false); // 移除路径
     }
   };
 
@@ -298,6 +292,12 @@ function BookerItem({ booker, user, onChangePath, index, activityID, initialFoll
               onClick={handleAttach}
             >
               upload
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+            >
+              dowload
             </Button>
           </Stack>
         )}
