@@ -286,7 +286,7 @@ export default function TourNewEditForm({ currentTour }) {
                       setActivityScale('medium')
                       setValue('level', 'medium', { shouldValidate: true })
                       break
-                      
+
                     default:
                       if (!isActivityScaleError) {
                         setIsActivityScaleError(true)
@@ -333,7 +333,7 @@ export default function TourNewEditForm({ currentTour }) {
                     render={({ field, fieldState: { error } }) => (
                       <DatePicker
                         {...field}
-                        format="yyyy-MM-dd"
+                        format="dd/MM/yyyy"
                         label='End Date'
                         slotProps={{
                           textField: {

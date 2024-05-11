@@ -244,6 +244,7 @@ export default function JwtRegisterView() {
             <DatePicker
               label={error ? error.message : "Birthday"}
               inputFormat="DD-MM-YYYY"
+              format='dd/MM/yyyy'
               maxDate={new Date()}
               value={field.value || null}
               onChange={(newValue) => {
