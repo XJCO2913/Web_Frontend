@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useReducer, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -29,21 +29,54 @@ import { useAuthContext } from '@/auth/hooks';
 import { wgs2gcj } from 'src/utils/xml-shift'
 
 // ----------------------------------------------------------------------
-
 export default function Moment({ post }) {
-  const { user } = useAuthContext()
-
-  const { enqueueSnackbar } = useSnackbar()
-
+  const { user } = useAuthContext();
+  const { enqueueSnackbar } = useSnackbar();
   const commentRef = useRef(null);
 
-  const fileRef = useRef(null);
+  // 定义初始状态的函数
+  const getInitialState = () => ({
+    isLiked: post?.isLiked || false,
+    likeCount: post?.personLikes?.length || 0,
+    comments: post?.comments || [],
+    personLikes: post?.personLikes || []
+  });
 
+  // Reducer 函数
+  function reducer(state, action) {
+    switch (action.type) {
+      case 'TOGGLE_LIKE': {
+        const { isLiked, user } = action.payload;
+        const newPersonLikes = isLiked
+          ? [...state.personLikes, { name: user.username, avatarUrl: user.avatarUrl }]
+          : state.personLikes.filter(person => person.name !== user.username);
+        return {
+          ...state,
+          isLiked,
+          likeCount: isLiked ? state.likeCount + 1 : state.likeCount - 1,
+          personLikes: newPersonLikes
+        };
+      }
+      case 'RESET':
+        return getInitialState(); // 使用函数返回新的初始状态
+      case 'ADD_COMMENT':
+        return {
+          ...state,
+          comments: [...state.comments, action.payload.comment]
+        };
+      default:
+        return state;
+    }
+  }
+
+  const [state, dispatch] = useReducer(reducer, getInitialState());
+  const { isLiked, likeCount, comments, personLikes } = state; // 从state中解构所需的值
   const [message, setMessage] = useState('');
-  const [isLiked, setIsLiked] = useState(post?.isLiked)
-  const [commentList, setCommentList] = useState(post?.comments)
-  const [personLikes, setPersonLikes] = useState(post?.personLikes)
-  const [likeCount, setLikeCount] = useState(post?.personLikes?.length || 0);
+
+  useEffect(() => {
+    // 侦听 post 的变化，并在变化时重置状态
+    dispatch({ type: 'RESET', payload: getInitialState() });
+  }, [post]); // 依赖项列表中包含 `post`
 
   const handleChangeMessage = useCallback((event) => {
     setMessage(event.target.value);
@@ -60,43 +93,28 @@ export default function Moment({ post }) {
       const resp = await axiosTest.post(endpoints.moment.like + '?momentID=' + post.id);
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg);
-        setIsLiked(true);
-        setPersonLikes(prev => (
-          [...prev, {
-            name: user.username,
-            avatarUrl: user.avatarUrl,
-          }]
-        ));
-        setLikeCount(prevCount => prevCount + 1);
+        dispatch({ type: 'TOGGLE_LIKE', payload: { isLiked: !isLiked, user } });
       } else {
         enqueueSnackbar(resp.data.status_msg, { variant: "error" });
-        setIsLiked(false);
       }
     } catch (err) {
       enqueueSnackbar(err.toString(), { variant: "error" });
-      setIsLiked(false);
     }
   };
 
   const handleUnlike = async () => {
     try {
-      const resp = await axiosTest.delete(endpoints.moment.unlike + '?momentID=' + post.id)
+      const resp = await axiosTest.delete(endpoints.moment.unlike + '?momentID=' + post.id);
       if (resp.data.status_code === 0) {
-        enqueueSnackbar(resp.data.status_msg)
-        setIsLiked(false)
-        setPersonLikes(prev => (
-          prev?.filter(person => person.name !== user.username)
-        ))
-        setLikeCount(prevCount => prevCount - 1);
+        enqueueSnackbar(resp.data.status_msg);
+        dispatch({ type: 'TOGGLE_LIKE', payload: { isLiked: !isLiked, user } });
       } else {
-        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
-        setIsLiked(true)
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" });
       }
     } catch (err) {
-      enqueueSnackbar(err.toString(), { variant: "error" })
-      setIsLiked(true)
+      enqueueSnackbar(err.toString(), { variant: "error" });
     }
-  }
+  };
 
   const handleSendComment = async () => {
     try {
@@ -111,28 +129,33 @@ export default function Moment({ post }) {
         momentId: post.id,
         content: message,
       }
-      console.log(data)
+
       const resp = await axiosTest.post(endpoints.moment.comment, data, httpConfig)
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg)
-        setCommentList(prev => [...prev, {
-          id: "temp",
-          author: {
-            name: user.username,
-            avatarUrl: user.avatarUrl,
-          },
-          createdAt: new Date(),
-          message: message,
-        }])
+        dispatch({
+          type: 'ADD_COMMENT', payload: {
+            comment: {
+              id: "temp",
+              author: {
+                name: user.username,
+                avatarUrl: user.avatarUrl,
+              },
+              createdAt: new Date(),
+              message: message,
+            }
+          }
+        });
       } else {
-        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" });
       }
     } catch (err) {
-      enqueueSnackbar(err.toString(), { variant: "error" })
+      enqueueSnackbar(err.toString(), { variant: "error" });
     } finally {
-      setMessage('')
+      setMessage('');
     }
   }
+
 
   const renderHead = (
     <CardHeader
@@ -162,7 +185,7 @@ export default function Moment({ post }) {
 
   const renderCommentList = (
     <Stack spacing={1.5} sx={{ px: 3, pb: 2 }}>
-      {commentList?.map((comment) => (
+      {comments?.map((comment) => (
         <Stack key={comment.id} direction="row" spacing={2}>
           <Avatar alt={comment.author.name} src={comment.author.avatarUrl}>
             {comment.author.name.charAt(0).toUpperCase()}
@@ -229,8 +252,6 @@ export default function Moment({ post }) {
           border: (theme) => `solid 1px ${alpha(theme.palette.grey[500], 0.32)}`,
         }}
       />
-
-      <input type="file" ref={fileRef} style={{ display: 'none' }} />
     </Stack>
   );
 
@@ -262,7 +283,7 @@ export default function Moment({ post }) {
         sx={{ mr: 1 }}
       />
 
-      {!!personLikes?.length && (
+      {!!personLikes.length && (
         <AvatarGroup
           sx={{
             [`& .${avatarGroupClasses.avatar}`]: {
@@ -271,13 +292,14 @@ export default function Moment({ post }) {
             },
           }}
         >
-          {personLikes?.map((person) => (
-            <Avatar key={person.name} alt={person.name} src={person.avatarUrl} >
+          {personLikes.map((person) => (
+            <Avatar key={person.name} alt={person.name} src={person.avatarUrl}>
               {person.name.charAt(0).toUpperCase()}
             </Avatar>
           ))}
         </AvatarGroup>
       )}
+
 
       <Box sx={{ flexGrow: 1 }} />
 

@@ -139,7 +139,7 @@ export default function HomeView() {
 
     window.addEventListener('scroll', debouncedHandleScroll);
     return () => window.removeEventListener('scroll', debouncedHandleScroll);
-  }, [shouldLoad, nextTime, moments.length]);
+  }, [shouldLoad, nextTime, moments.length, hasMore]);
 
   // 在滚动事件处理函数中设置shouldLoad
   const handleScroll = () => {
@@ -203,13 +203,10 @@ export default function HomeView() {
         }
       }
 
-      const response = await axiosInstance.post(endpoints.moment.create, formData);
+      const response = await axiosTest.post(endpoints.moment.create, formData);
       if (response.data.status_code === 0) {
         const newMoment = {
-          content: data.content,
-          image: file ? URL.createObjectURL(file) : null,
-          // 如果接口返回新Moment的具体信息，可以直接使用接口返回的数据
-          ...response.data.newMoment
+          ...response.data.Data.moment
         };
         setMoments(prevMoments => [newMoment, ...prevMoments]);
         setSuccess(true)
@@ -380,8 +377,8 @@ export default function HomeView() {
               {renderPostInput}
             </FormProvider>
 
-            {moments.map((post, index) => (
-              <Moment key={index} post={post} />
+            {moments.map((post) => (
+              <Moment key={post.id} post={post} />
             ))}
           </Grid>
         </Grid>
