@@ -25,7 +25,7 @@ import TourSort from '../tour-sort';
 import TourSearch from '../tour-search';
 import TourFilters from '../tour-filters';
 import TourFiltersResult from '../tour-filters-result';
-import { axiosSimple } from '@/utils/axios';
+import { axiosTest } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { useAuthContext } from '@/auth/hooks';
 
@@ -60,15 +60,10 @@ export default function TourListView() {
   const dateError = isAfter(filters.startDate, filters.endDate);
 
   const [activities, setActivities] = useState([])
+
   // fetch activity data
-  const token = sessionStorage.getItem('token')
-  const httpConfig = {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    }
-  }
   const fetchAllActivities = async () => {
-    const resp = await axiosSimple.get(endpoints.activity.all, httpConfig)
+    const resp = await axiosTest.get(endpoints.activity.all)
     setActivities(resp.data.Data)
   }
 
@@ -79,13 +74,7 @@ export default function TourListView() {
     dateError,
   });
 
-  const canReset =
-    !!filters.destination.length ||
-    !!filters.tourGuides.length ||
-    !!filters.services.length ||
-    (!!filters.startDate && !!filters.endDate);
-
-  const notFound = !dataFiltered.length && canReset;
+  const canReset = (!!filters.startDate && !!filters.endDate);  // Update based on actual used filters
 
   const handleFilters = useCallback((name, value) => {
     setFilters((prevState) => ({
@@ -95,12 +84,14 @@ export default function TourListView() {
   }, []);
 
   const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
+    setFilters(defaultFilters);  // Ensure defaultFilters reflect the actual filters you're using
   }, []);
 
   const handleSortBy = useCallback((newValue) => {
     setSortBy(newValue);
   }, []);
+
+  const notFound = !dataFiltered.length && canReset;
 
   const handleSearch = useCallback(
     (inputValue) => {
@@ -199,7 +190,7 @@ export default function TourListView() {
             >
               New Activity
             </Button>
-          ) : null // 或者替换为 <div></div> 或其他 UI 组件
+          ) : null
         }
         sx={{
           mb: { xs: 3, md: 5 },
@@ -226,45 +217,28 @@ export default function TourListView() {
 
 // ----------------------------------------------------------------------
 
-const applyFilter = ({ inputData, filters, sortBy, dateError }) => {
-  const { services, destination, startDate, endDate, tourGuides } = filters;
-
-  const tourGuideIds = tourGuides.map((tourGuide) => tourGuide.id);
-
-  // SORT BY
-  if (sortBy === 'latest') {
-    inputData = orderBy(inputData, ['createdAt'], ['desc']);
+const applyFilter = ({ inputData, sortBy, dateError, startDate, endDate }) => {
+  // 根据sortBy参数排序
+  switch (sortBy) {
+    case 'latest':
+      inputData = orderBy(inputData, activity => new Date(activity.startDate), ['desc']); // 日期从新到旧排序
+      break;
+    case 'oldest':
+      inputData = orderBy(inputData, activity => new Date(activity.startDate), ['asc']); // 日期从旧到新排序
+      break;
+    case 'popular':
+      inputData = orderBy(inputData, ['participantsCount'], ['desc']); // 按参与者数量降序排序
+      break;
+    default:
+      // 如果没有指定排序，默认可能按照一定逻辑处理或不处理
+      break;
   }
 
-  if (sortBy === 'oldest') {
-    inputData = orderBy(inputData, ['createdAt'], ['asc']);
-  }
-
-  if (sortBy === 'popular') {
-    inputData = orderBy(inputData, ['totalViews'], ['desc']);
-  }
-
-  // FILTERS
-  if (destination.length) {
-    inputData = inputData.filter((tour) => destination.includes(tour.destination));
-  }
-
-  if (tourGuideIds.length) {
-    inputData = inputData.filter((tour) =>
-      tour.tourGuides.some((filterItem) => tourGuideIds.includes(filterItem.id))
+  // 如果指定了日期范围，过滤日期
+  if (!dateError && startDate && endDate) {
+    inputData = inputData.filter((activity) =>
+      new Date(activity.startDate) >= new Date(startDate) && new Date(activity.startDate) <= new Date(endDate)
     );
-  }
-
-  if (services.length) {
-    inputData = inputData.filter((tour) => tour.services.some((item) => services.includes(item)));
-  }
-
-  if (!dateError) {
-    if (startDate && endDate) {
-      inputData = inputData.filter((tour) =>
-        isBetween(startDate, tour.available.startDate, tour.available.endDate)
-      );
-    }
   }
 
   return inputData;

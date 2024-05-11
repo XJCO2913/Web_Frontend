@@ -112,9 +112,13 @@ export default function ProfileHome({ info, posts }) {
 
       <Grid xs={12} md={8}>
         <Stack spacing={3}>
-          {posts?.map((post) => (
+        {posts && posts.length > 0 ? (
+          posts.map((post) => (
             <ProfilePostItem key={post.id} post={post} />
-          ))}
+          ))
+        ) : (
+          <p>You have never posted a moment.</p>  // 显示当没有帖子时的消息
+        )}
         </Stack>
       </Grid>
     </Grid>

@@ -9,7 +9,7 @@ import { paths } from 'src/routes/paths';
 
 import { useAuthContext } from 'src/auth/hooks';
 
-import { _userAbout, _userFeeds } from 'src/_mock';
+import { _userAbout } from 'src/_mock';
 
 import Iconify from 'src/components/iconify';
 import { useSettingsContext } from 'src/components/settings';
@@ -20,11 +20,10 @@ import ProfileCover from '../profile-cover';
 import ProfileFriends from '../profile-friends';
 import ProfileGallery from '../profile-gallery';
 import ProfileFollowers from '../profile-followers';
-import { axiosSimple, axiosTest } from '@/utils/axios';
+import { axiosTest } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { jwtDecode } from '@/auth/context/jwt/utils';
 import { useSnackbar } from 'notistack';
-import { useWebSocketManager } from '@/websocket/context/websocket_provider';
 
 // ----------------------------------------------------------------------
 
@@ -79,7 +78,7 @@ export default function UserProfileView() {
         }
       }
 
-      const resp = await axiosSimple.get(endpoints.activity.me.all + '?userID=' + userID, httpConfig)
+      const resp = await axiosTest.get(endpoints.activity.me.all + '?userID=' + userID, httpConfig)
       if (resp.data.status_code === 0) {
         setJoinedActivities(resp.data.Data)
       } else {
@@ -140,7 +139,7 @@ export default function UserProfileView() {
         }
       }
 
-      const resp = await axiosSimple.get(endpoints.moment.me, httpConfig)
+      const resp = await axiosTest.get(endpoints.moment.me, httpConfig)
       if (resp.data.status_code === 0) {
         setMoments(resp.data.Data.moments)
       } else {
@@ -157,6 +156,17 @@ export default function UserProfileView() {
     fetchFriend()
     fetchMyMoments()
   }, [])
+
+  const handleFollowChange = useCallback((followerId, newFollowStatus) => {
+    setFollower(currentFollowers =>
+      currentFollowers.map(follower =>
+        follower.id === followerId ? { ...follower, isFollowed: newFollowStatus } : follower
+      )
+    );
+
+    fetchFriend()
+
+  }, [fetchFriend]);
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -210,7 +220,7 @@ export default function UserProfileView() {
 
       {currentTab === 'profile' && <ProfileHome info={_userAbout} posts={moments} />}
 
-      {currentTab === 'followers' && <ProfileFollowers followers={follower} />}
+      {currentTab === 'followers' && <ProfileFollowers followers={follower} onFollowChange={handleFollowChange} />}
 
       {currentTab === 'friends' && (
         <ProfileFriends

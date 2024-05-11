@@ -8,7 +8,7 @@ export default function TourCreatePage() {
   return (
     <>
       <Helmet>
-        <title> Create a new tour</title>
+        <title> Create a new activity</title>
       </Helmet>
 
       <TourCreateView />

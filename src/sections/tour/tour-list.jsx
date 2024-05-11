@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Pagination, { paginationClasses } from '@mui/material/Pagination';
@@ -11,13 +11,18 @@ import TourItem from './tour-item';
 import { axiosSimple } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { useSnackbar } from 'notistack';
-import { error } from '@/theme/palette';
 
 // ----------------------------------------------------------------------
 
 export default function TourList({ tours }) {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
+  const itemsPerPage = 6;
+  const [page, setPage] = useState(1);
+
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
 
   const handleView = useCallback(
     (id) => {
@@ -28,23 +33,25 @@ export default function TourList({ tours }) {
 
   const handleJoin = async (tour) => {
     try {
-      const token = sessionStorage.getItem('token')
+      const token = sessionStorage.getItem('token');
       const httpConfig = {
         headers: {
           'Authorization': `Bearer ${token}`,
         }
-      }
+      };
 
-      const resp = await axiosSimple.post(endpoints.activity.join + "?activityID=" + tour.activityId, null, httpConfig)
+      const resp = await axiosSimple.post(endpoints.activity.join + "?activityID=" + tour.activityId, null, httpConfig);
       if (resp.data.status_code === 0) {
-        enqueueSnackbar(resp.data.status_msg)
+        enqueueSnackbar(resp.data.status_msg);
       } else {
-        enqueueSnackbar(resp.data.status_msg, { variant: "error" })
+        enqueueSnackbar(resp.data.status_msg, { variant: "error" });
       }
-    } catch(err) {
-      enqueueSnackbar(err.toString(), { variant: "error" })
+    } catch (err) {
+      enqueueSnackbar(err.toString(), { variant: "error" });
     }
-  }
+  };
+
+  const displayedTours = tours.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   return (
     <>
@@ -57,21 +64,23 @@ export default function TourList({ tours }) {
           md: 'repeat(3, 1fr)',
         }}
       >
-        {tours.map((tour) => (
+        {displayedTours.map((tour) => (
           <TourItem
             key={tour.activityId}
             tour={tour}
             onView={() => handleView(tour.activityId)}
-            onJoin={async() => {
-              await handleJoin(tour)
+            onJoin={async () => {
+              await handleJoin(tour);
             }}
           />
         ))}
       </Box>
 
-      {tours.length > 8 && (
+      {tours.length > itemsPerPage && (
         <Pagination
-          count={8}
+          count={Math.ceil(tours.length / itemsPerPage)}
+          page={page}
+          onChange={handlePageChange}
           sx={{
             mt: 8,
             [`& .${paginationClasses.ul}`]: {

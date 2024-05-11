@@ -205,9 +205,16 @@ export default function HomeView() {
 
       const response = await axiosInstance.post(endpoints.moment.create, formData);
       if (response.data.status_code === 0) {
+        const newMoment = {
+          content: data.content,
+          image: file ? URL.createObjectURL(file) : null,
+          // 如果接口返回新Moment的具体信息，可以直接使用接口返回的数据
+          ...response.data.newMoment
+        };
+        setMoments(prevMoments => [newMoment, ...prevMoments]);
         setSuccess(true)
         reset({ content: '', file: [] });
-        setSnackbarInfo({ open: true, message: 'Post successfully created!', type: 'success' });
+        setSnackbarInfo({ open: true, message: 'Moment successfully created!', type: 'success' });
       } else {
         setSuccess(false)
         setSnackbarInfo({ open: true, message: 'Post failed to create!', type: 'error' });

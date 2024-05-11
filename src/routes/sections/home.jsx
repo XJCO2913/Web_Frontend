@@ -11,16 +11,12 @@ const HomePage = lazy(() => import('src/pages/home/app'));
 
 // USER
 const UserProfilePage = lazy(() => import('src/pages/home/user/profile'));
-const UserListPage = lazy(() => import('src/pages/home/user/list'));
 const UserAccountPage = lazy(() => import('src/pages/home/user/account'));
 
 // TOUR
 const TourDetailsPage = lazy(() => import('src/pages/home/tour/details'));
 const TourListPage = lazy(() => import('src/pages/home/tour/list'));
 const TourCreatePage = lazy(() => import('src/pages/home/tour/new'));
-
-// Chat
-const ChatPage = lazy(() => import('src/pages/home/chat'));
 
 // Payment
 const PaymentPage = lazy(() => import('src/pages/payment'));
@@ -46,7 +42,6 @@ export const homeRoutes = [
         children: [
           { element: <UserProfilePage />, index: true },
           { path: 'profile', element: <UserProfilePage /> },
-          { path: 'list', element: <UserListPage /> },
           { path: 'account', element: <UserAccountPage /> },
         ],
       },
@@ -59,7 +54,6 @@ export const homeRoutes = [
           { path: 'new', element: <TourCreatePage /> },
         ],
       },
-      { path: 'chat', element: <ChatPage /> },
       {
         path: 'payment', element: <PaymentPage />
       }

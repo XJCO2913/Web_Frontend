@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -14,28 +14,7 @@ import { endpoints } from 'src/api';
 
 // ----------------------------------------------------------------------
 
-export default function ProfileFollowers({ followers }) {
-  const handleClick = useCallback(
-    async (followerId, isCurrentlyFollowed) => {
-      try {
-        const action = isCurrentlyFollowed ? 'unfollow' : 'follow';
-        const response = await axiosTest.post(`${endpoints.user.followUser}`, {
-          followingId: followerId,
-          action: action
-        });
-        if (response.status_code === 0) {
-          // Optionally update the follower list state if needed, or let a parent component handle it
-          console.log('Follow status updated successfully');
-        } else {
-          console.error('Failed to update follow status:', response.data);
-        }
-      } catch (error) {
-        console.error('Error updating follow status:', error.response || error);
-      }
-    },
-    []
-  );
-
+export default function ProfileFollowers({ followers, onFollowChange }) {
   if (followers.length === 0) {
     return (
       <>
@@ -56,7 +35,8 @@ export default function ProfileFollowers({ followers }) {
             <FollowerItem
               key={follower.id}
               follower={follower}
-              onSelected={() => handleClick(follower.userId, follower.isFollowed)}
+              initialFollowStatus={follower.isFollowed}
+              onFollowChange={onFollowChange}
             />
           ))}
         </Box>
@@ -67,12 +47,34 @@ export default function ProfileFollowers({ followers }) {
 
 ProfileFollowers.propTypes = {
   followers: PropTypes.array,
+  onFollowChange: PropTypes.func,
 };
 
 // ----------------------------------------------------------------------
 
-function FollowerItem({ follower, onSelected }) {
-  const { name, region, avatarUrl, isFollowed } = follower;
+function FollowerItem({ follower, initialFollowStatus, onFollowChange }) {
+  const { name, region, avatarUrl } = follower;
+  const [isFollowed, setIsFollowed] = useState(initialFollowStatus);
+
+  const handleClick = useCallback(
+    async (followerId) => {
+      try {
+        const url = `${endpoints.user.followUser}?followingId=${followerId}`;
+        const response = await axiosTest.post(url);
+        setIsFollowed(true);
+        if (response.data.status_code === 0) {
+          // Optionally update the follower list state if needed, or let a parent component handle it
+          onFollowChange(followerId, true); 
+          console.log('Follow status updated successfully');
+        } else {
+          console.error('Failed to update follow status:', response.data);
+        }
+      } catch (error) {
+        console.error('Error updating follow status:', error.response || error);
+      }
+    },
+    [onFollowChange]
+  );
 
   return (
     <Card
@@ -114,7 +116,7 @@ function FollowerItem({ follower, onSelected }) {
         startIcon={
           isFollowed ? <Iconify width={18} icon="eva:checkmark-fill" sx={{ mr: -0.75 }} /> : null
         }
-        onClick={onSelected}
+        onClick={!isFollowed ? () => handleClick(follower.id) : undefined}
         sx={{ flexShrink: 0, ml: 1.5 }}
       >
         {isFollowed ? 'Followed' : 'Follow'}
@@ -127,4 +129,6 @@ FollowerItem.propTypes = {
   follower: PropTypes.object,
   onSelected: PropTypes.func,
   selected: PropTypes.bool,
+  initialFollowStatus: PropTypes.bool,
+  onFollowChange: PropTypes.func,
 };

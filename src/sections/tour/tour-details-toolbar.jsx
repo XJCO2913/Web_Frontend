@@ -3,18 +3,14 @@ import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
-import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 import { RouterLink } from 'src/routes/components';
 
 import Iconify from 'src/components/iconify';
-import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { useSnackbar } from 'notistack';
 import { useEffect, useState } from 'react';
-import { axiosSimple } from '@/utils/axios';
+import { axiosTest } from '@/utils/axios';
 import { endpoints } from '@/api';
 import { jwtDecode } from '@/auth/context/jwt/utils';
 
@@ -23,13 +19,10 @@ import { jwtDecode } from '@/auth/context/jwt/utils';
 export default function TourDetailsToolbar({
   publish,
   backLink,
-  editLink,
-  liveLink,
-  publishOptions,
-  onChangePublish,
   sx,
   isJoined,
   activityId,
+  onJoinSuccess,
   ...other
 }) {
   const { enqueueSnackbar } = useSnackbar()
@@ -47,16 +40,11 @@ export default function TourDetailsToolbar({
         return
       }
 
-      const httpConfig = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      }
-
-      const resp = await axiosSimple.post(endpoints.activity.join + "?activityID=" + activityId, null, httpConfig)
+      const resp = await axiosTest.post(endpoints.activity.join + "?activityID=" + activityId, null)
       if (resp.data.status_code === 0) {
         enqueueSnackbar(resp.data.status_msg)
         setCurIsJoined(true)
+        onJoinSuccess()
       } else {
         enqueueSnackbar(resp.data.status_msg, { variant: "error" })
       }
@@ -118,4 +106,7 @@ TourDetailsToolbar.propTypes = {
   publish: PropTypes.string,
   publishOptions: PropTypes.array,
   sx: PropTypes.object,
+  isJoined: PropTypes.bool,
+  activityId: PropTypes.string,
+  onJoinSuccess: PropTypes.func.isRequired,
 };

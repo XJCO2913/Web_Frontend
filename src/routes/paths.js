@@ -1,8 +1,4 @@
-import { _id } from 'src/_mock/assets';
-
 // ----------------------------------------------------------------------
-const MOCK_ID = _id[1];
-
 
 // ROOT PATH AFTER LOGIN SUCCESSFUL
 export const PATH_AFTER_LOGIN = '/home';
@@ -22,10 +18,8 @@ export const paths = {
   // HOME
   home: {
     root: ROOTS.HOME,
-    chat: `${ROOTS.HOME}/chat`,
     user: {
       root: `${ROOTS.HOME}/user`,
-      list: `${ROOTS.HOME}/user/list`,
       profile: `${ROOTS.HOME}/user/profile`,
       account: `${ROOTS.HOME}/user/account`,
     },
@@ -33,11 +27,6 @@ export const paths = {
       root: `${ROOTS.HOME}/tour`,
       new: `${ROOTS.HOME}/tour/new`,
       details: (id) => `${ROOTS.HOME}/tour/${id}`,
-      edit: `${ROOTS.HOME}/tour/${MOCK_ID}/edit`,
-      demo: {
-        details: `${ROOTS.HOME}/tour/${MOCK_ID}`,
-        edit: `${ROOTS.HOME}/tour/${MOCK_ID}/edit`,
-      },
     },
   },
 };

@@ -8,7 +8,7 @@ export default function TourListPage() {
   return (
     <>
       <Helmet>
-        <title> Tour List</title>
+        <title> Activity List</title>
       </Helmet>
 
       <TourListView />

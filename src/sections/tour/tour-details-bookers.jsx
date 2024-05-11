@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import { useState, useRef, useEffect } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -9,6 +10,7 @@ import Avatar from '@mui/material/Avatar';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
 
 import Iconify from 'src/components/iconify';
 import AMapPathDrawer from 'src/components/map'
@@ -61,7 +63,7 @@ async function fetchRouteData(bookerId, activityId) {
       return null;  // Return null or throw an error based on your error handling strategy
     }
   } catch (error) {
-    console.error('Failed to fetch route data:', error);
+    return null
   }
 }
 
@@ -91,26 +93,16 @@ export default function TourDetailsBookers({ bookers, path, id }) {
       }
     });
   };
-  
+
   return (
     <>
       {currentPath && (
         <Stack mb={3} spacing={1} mt={-2}>
           <Typography variant="h6">Route View</Typography>
-          <Box
-            rowGap={2}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              md: 'repeat(2, 1fr)',
-            }}
-            sx={{ mb: -2 }}
-          >
-            <AMapPathDrawer
-              paths={currentPath}
-              style={{ width: '100%', borderRadius: '8px' }}
-            />
-          </Box>
+          <AMapPathDrawer
+            paths={currentPath}
+            style={{ width: '100%', borderRadius: '8px' }}
+          />
         </Stack>
       )}
 
@@ -133,6 +125,7 @@ export default function TourDetailsBookers({ bookers, path, id }) {
             onChangePath={handlePathChange}
             index={index}
             activityID={id}
+            initialFollowStatus={booker.isFollowed}
           />
         ))}
       </Box>
@@ -149,10 +142,31 @@ TourDetailsBookers.propTypes = {
 
 // ----------------------------------------------------------------------
 
-function BookerItem({ booker, user, onChangePath, index, activityID }) {
+function BookerItem({ booker, user, onChangePath, index, activityID, initialFollowStatus }) {
   const fileRef = useRef(null);
   const [buttonText, setButtonText] = useState('show');
   const { enqueueSnackbar } = useSnackbar();
+  const [isFollowed, setIsFollowed] = useState(initialFollowStatus);
+
+  const handleClick = useCallback(
+    async (followerId) => {
+      try {
+        const url = `${endpoints.user.followUser}?followingId=${followerId}`;
+        const response = await axiosTest.post(url);
+        if (response.data.status_code === 0) {
+          setIsFollowed(true);
+          enqueueSnackbar('Follow user successfully!', { variant: 'success' });
+        } else {
+          console.error('Failed to follow:', response.data);
+          enqueueSnackbar('Failed to follow user!', { variant: 'error' });
+        }
+      } catch (error) {
+        console.error('Error during follow operation:', error.response || error);
+        enqueueSnackbar('Failed to follow user!', { variant: 'error' });
+      }
+    },
+    []
+  );
 
   const handleAttach = () => {
     if (fileRef.current) {
@@ -186,24 +200,30 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
     } catch (error) {
       console.error('Error uploading file:', error);
       enqueueSnackbar('Error uploading file: ' + error.message, { variant: 'error' });
+    } finally {
+      event.target.value = null;
     }
   };
 
   const handleChangePath = async () => {
     if (buttonText === 'show') {
-      setButtonText('hide');
       const fetchedData = await fetchRouteData(booker.userID, activityID);
+      if (fetchedData === null) {
+        enqueueSnackbar('User does not have any route data!', { variant: 'warning' });
+        return; // 直接返回，不执行后续操作
+      }
       if (fetchedData) {
         onChangePath(fetchedData.route, getColor(index), {
           avatarUrl: fetchedData.avatarUrl,
-          userID:booker.userID
+          userID: booker.userID
         }, true); // 添加路径
+        setButtonText('hide');
       }
     } else {
       setButtonText('show');
       onChangePath(null, null, {
-        userID:booker.userID
-      }, false);
+        userID: booker.userID
+      }, false); // 移除路径
     }
   };
 
@@ -211,6 +231,16 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
     return colors[index % colors.length];
   };
 
+  const handleDownload = () => {
+    const fileName = `download-${uuidv4()}.xml`;
+    const link = document.createElement('a');
+    link.href = '/example.xml';
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   return (
     <Stack component={Card} direction="row" spacing={2} key={booker?.userID} sx={{ p: 3 }}>
       <Avatar alt={booker?.username} src={booker?.avatarURL} sx={{ width: 48, height: 48 }} />
@@ -225,18 +255,34 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
 
       <Stack spacing={2} flexGrow={1}>
         <ListItemText
-          primary={booker?.username
-          }
-
-          secondary={
+          primary={
             <Stack direction="row" alignItems="center" spacing={0.5}>
+              {booker?.username}
               <div style={{
                 width: '10px',
                 height: '10px',
                 borderRadius: '50%',
-                backgroundColor: getColor(index), // 使用函数获取颜色
-                marginRight: '5px',
+                backgroundColor: getColor(index),
+                marginRight: '-5px',
+                marginLeft: '5px',
               }} />
+              {user?.username !== booker?.username && (
+                <IconButton
+                  size="small"
+                  onClick={!isFollowed ? () => handleClick(booker.userID) : undefined}
+                >
+                  {isFollowed ? (
+                    <Iconify icon="ic:baseline-check" width={20} />
+                  ) : (
+                    <Iconify icon="ic:round-add" width={20} />
+                  )}
+                </IconButton>
+              )}
+
+            </Stack>
+          }
+          secondary={
+            <Stack direction="row" alignItems="center" spacing={0.5}>
               <Iconify icon="solar:buildings-2-bold-duotone" width={16} />
               {booker?.region}
             </Stack>
@@ -253,18 +299,26 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
           <Stack spacing={1} direction="row" sx={{ mb: -1 }}>
             <Button
               size="small"
-              variant={'outlined'}
+              variant="outlined"
               onClick={handleAttach}
             >
               upload
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={handleDownload}
+            >
+              dowload
             </Button>
           </Stack>
         )}
       </Stack>
 
+
       <Button
         size="small"
-        variant={'outlined'}
+        variant="outlined"
         onClick={handleChangePath}
       >
         {buttonText}
@@ -275,10 +329,10 @@ function BookerItem({ booker, user, onChangePath, index, activityID }) {
 
 BookerItem.propTypes = {
   booker: PropTypes.object,
-  onSelected: PropTypes.func,
   selected: PropTypes.bool,
   user: PropTypes.object,
   onChangePath: PropTypes.func,
   index: PropTypes.number,
   activityID: PropTypes.string,
+  initialFollowStatus: PropTypes.bool,
 };
