@@ -274,7 +274,7 @@ export default function TourNewEditForm({ currentTour }) {
                 disablePortal
                 id="activityScale"
                 name="acticityScale"
-                options={['1~10 people', '11~30 people', '31~100 people']}
+                options={['1~10 people', '11~30 people']}
                 onChange={(event, newValue) => {
                   switch (newValue) {
                     case '1~10 people':
@@ -286,12 +286,7 @@ export default function TourNewEditForm({ currentTour }) {
                       setActivityScale('medium')
                       setValue('level', 'medium', { shouldValidate: true })
                       break
-
-                    case '31~100 people':
-                      setActivityScale('large')
-                      setValue('level', 'large', { shouldValidate: true })
-                      break
-
+                      
                     default:
                       if (!isActivityScaleError) {
                         setIsActivityScaleError(true)
